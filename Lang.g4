@@ -1,7 +1,22 @@
 grammar Lang;
 
+stmt:
+    CONST declareIdentifier '=' expr ';'
+    | RETURN expr ';'
+    | declareIdentifier ('=' expr)? ';'
+    | expr ';'
+    ;
+
+declareIdentifier: IDENTIFIER IDENTIFIER;
+
+expr:
+    addSubExpr
+    | IDENTIFIER ASSIGNMENT_OPERATOR expr
+    | '(' expr ')'
+    ;
+
 addSubExpr: multDivExpr ((ADD|SUB) multDivExpr)*;
-    
+
 multDivExpr: atomExpr ((MULT|DIV) atomExpr)*;
 
 atomExpr:
@@ -19,14 +34,26 @@ functionInvoke:
     | IDENTIFIER '(' addSubExpr (',' addSubExpr)* ')'
     ;
 
-WHITESPACE: [ \t\r\n] -> skip;
+CONST: 'const';
+RETURN: 'return';
 
-IDENTIFIER : [_a-zA-Z][_a-zA-Z0-9]*;
-STRUCT_MEMBER : IDENTIFIER '.' IDENTIFIER;
-UNSIGNED_INT : [0-9]+;
-UNSIGNED_REAL : [0-9]+'.'[0-9]*;
+IDENTIFIER: [_a-zA-Z][_a-zA-Z0-9]*;
+STRUCT_MEMBER: IDENTIFIER '.' IDENTIFIER;
+UNSIGNED_INT: [0-9]+;
+UNSIGNED_REAL: [0-9]+'.'[0-9]*;
 
 ADD: '+';
 SUB: '-';
 MULT: '*';
 DIV: '/';
+
+ASSIGNMENT_OPERATOR: 
+    '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|=';
+
+WHITESPACE: [ \t\r\n] -> skip;
+
+BLOCK_COMMENT:
+    '/*' .*? '*/' -> skip;
+
+LINE_COMMENT:
+    '//' ~[\r\n]* -> skip;

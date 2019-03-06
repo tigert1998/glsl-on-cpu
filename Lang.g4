@@ -1,12 +1,16 @@
 grammar Lang;
 
+prog: (declarationStmt | functionDefinition | functionForwardDeclarationStmt)+;
+
 functionDefinition: functionSignature compoundStmt;
 
-functionSignature: (type | VOID) IDENTIFIER '(' functionParameter (',' functionParameter)* ')';
+functionSignature: (type | VOID) IDENTIFIER '(' (functionParameter (',' functionParameter)*)? ')';
 
 functionParameter: (CONST? IN? | OUT | INOUT) type variableMaybeArray;
 
 // statements
+
+functionForwardDeclarationStmt: functionSignature ';'; // forward function declaration don't belong to normal stmt
 
 stmt:
     declarationStmt

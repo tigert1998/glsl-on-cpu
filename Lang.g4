@@ -1,12 +1,24 @@
 grammar Lang;
 
-structDefinition: STRUCT IDENTIFIER? '{' (variableDeclaration ';')+ '}';
+functionDefinition: functionSignature compoundStmt;
 
-funcDefinition: funcSignature compoundStmt;
+functionSignature: (type | VOID) IDENTIFIER '(' functionParameter (',' functionParameter)* ')';
 
-funcSignature: IDENTIFIER IDENTIFIER '(' funcArg (',' funcArg)* ')';
+functionParameter: (CONST? IN? | OUT | INOUT) type variableMaybeArray;
 
-funcArg: (CONST? IN? | OUT | INOUT) IDENTIFIER IDENTIFIER;
+// statements
+
+stmt:
+    declarationStmt
+    | selectionStmt
+    | compoundStmt
+    | RETURN expr ';'
+    | BREAK ';'
+    | CONTINUE ';'
+    | expr ';'
+    ;
+
+compoundStmt: '{' stmt* '}';
 
 selectionStmt: IF '(' expr ')' (
     (stmt | compoundStmt) (
@@ -14,22 +26,28 @@ selectionStmt: IF '(' expr ')' (
     )?
 );
 
-compoundStmt: '{' stmt* '}';
+declarationStmt:
+    CONST type variableMaybeArray '=' expr (',' variableMaybeArray '=' expr)* ';'
+    | type variableMaybeArray ('=' expr)? (',' variableMaybeArray ('=' expr)?)* ';';
 
-stmt:
-    CONST variableDeclaration '=' expr ';'
-    | RETURN expr ';'
-    | BREAK ';'
-    | CONTINUE ';'
-    | variableDeclaration ('=' expr)? ';'
-    | expr ';'
-    | selectionStmt
-    ;
+variableMaybeArray: IDENTIFIER ('[' expr? ']')?;
 
-variableDeclaration: (basicType | structType) IDENTIFIER;
+// encapsulate types
+
+structDefinition: STRUCT IDENTIFIER? '{' (type variableMaybeArray (',' variableMaybeArray)* ';')+ '}';
+
+type: basicType | structType;
+
+basicType:
+    (BOOL | INT | UINT | FLOAT | BVECN | IVECN | UVECN | VECN | MATNXM | MATN) ('[' expr? ']')?;
+
+structType:
+    (IDENTIFIER | structDefinition) ('[' expr? ']')?;
+
+// expression
 
 expr:
-    | UNSIGNED_INT
+    UNSIGNED_INT
     | UNSIGNED_REAL
     | IDENTIFIER
     | functionOrStructConstructorInvocation
@@ -79,16 +97,12 @@ expr:
     ;
 
 basicTypeConstructorInvocation:
-    basicType '(' (expr (',' expr)* |) ')';
+    basicType '(' ')'
+    | basicType '(' expr (',' expr)* ')';
 
 functionOrStructConstructorInvocation:
-    structType '(' (expr (',' expr)* |) ')';
-
-basicType:
-    (BOOL | INT | UINT | FLOAT | BVECN | IVECN | UVECN | VECN | MATNXM | MATN) ('[' (|expr) ']')?;
-
-structType:
-    IDENTIFIER ('[' (|expr) ']')?;
+    structType '(' ')'
+    | structType '(' expr (',' expr)* ')';
 
 // keywords
 IN: 'in';
@@ -103,6 +117,7 @@ CONTINUE: 'continue';
 STRUCT: 'struct';
 
 // basic types, also keywords
+VOID: 'void';
 BOOL: 'bool';
 INT: 'int';
 UINT: 'uint';

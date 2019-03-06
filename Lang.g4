@@ -12,13 +12,20 @@ stmt:
     declarationStmt
     | selectionStmt
     | compoundStmt
+    | loopStmt
+    | exprStmt
     | RETURN expr ';'
     | BREAK ';'
     | CONTINUE ';'
-    | expr ';'
+    | ';' // permit empty statement
     ;
 
 compoundStmt: '{' stmt* '}';
+
+loopStmt:
+    WHILE '(' expr ')' (compoundStmt | stmt)
+    | DO compoundStmt WHILE '(' expr ')' ';'
+    | FOR '(' (exprStmt | declarationStmt) exprStmt expr ')' compoundStmt;
 
 selectionStmt: IF '(' expr ')' (
     (stmt | compoundStmt) (
@@ -29,6 +36,8 @@ selectionStmt: IF '(' expr ')' (
 declarationStmt:
     CONST type variableMaybeArray '=' expr (',' variableMaybeArray '=' expr)* ';'
     | type variableMaybeArray ('=' expr)? (',' variableMaybeArray ('=' expr)?)* ';';
+
+exprStmt: expr ';';
 
 variableMaybeArray: IDENTIFIER ('[' expr? ']')?;
 
@@ -47,7 +56,8 @@ structType:
 // expression
 
 expr:
-    UNSIGNED_INT
+    TRUE | FALSE
+    | UNSIGNED_INT
     | UNSIGNED_REAL
     | IDENTIFIER
     | functionOrStructConstructorInvocation
@@ -115,6 +125,11 @@ ELSE: 'else';
 BREAK: 'break';
 CONTINUE: 'continue';
 STRUCT: 'struct';
+WHILE: 'while';
+DO: 'do';
+FOR: 'for';
+TRUE: 'true';
+FALSE: 'false';
 
 // basic types, also keywords
 VOID: 'void';

@@ -1,11 +1,25 @@
 grammar Lang;
 
-selectionStmt:
-    IF '(' expr ')' stmt;
+funcDefinition: funcSignature compoundStmt;
+
+funcSignature: IDENTIFIER IDENTIFIER '(' funcArg (',' funcArg)* ')';
+
+funcArg:
+    (CONST? IN? | OUT | INOUT) IDENTIFIER IDENTIFIER;
+
+selectionStmt: IF '(' expr ')' (
+    (stmt | compoundStmt) (
+        ELSE (stmt | compoundStmt)
+    )?
+);
+
+compoundStmt: '{' stmt* '}';
 
 stmt:
     CONST declareIdentifier '=' expr ';'
     | RETURN expr ';'
+    | BREAK ';'
+    | CONTINUE ';'
     | declareIdentifier ('=' expr)? ';'
     | expr ';'
     ;
@@ -58,13 +72,19 @@ expr:
         | XOR_ASSIGN
         | OR_ASSIGN
     ) expr
-    | expr (',' expr)+
+    // | expr (',' expr)+ // do not support comma expresion temporarily
     | '(' expr ')'
     ;
 
+IN: 'in';
+OUT: 'out';
+INOUT: 'inout';
 CONST: 'const';
 RETURN: 'return';
 IF: 'if';
+ELSE: 'else';
+BREAK: 'break';
+CONTINUE: 'continue';
 
 IDENTIFIER: [_a-zA-Z][_a-zA-Z0-9]*;
 UNSIGNED_INT: [0-9]+;

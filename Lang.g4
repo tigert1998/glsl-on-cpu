@@ -1,5 +1,8 @@
 grammar Lang;
 
+selectionStmt:
+    IF '(' expr ')' stmt;
+
 stmt:
     CONST declareIdentifier '=' expr ';'
     | RETURN expr ';'
@@ -10,45 +13,107 @@ stmt:
 declareIdentifier: IDENTIFIER IDENTIFIER;
 
 expr:
-    addSubExpr
-    | IDENTIFIER ASSIGNMENT_OPERATOR expr
-    | '(' expr ')'
-    ;
-
-addSubExpr: multDivExpr ((ADD|SUB) multDivExpr)*;
-
-multDivExpr: atomExpr ((MULT|DIV) atomExpr)*;
-
-atomExpr:
-    '(' addSubExpr ')'
-    | (ADD|SUB) atomExpr
     | UNSIGNED_INT
     | UNSIGNED_REAL
-    | STRUCT_MEMBER
     | IDENTIFIER
-    | functionInvoke
-    ;
-
-functionInvoke: 
-    IDENTIFIER '()'
-    | IDENTIFIER '(' addSubExpr (',' addSubExpr)* ')'
+    | IDENTIFIER '()' // function invoke
+    | IDENTIFIER '(' expr (',' expr)* ')'
+    | expr '[' expr ']' // array subscripting
+    | expr '.' IDENTIFIER // struct member
+    | expr (INCREMENT | DECREMENT)
+    | (
+        INCREMENT
+        | DECREMENT
+        | PLUS
+        | MINUS
+        | LOGICAL_NOT
+        | BITWISE_NOT
+    ) expr
+    | expr (MULT | DIV | MOD) expr
+    | expr (PLUS | MINUS) expr
+    | expr (SHL | SHR) expr
+    | expr (
+        LESS
+        | LESS_EQUAL
+        | GREATER
+        | GREATER_EQUAL
+    ) expr
+    | expr (EQUAL | NOT_EQUAL) expr
+    | expr BITWISE_AND expr
+    | expr BITWISE_XOR expr
+    | expr BITWISE_OR expr
+    | expr LOGICAL_AND expr
+    | expr LOGICAL_OR expr
+    | expr '?' expr ':' expr
+    | IDENTIFIER (
+        ASSIGN
+        | MULT_ASSIGN
+        | DIV_ASSIGN
+        | MOD_ASSIGN
+        | PLUS_ASSIGN
+        | MINUS_ASSIGN
+        | SHL_ASSIGN
+        | SHR_ASSIGN
+        | AND_ASSIGN
+        | XOR_ASSIGN
+        | OR_ASSIGN
+    ) expr
+    | expr (',' expr)+
+    | '(' expr ')'
     ;
 
 CONST: 'const';
 RETURN: 'return';
+IF: 'if';
 
 IDENTIFIER: [_a-zA-Z][_a-zA-Z0-9]*;
-STRUCT_MEMBER: IDENTIFIER '.' IDENTIFIER;
 UNSIGNED_INT: [0-9]+;
 UNSIGNED_REAL: [0-9]+'.'[0-9]*;
 
-ADD: '+';
-SUB: '-';
+INCREMENT: '++';
+DECREMENT: '--';
+LOGICAL_NOT: '!';
+BITWISE_NOT: '~';
+
 MULT: '*';
 DIV: '/';
+MOD: '%';
 
-ASSIGNMENT_OPERATOR: 
-    '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|=';
+PLUS: '+';
+MINUS: '-';
+
+SHL: '<<';
+SHR: '>>';
+
+LESS: '<';
+LESS_EQUAL: '<=';
+GREATER: '>';
+GREATER_EQUAL: '>=';
+
+EQUAL: '==';
+NOT_EQUAL: '!=';
+
+BITWISE_AND: '&';
+
+BITWISE_XOR: '^';
+
+BITWISE_OR: '|';
+
+LOGICAL_AND: '&&';
+
+LOGICAL_OR: '||';
+
+ASSIGN: '=';
+MULT_ASSIGN: '*=';
+DIV_ASSIGN: '/=';
+MOD_ASSIGN: '%=';
+PLUS_ASSIGN: '+=';
+MINUS_ASSIGN: '-=';
+SHL_ASSIGN: '<<=';
+SHR_ASSIGN: '>>=';
+AND_ASSIGN: '&=';
+XOR_ASSIGN: '^=';
+OR_ASSIGN: '|=';
 
 WHITESPACE: [ \t\r\n] -> skip;
 

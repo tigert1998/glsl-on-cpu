@@ -1,11 +1,12 @@
 grammar Lang;
 
+structDefinition: STRUCT IDENTIFIER? '{' (variableDeclaration ';')+ '}';
+
 funcDefinition: funcSignature compoundStmt;
 
 funcSignature: IDENTIFIER IDENTIFIER '(' funcArg (',' funcArg)* ')';
 
-funcArg:
-    (CONST? IN? | OUT | INOUT) IDENTIFIER IDENTIFIER;
+funcArg: (CONST? IN? | OUT | INOUT) IDENTIFIER IDENTIFIER;
 
 selectionStmt: IF '(' expr ')' (
     (stmt | compoundStmt) (
@@ -16,22 +17,23 @@ selectionStmt: IF '(' expr ')' (
 compoundStmt: '{' stmt* '}';
 
 stmt:
-    CONST declareIdentifier '=' expr ';'
+    CONST variableDeclaration '=' expr ';'
     | RETURN expr ';'
     | BREAK ';'
     | CONTINUE ';'
-    | declareIdentifier ('=' expr)? ';'
+    | variableDeclaration ('=' expr)? ';'
     | expr ';'
+    | selectionStmt
     ;
 
-declareIdentifier: IDENTIFIER IDENTIFIER;
+variableDeclaration: (basicType | structType) IDENTIFIER;
 
 expr:
     | UNSIGNED_INT
     | UNSIGNED_REAL
     | IDENTIFIER
-    | IDENTIFIER '()' // function invoke
-    | IDENTIFIER '(' expr (',' expr)* ')'
+    | functionOrStructConstructorInvocation
+    | basicTypeConstructorInvocation
     | expr '[' expr ']' // array subscripting
     | expr '.' IDENTIFIER // struct member
     | expr (INCREMENT | DECREMENT)
@@ -59,7 +61,7 @@ expr:
     | expr LOGICAL_AND expr
     | expr LOGICAL_OR expr
     | expr '?' expr ':' expr
-    | IDENTIFIER (
+    | expr (
         ASSIGN
         | MULT_ASSIGN
         | DIV_ASSIGN
@@ -76,6 +78,19 @@ expr:
     | '(' expr ')'
     ;
 
+basicTypeConstructorInvocation:
+    basicType '(' (expr (',' expr)* |) ')';
+
+functionOrStructConstructorInvocation:
+    structType '(' (expr (',' expr)* |) ')';
+
+basicType:
+    (BOOL | INT | UINT | FLOAT | BVECN | IVECN | UVECN | VECN | MATNXM | MATN) ('[' (|expr) ']')?;
+
+structType:
+    IDENTIFIER ('[' (|expr) ']')?;
+
+// keywords
 IN: 'in';
 OUT: 'out';
 INOUT: 'inout';
@@ -85,10 +100,31 @@ IF: 'if';
 ELSE: 'else';
 BREAK: 'break';
 CONTINUE: 'continue';
+STRUCT: 'struct';
+
+// basic types, also keywords
+BOOL: 'bool';
+INT: 'int';
+UINT: 'uint';
+FLOAT: 'float';
+DOUBLE: 'double';
+
+BVECN: 'bvec'[2-4];
+IVECN: 'ivec'[2-4];
+UVECN: 'uvec'[2-4];
+VECN: 'vec'[2-4];
+DVECN: 'dvec'[2-4];
+
+MATNXM: 'mat'[2-4]'x'[2-4];
+MATN: 'mat'[2-4];
+
+// others
 
 IDENTIFIER: [_a-zA-Z][_a-zA-Z0-9]*;
 UNSIGNED_INT: [0-9]+;
 UNSIGNED_REAL: [0-9]+'.'[0-9]*;
+
+// operators
 
 INCREMENT: '++';
 DECREMENT: '--';
@@ -134,6 +170,8 @@ SHR_ASSIGN: '>>=';
 AND_ASSIGN: '&=';
 XOR_ASSIGN: '^=';
 OR_ASSIGN: '|=';
+
+// others to skip
 
 WHITESPACE: [ \t\r\n] -> skip;
 

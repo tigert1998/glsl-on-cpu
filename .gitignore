@@ -1,4 +1,4 @@
-*
-!.gitignore
-!*.g4
-!readme.md
+.gradle
+build
+.DS_Store
+.idea

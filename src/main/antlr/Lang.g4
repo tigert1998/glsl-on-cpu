@@ -1,10 +1,12 @@
 grammar Lang;
 
-prog: (declarationStmt | functionDefinition | functionForwardDeclarationStmt)+;
+program: (declarationStmt | functionDefinition | functionForwardDeclarationStmt)+;
 
 functionDefinition: functionSignature compoundStmt;
 
-functionSignature: (type | VOID) IDENTIFIER '(' (functionParameter (',' functionParameter)*)? ')';
+functionSignature: (type | VOID) functionName=IDENTIFIER '(' functionParameterList ')';
+
+functionParameterList: (functionParameter (',' functionParameter)*)?;
 
 functionParameter: (CONST? IN? | OUT | INOUT) type variableMaybeArray;
 
@@ -38,8 +40,11 @@ selectionStmt: IF '(' expr ')' (
 );
 
 declarationStmt:
-    CONST type variableMaybeArray '=' expr (',' variableMaybeArray '=' expr)* ';'
-    | type variableMaybeArray ('=' expr)? (',' variableMaybeArray ('=' expr)?)* ';';
+    CONST type constDeclarationList ';'
+    | type declarationList ';';
+
+constDeclarationList: variableMaybeArray '=' expr (',' variableMaybeArray '=' expr)*;
+declarationList: variableMaybeArray ('=' expr)? (',' variableMaybeArray ('=' expr)?)*;
 
 exprStmt: expr ';';
 
@@ -60,13 +65,15 @@ structType:
 // expression
 
 expr:
-    TRUE | FALSE
-    | UNSIGNED_INT
-    | UNSIGNED_REAL
+    (TRUE | FALSE)
+    | INT_LITERAL
+    | UINT_LITERAL
+    | REAL_LITERAL
     | IDENTIFIER
     | functionOrStructConstructorInvocation
     | basicTypeConstructorInvocation
     | expr '[' expr ']' // array subscripting
+    | expr '.' functionOrStructConstructorInvocation // member function
     | expr '.' IDENTIFIER // struct member
     | expr (INCREMENT | DECREMENT)
     | (
@@ -155,8 +162,9 @@ MATN: 'mat'[2-4];
 // others
 
 IDENTIFIER: [_a-zA-Z][_a-zA-Z0-9]*;
-UNSIGNED_INT: [0-9]+;
-UNSIGNED_REAL: [0-9]+'.'[0-9]*;
+INT_LITERAL: [0-9]+;
+UINT_LITERAL: [0-9]+'u';
+REAL_LITERAL: [0-9]+'.'[0-9]*;
 
 // operators
 

@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Scope {
     static class FunctionInfo {
-        private FunctionDeclaration functionDeclaration;
+        private FunctionSignature functionSignature;
         private boolean defined, referenced;
     }
 

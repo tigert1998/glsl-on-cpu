@@ -52,7 +52,7 @@ variableMaybeArray: IDENTIFIER ('[' expr? ']')?;
 
 // encapsulate types
 
-structDefinition: STRUCT IDENTIFIER? '{' (type variableMaybeArray (',' variableMaybeArray)* ';')+ '}';
+structDefinition: STRUCT structName=IDENTIFIER? '{' (type variableMaybeArray (',' variableMaybeArray)* ';')+ '}';
 
 type: basicType | structType;
 

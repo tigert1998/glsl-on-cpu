@@ -40,8 +40,12 @@ selectionStmt: IF '(' expr ')' (
 );
 
 declarationStmt:
-    CONST type constDeclarationList ';'
-    | type declarationList ';';
+    constDeclarationStmt
+    | normalDeclarationStmt;
+
+constDeclarationStmt: CONST type constDeclarationList ';';
+
+normalDeclarationStmt: type declarationList ';';
 
 constDeclarationList: variableMaybeArray '=' expr (',' variableMaybeArray '=' expr)*;
 declarationList: variableMaybeArray ('=' expr)? (',' variableMaybeArray ('=' expr)?)*;
@@ -65,17 +69,14 @@ structType:
 // expression
 
 expr:
-    (TRUE | FALSE)
-    | INT_LITERAL
-    | UINT_LITERAL
-    | REAL_LITERAL
-    | IDENTIFIER
-    | functionOrStructConstructorInvocation
-    | basicTypeConstructorInvocation
-    | expr '[' expr ']' // array subscripting
-    | expr '.' functionOrStructConstructorInvocation // member function
-    | expr '.' IDENTIFIER // struct member
-    | expr (INCREMENT | DECREMENT)
+    (boolLiteral | INT_LITERAL | UINT_LITERAL | REAL_LITERAL) # literalExpr
+    | IDENTIFIER                                       # referenceExpr
+    | basicTypeConstructorInvocation                   # basicTypeConstructorInvocationExpr
+    | functionOrStructConstructorInvocation            # functionOrStructConstructorInvocationExpr
+    | expr '[' expr ']'                                # arraySubscriptingExpr
+    | expr '.' functionOrStructConstructorInvocation   # memberFunctionInvocationExpr
+    | expr '.' IDENTIFIER                              # elementSelectionExpr
+    | expr (INCREMENT | DECREMENT)                     # postfixUnaryExpr
     | (
         INCREMENT
         | DECREMENT
@@ -83,23 +84,23 @@ expr:
         | MINUS
         | LOGICAL_NOT
         | BITWISE_NOT
-    ) expr
-    | expr (MULT | DIV | MOD) expr
-    | expr (PLUS | MINUS) expr
-    | expr (SHL | SHR) expr
+    ) expr                                             # prefixUnaryExpr
+    | expr (MULT | DIV | MOD) expr                     # multDivModBinaryExpr
+    | expr (PLUS | MINUS) expr                         # plusMinusBinaryExpr
+    | expr (SHL | SHR) expr                            # shlShrBinaryExpr
     | expr (
         LESS
         | LESS_EQUAL
         | GREATER
         | GREATER_EQUAL
-    ) expr
-    | expr (EQUAL | NOT_EQUAL) expr
-    | expr BITWISE_AND expr
-    | expr BITWISE_XOR expr
-    | expr BITWISE_OR expr
-    | expr LOGICAL_AND expr
-    | expr LOGICAL_OR expr
-    | expr '?' expr ':' expr
+    ) expr                                             # lessGreaterBinaryExpr
+    | expr (EQUAL | NOT_EQUAL) expr                    # eqNeqBinaryExpr
+    | expr BITWISE_AND expr                            # bitwiseAndBinaryExpr
+    | expr BITWISE_XOR expr                            # bitwiseXorBinaryExpr
+    | expr BITWISE_OR expr                             # bitwiseOrBinaryExpr
+    | expr LOGICAL_AND expr                            # logicalAndBinaryExpr
+    | expr LOGICAL_OR expr                             # logicalOrBinaryExpr
+    | expr '?' expr ':' expr                           # ternaryConditionalExpr
     | expr (
         ASSIGN
         | MULT_ASSIGN
@@ -112,9 +113,9 @@ expr:
         | AND_ASSIGN
         | XOR_ASSIGN
         | OR_ASSIGN
-    ) expr
+    ) expr                                             # assignExpr
     // | expr (',' expr)+ // do not support comma expresion temporarily
-    | '(' expr ')'
+    | '(' expr ')'                                     # parameteredExpr
     ;
 
 basicTypeConstructorInvocation:
@@ -162,9 +163,10 @@ MATN: 'mat'[2-4];
 // others
 
 IDENTIFIER: [_a-zA-Z][_a-zA-Z0-9]*;
-INT_LITERAL: [0-9]+;
-UINT_LITERAL: [0-9]+'u';
-REAL_LITERAL: [0-9]+'.'[0-9]*;
+boolLiteral: TRUE | FALSE;
+INT_LITERAL: [1-9][0-9]* | '0' | '0'+[1-7][0-7]* | '0'[xX][0-9a-fA-F]+;
+UINT_LITERAL: INT_LITERAL 'u';
+REAL_LITERAL: [0-9]+'.'[0-9]* ([eE] [+-]? [0-9]+)?;
 
 // operators
 

@@ -1,7 +1,7 @@
 package ast.types;
 
 public class IntType extends Type {
-    public static IntType INT_TYPE = new IntType();
+    public static IntType TYPE = new IntType();
 
     @Override
     public boolean equals(Object obj) {

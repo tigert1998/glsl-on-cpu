@@ -1,12 +1,16 @@
 package ast;
 
+import ast.types.*;
+import ast.values.*;
+
 import java.util.*;
 
 public class Scope {
-    static class FunctionInfo {
+    static public class FunctionInfo {
         private FunctionSignature functionSignature;
         private boolean defined, referenced;
     }
 
-    private Map<String, FunctionInfo> functions = new TreeMap<>();
+    public Map<String, FunctionInfo> functions = new TreeMap<>();
+    public Map<String, Value> constants = new TreeMap<>();
 }

@@ -10,7 +10,7 @@ public class ProgramListener extends LangBaseListener {
             Main.error("struct isn't supported yet!");
         }
 
-        Type type = Type.fromBasicTypeContext(ctx.type().basicType());
+        Type type = Utility.typeFromBasicTypeContext(ctx.type().basicType());
 
         var declarationList = ctx.constDeclarationList();
         int length = declarationList.variableMaybeArray().size();

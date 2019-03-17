@@ -7,6 +7,6 @@ public class ConstantListener extends LangBaseListener {
 
     @Override
     public void exitLiteralExpr(LangParser.LiteralExprContext ctx) {
-        stack.push(Value.fromLiteralExprContext(ctx));
+        stack.push(Utility.valueFromLiteralExprContext(ctx));
     }
 }

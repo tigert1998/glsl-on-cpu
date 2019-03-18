@@ -15,11 +15,11 @@ public class Utility {
         if (ctx.MATNXM() != null) {
             int n = getDigitAt(ctx.MATNXM().getText(), 3);
             int m = getDigitAt(ctx.MATNXM().getText(), 5);
-            return new MatnxmType(n, m);
+            return MatnxmType.fromNM(n, m);
         }
         if (ctx.MATN() != null) {
             int n = getDigitAt(ctx.MATN().getText(), 3);
-            return new MatnxmType(n, n);
+            return MatnxmType.fromNM(n, n);
         }
         if (ctx.UINT() != null) return UintType.TYPE;
         if (ctx.UVECN() != null) return UvecnType.fromN(getDigitAt(ctx.UVECN().getText(), 4));

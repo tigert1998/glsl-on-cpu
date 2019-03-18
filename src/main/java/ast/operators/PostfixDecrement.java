@@ -4,7 +4,7 @@ import ast.*;
 import ast.types.*;
 import ast.values.*;
 
-public class PrefixDecrement extends UnaryOperator {
+public class PostfixDecrement extends UnaryOperator {
     @Override
     public boolean canBeApplied(Type type) {
         return type instanceof IntType
@@ -19,10 +19,12 @@ public class PrefixDecrement extends UnaryOperator {
     public Value apply(Value value, Scope scope) throws NotLValueException, OperatorCannotBeAppliedException {
         checkIsLValue(value, scope);
         String id = value.getId();
+        Value oldValue = value;
+        oldValue.setId(null);
+        // becomes a rvalue
         value = decrement(value);
         value.setId(id);
-        // still a left value
         scope.variables.put(id, value);
-        return value;
+        return oldValue;
     }
 }

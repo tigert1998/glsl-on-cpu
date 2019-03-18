@@ -2,10 +2,29 @@ package ast.types;
 
 public class MatnxmType extends Type {
     private int n, m;
+    private static MatnxmType[][] predefinedTypes = new MatnxmType[3][3];
 
-    public MatnxmType(int n, int m) {
+    static {
+        for (int i = 2; i <= 4; i++)
+            for (int j = 2; j <= 4; j++)
+                predefinedTypes[i - 2][j - 2] = new MatnxmType(i, j);
+    }
+
+    private MatnxmType(int n, int m) {
         this.n = n;
         this.m = m;
+    }
+
+    public static MatnxmType fromNM(int n, int m) {
+        return predefinedTypes[n - 2][m - 2];
+    }
+
+    public int getN() {
+        return n;
+    }
+
+    public int getM() {
+        return m;
     }
 
     @Override

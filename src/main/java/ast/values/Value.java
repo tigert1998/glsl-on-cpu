@@ -2,9 +2,9 @@ package ast.values;
 
 import ast.types.*;
 
-public abstract class Value {
+public class Value {
     protected Type type = null;
-    protected String id = null;
+    private String id = null;
 
     public Type getType() {
         return type;

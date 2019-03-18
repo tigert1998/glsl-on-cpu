@@ -17,6 +17,8 @@ public class Main {
         LangParser langParser = new LangParser(new CommonTokenStream(langLexer));
 
         ParseTree parseTree = langParser.program();
-        ParseTreeWalker.DEFAULT.walk(new ProgramListener(), parseTree);
+        ProgramListener programListener = new ProgramListener();
+        ParseTreeWalker.DEFAULT.walk(programListener, parseTree);
+        programListener.getGlobalScope().LogConstants();
     }
 }

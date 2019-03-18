@@ -9,4 +9,9 @@ public class IntValue extends Value {
         this.value = value;
         this.type = IntType.TYPE;
     }
+
+    @Override
+    public String toString() {
+        return value + ": int";
+    }
 }

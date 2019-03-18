@@ -18,4 +18,12 @@ public class VecnValue extends Value {
             result.value[i] = f.apply(value[i]);
         return result;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("vec" + value.length + "(" + value[0]);
+        for (int i = 1; i < value.length; i++) builder.append(", ").append(value[i]);
+        builder.append(")");
+        return new String(builder);
+    }
 }

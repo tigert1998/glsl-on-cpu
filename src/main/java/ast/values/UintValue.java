@@ -9,4 +9,9 @@ public class UintValue extends Value {
         this.value = value;
         this.type = UintType.TYPE;
     }
+
+    @Override
+    public String toString() {
+        return value + ": uint";
+    }
 }

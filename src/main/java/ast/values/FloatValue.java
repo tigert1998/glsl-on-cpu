@@ -9,4 +9,9 @@ public class FloatValue extends Value {
         this.value = value;
         this.type = FloatType.TYPE;
     }
+
+    @Override
+    public String toString() {
+        return value + ": float";
+    }
 }

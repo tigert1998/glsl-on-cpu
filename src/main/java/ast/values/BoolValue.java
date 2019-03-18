@@ -9,4 +9,9 @@ public class BoolValue extends Value {
         this.value = value;
         this.type = BoolType.TYPE;
     }
+
+    @Override
+    public String toString() {
+        return value + ": bool";
+    }
 }

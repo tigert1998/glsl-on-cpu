@@ -29,4 +29,9 @@ public class VecnType extends Type {
         if (VecnType.class != obj.getClass()) return false;
         return ((VecnType) obj).n == this.n;
     }
+
+    @Override
+    public String toString() {
+        return "vec" + n;
+    }
 }

@@ -4,7 +4,7 @@ import ast.Scope;
 import ast.types.*;
 import ast.values.*;
 
-public class LogicalNot extends UnaryOperator {
+public class LogicalNot extends Operator implements UnaryOperator {
     static public LogicalNot OP = new LogicalNot();
 
     @Override
@@ -17,6 +17,6 @@ public class LogicalNot extends UnaryOperator {
         var type = value.getType();
         if (canBeApplied(type)) {
             return new BoolValue(!((BoolValue) value).value);
-        } else throw new OperatorCannotBeAppliedException("!", type.toString());
+        } else throw new OperatorCannotBeAppliedException("!", type);
     }
 }

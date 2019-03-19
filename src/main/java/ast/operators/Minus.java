@@ -4,7 +4,7 @@ import ast.*;
 import ast.types.*;
 import ast.values.*;
 
-public class Minus extends UnaryOperator {
+public class Minus extends Operator implements UnaryOperator {
     public static Minus OP = new Minus();
 
     @Override
@@ -34,6 +34,6 @@ public class Minus extends UnaryOperator {
         } else if (type instanceof MatnxmType) {
             return ((MatnxmValue) value).map(x -> -x);
         } else
-            throw new OperatorCannotBeAppliedException("-", type.toString());
+            throw new OperatorCannotBeAppliedException("-", type);
     }
 }

@@ -7,4 +7,9 @@ public class FloatType extends Type {
     public boolean equals(Object obj) {
         return FloatType.class == obj.getClass();
     }
+
+    @Override
+    public String toString() {
+        return "float";
+    }
 }

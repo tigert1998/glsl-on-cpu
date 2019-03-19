@@ -30,4 +30,9 @@ public class BvecnType extends Type {
         if (BvecnType.class != obj.getClass()) return false;
         return ((BvecnType) obj).n == this.n;
     }
+
+    @Override
+    public String toString() {
+        return "bvec" + n;
+    }
 }

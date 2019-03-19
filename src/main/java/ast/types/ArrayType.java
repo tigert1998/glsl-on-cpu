@@ -15,4 +15,9 @@ public class ArrayType extends Type {
         ArrayType arrObj = (ArrayType) obj;
         return arrObj.length == this.length && arrObj.type.equals(this.type);
     }
+
+    @Override
+    public String toString() {
+        return type + "[" + length + "]";
+    }
 }

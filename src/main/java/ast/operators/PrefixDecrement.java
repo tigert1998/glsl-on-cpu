@@ -4,7 +4,7 @@ import ast.*;
 import ast.types.*;
 import ast.values.*;
 
-public class PrefixDecrement extends UnaryOperator {
+public class PrefixDecrement extends Operator implements UnaryOperator {
     @Override
     public boolean canBeApplied(Type type) {
         return type instanceof IntType
@@ -17,9 +17,9 @@ public class PrefixDecrement extends UnaryOperator {
 
     @Override
     public Value apply(Value value, Scope scope) throws NotLValueException, OperatorCannotBeAppliedException {
-        checkIsLValue(value, scope);
+        UnaryOperator.checkIsLValue(value, scope);
         String id = value.getId();
-        value = decrement(value);
+        value = UnaryOperator.decrement(value);
         value.setId(id);
         // still a left value
         scope.variables.put(id, value);

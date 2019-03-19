@@ -4,10 +4,11 @@ import ast.*;
 import ast.types.*;
 import ast.values.*;
 
-public abstract class UnaryOperator extends Operator {
-    abstract public boolean canBeApplied(Type type);
+public interface UnaryOperator {
+    boolean canBeApplied(Type type);
 
-    abstract public Value apply(Value value, Scope scope) throws NotLValueException, OperatorCannotBeAppliedException;
+    Value apply(Value value, Scope scope)
+            throws NotLValueException, OperatorCannotBeAppliedException;
 
     static Value increment(Value value) throws OperatorCannotBeAppliedException {
         // removes id information
@@ -25,7 +26,7 @@ public abstract class UnaryOperator extends Operator {
         } else if (type instanceof MatnxmType) {
             return ((MatnxmValue) value).map(x -> x + 1);
         } else
-            throw new OperatorCannotBeAppliedException("operator++", type.toString());
+            throw new OperatorCannotBeAppliedException("operator++", type);
     }
 
     static Value decrement(Value value) throws OperatorCannotBeAppliedException {
@@ -44,7 +45,7 @@ public abstract class UnaryOperator extends Operator {
         } else if (type instanceof MatnxmType) {
             return ((MatnxmValue) value).map(x -> x - 1);
         } else
-            throw new OperatorCannotBeAppliedException("operator--", type.toString());
+            throw new OperatorCannotBeAppliedException("operator--", type);
     }
 
     static void checkIsLValue(Value value, Scope scope) throws NotLValueException {

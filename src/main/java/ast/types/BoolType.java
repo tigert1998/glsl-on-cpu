@@ -7,4 +7,9 @@ public class BoolType extends Type {
     public boolean equals(Object obj) {
         return BoolType.class == obj.getClass();
     }
+
+    @Override
+    public String toString() {
+        return "bool";
+    }
 }

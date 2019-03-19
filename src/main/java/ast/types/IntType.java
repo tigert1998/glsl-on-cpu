@@ -7,4 +7,9 @@ public class IntType extends Type {
     public boolean equals(Object obj) {
         return IntType.class == obj.getClass();
     }
+
+    @Override
+    public String toString() {
+        return "int";
+    }
 }

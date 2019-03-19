@@ -7,4 +7,9 @@ public class UintType extends Type {
     public boolean equals(Object obj) {
         return UintType.class == obj.getClass();
     }
+
+    @Override
+    public String toString() {
+        return "uint";
+    }
 }

@@ -4,7 +4,7 @@ import ast.*;
 import ast.types.*;
 import ast.values.*;
 
-public class PrefixIncrement extends UnaryOperator {
+public class PrefixIncrement extends Operator implements UnaryOperator {
     @Override
     public boolean canBeApplied(Type type) {
         return type instanceof IntType
@@ -17,9 +17,9 @@ public class PrefixIncrement extends UnaryOperator {
 
     @Override
     public Value apply(Value value, Scope scope) throws NotLValueException, OperatorCannotBeAppliedException {
-        checkIsLValue(value, scope);
+        UnaryOperator.checkIsLValue(value, scope);
         String id = value.getId();
-        value = increment(value);
+        value = UnaryOperator.increment(value);
         value.setId(id);
         // still a left value
         scope.variables.put(id, value);

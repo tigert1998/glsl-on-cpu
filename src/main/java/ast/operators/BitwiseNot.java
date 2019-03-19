@@ -4,7 +4,7 @@ import ast.Scope;
 import ast.types.*;
 import ast.values.*;
 
-public class BitwiseNot extends UnaryOperator {
+public class BitwiseNot extends Operator implements UnaryOperator {
     static public BitwiseNot OP = new BitwiseNot();
 
     @Override
@@ -27,6 +27,6 @@ public class BitwiseNot extends UnaryOperator {
         } else if (type instanceof UvecnType) {
             return ((IvecnValue) value).map(x -> ~x);
         } else
-            throw new OperatorCannotBeAppliedException("~", type.toString());
+            throw new OperatorCannotBeAppliedException("~", type);
     }
 }

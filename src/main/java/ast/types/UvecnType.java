@@ -29,4 +29,9 @@ public class UvecnType extends Type {
         if (UvecnType.class != obj.getClass()) return false;
         return ((UvecnType) obj).n == this.n;
     }
+
+    @Override
+    public String toString() {
+        return "uvec" + n;
+    }
 }

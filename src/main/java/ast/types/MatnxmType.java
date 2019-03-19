@@ -33,4 +33,10 @@ public class MatnxmType extends Type {
         MatnxmType matObj = (MatnxmType) obj;
         return matObj.n == this.n && matObj.m == this.m;
     }
+
+    @Override
+    public String toString() {
+        if (n == m) return "mat" + n;
+        return "mat" + n + "x" + m;
+    }
 }

@@ -30,4 +30,9 @@ public class IvecnType extends Type {
         if (IvecnType.class != obj.getClass()) return false;
         return ((IvecnType) obj).n == this.n;
     }
+
+    @Override
+    public String toString() {
+        return "ivec" + n;
+    }
 }

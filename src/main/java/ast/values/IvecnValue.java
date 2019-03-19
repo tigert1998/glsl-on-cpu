@@ -26,4 +26,18 @@ public class IvecnValue extends Value {
         builder.append(")");
         return new String(builder);
     }
+
+    static public IvecnValue applyFunction(IvecnValue x, IvecnValue y, BiFunction<Integer, Integer, Integer> f) {
+        IvecnValue res = new IvecnValue(x.value.length);
+        for (int i = 0; i < res.value.length; i++)
+            res.value[i] = f.apply(x.value[i], y.value[i]);
+        return res;
+    }
+
+    static public IvecnValue applyFunction(IvecnValue x, IntValue y, BiFunction<Integer, Integer, Integer> f) {
+        IvecnValue res = new IvecnValue(x.value.length);
+        for (int i = 0; i < res.value.length; i++)
+            res.value[i] = f.apply(x.value[i], y.value);
+        return res;
+    }
 }

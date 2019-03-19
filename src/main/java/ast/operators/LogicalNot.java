@@ -17,6 +17,11 @@ public class LogicalNot extends Operator implements UnaryOperator {
         var type = value.getType();
         if (canBeApplied(type)) {
             return new BoolValue(!((BoolValue) value).value);
-        } else throw new OperatorCannotBeAppliedException("!", type);
+        } else throw new OperatorCannotBeAppliedException(this, type);
+    }
+
+    @Override
+    public String toString() {
+        return "!";
     }
 }

@@ -26,7 +26,7 @@ public interface UnaryOperator {
         } else if (type instanceof MatnxmType) {
             return ((MatnxmValue) value).map(x -> x + 1);
         } else
-            throw new OperatorCannotBeAppliedException("operator++", type);
+            throw new OperatorCannotBeAppliedException(PrefixIncrement.OP, type);
     }
 
     static Value decrement(Value value) throws OperatorCannotBeAppliedException {
@@ -45,7 +45,7 @@ public interface UnaryOperator {
         } else if (type instanceof MatnxmType) {
             return ((MatnxmValue) value).map(x -> x - 1);
         } else
-            throw new OperatorCannotBeAppliedException("operator--", type);
+            throw new OperatorCannotBeAppliedException(PrefixDecrement.OP, type);
     }
 
     static void checkIsLValue(Value value, Scope scope) throws NotLValueException {

@@ -26,4 +26,18 @@ public class VecnValue extends Value {
         builder.append(")");
         return new String(builder);
     }
+
+    static public VecnValue applyFunction(VecnValue x, VecnValue y, BiFunction<Float, Float, Float> f) {
+        VecnValue res = new VecnValue(x.value.length);
+        for (int i = 0; i < res.value.length; i++)
+            res.value[i] = f.apply(x.value[i], y.value[i]);
+        return res;
+    }
+
+    static public VecnValue applyFunction(VecnValue x, FloatValue y, BiFunction<Float, Float, Float> f) {
+        VecnValue res = new VecnValue(x.value.length);
+        for (int i = 0; i < res.value.length; i++)
+            res.value[i] = f.apply(x.value[i], y.value);
+        return res;
+    }
 }

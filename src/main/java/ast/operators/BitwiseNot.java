@@ -27,6 +27,11 @@ public class BitwiseNot extends Operator implements UnaryOperator {
         } else if (type instanceof UvecnType) {
             return ((IvecnValue) value).map(x -> ~x);
         } else
-            throw new OperatorCannotBeAppliedException("~", type);
+            throw new OperatorCannotBeAppliedException(this, type);
+    }
+
+    @Override
+    public String toString() {
+        return "~";
     }
 }

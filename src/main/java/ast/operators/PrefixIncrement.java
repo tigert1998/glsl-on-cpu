@@ -5,6 +5,8 @@ import ast.types.*;
 import ast.values.*;
 
 public class PrefixIncrement extends Operator implements UnaryOperator {
+    static public PrefixIncrement OP = new PrefixIncrement();
+
     @Override
     public boolean canBeApplied(Type type) {
         return type instanceof IntType
@@ -24,5 +26,10 @@ public class PrefixIncrement extends Operator implements UnaryOperator {
         // still a left value
         scope.variables.put(id, value);
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return "++";
     }
 }

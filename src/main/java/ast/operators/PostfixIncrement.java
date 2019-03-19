@@ -5,6 +5,8 @@ import ast.types.*;
 import ast.values.*;
 
 public class PostfixIncrement extends Operator implements UnaryOperator {
+    static public PostfixIncrement OP = new PostfixIncrement();
+
     @Override
     public boolean canBeApplied(Type type) {
         return type instanceof IntType
@@ -26,5 +28,10 @@ public class PostfixIncrement extends Operator implements UnaryOperator {
         value.setId(id);
         scope.variables.put(id, value);
         return oldValue;
+    }
+
+    @Override
+    public String toString() {
+        return "++";
     }
 }

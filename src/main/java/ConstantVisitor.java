@@ -55,4 +55,24 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
             return null;
         }
     }
+
+    @Override
+    public Value visitPlusMinusBinaryExpr(LangParser.PlusMinusBinaryExprContext ctx) {
+        Value[] values = new Value[2];
+        var visitor = new ConstantVisitor(scope);
+        for (int i = 0; i < 2; i++) {
+            values[i] = ctx.expr(i).accept(visitor);
+            if (visitor.exception != null) {
+                this.exception = visitor.exception;
+                return null;
+            }
+        }
+        BinaryOperator op = ctx.PLUS() != null ? Plus.OP : Minus.OP;
+        try {
+            return op.apply(values[0], values[1], scope);
+        } catch (Exception exception) {
+            this.exception = exception;
+            return null;
+        }
+    }
 }

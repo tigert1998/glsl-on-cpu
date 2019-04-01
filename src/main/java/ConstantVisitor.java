@@ -1,13 +1,27 @@
 import ast.*;
 import ast.operators.*;
 import ast.values.*;
+import java.util.*;
 
 public class ConstantVisitor extends LangBaseVisitor<Value> {
     private Scope scope = null;
-    private Exception exception = null;
+    public Exception exception = null;
 
     public ConstantVisitor(Scope scope) {
         this.scope = scope;
+    }
+
+    private Value[] extractValues(int total, List<LangParser.ExprContext> exprCtxList) {
+        Value[] values = new Value[total];
+        var visitor = new ConstantVisitor(scope);
+        for (int i = 0; i < total; i++) {
+            values[i] = exprCtxList.get(i).accept(visitor);
+            if (visitor.exception != null) {
+                this.exception = visitor.exception;
+                return null;
+            }
+        }
+        return values;
     }
 
     @Override
@@ -22,14 +36,14 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
 
     @Override
     public Value visitPostfixUnaryExpr(LangParser.PostfixUnaryExprContext ctx) {
-        exception = new Exception("can apply operation on l-value here");
+        exception = new Exception("cannot apply operation on l-value here");
         return null;
     }
 
     @Override
     public Value visitPrefixUnaryExpr(LangParser.PrefixUnaryExprContext ctx) {
         if (ctx.INCREMENT() != null || ctx.DECREMENT() != null) {
-            exception = new Exception("can apply operation on l-value here");
+            exception = new Exception("cannot apply operation on l-value here");
             return null;
         }
         var newVisitor = new ConstantVisitor(scope);
@@ -57,16 +71,29 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     }
 
     @Override
-    public Value visitPlusMinusBinaryExpr(LangParser.PlusMinusBinaryExprContext ctx) {
-        Value[] values = new Value[2];
-        var visitor = new ConstantVisitor(scope);
-        for (int i = 0; i < 2; i++) {
-            values[i] = ctx.expr(i).accept(visitor);
-            if (visitor.exception != null) {
-                this.exception = visitor.exception;
-                return null;
-            }
+    public Value visitMultDivModBinaryExpr(LangParser.MultDivModBinaryExprContext ctx) {
+        var values = extractValues(2, ctx.expr());
+        if (values == null) return null;
+        BinaryOperator op = null;
+        if (ctx.MULT() != null) {
+            op = Mult.OP;
+        } else if (ctx.DIV() != null) {
+            op = Div.OP;
+        } else {
+            op = Mod.OP;
         }
+        try {
+            return op.apply(values[0], values[1], scope);
+        } catch (Exception exception) {
+            this.exception = exception;
+            return null;
+        }
+    }
+
+    @Override
+    public Value visitPlusMinusBinaryExpr(LangParser.PlusMinusBinaryExprContext ctx) {
+        var values = extractValues(2, ctx.expr());
+        if (values == null) return null;
         BinaryOperator op = ctx.PLUS() != null ? Plus.OP : Minus.OP;
         try {
             return op.apply(values[0], values[1], scope);

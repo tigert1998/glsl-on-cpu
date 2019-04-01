@@ -38,12 +38,18 @@ public class MatnxmValue extends Value {
         return res;
     }
 
-    static public MatnxmValue applyFunction(MatnxmValue x, FloatValue y, BiFunction<Float, Float, Float> f) {
+    static public MatnxmValue applyFunction(MatnxmValue x, FloatValue y, BiFunction<Float, Float, Float> f, boolean flipped) {
         int n = x.getN(), m = x.getM();
         MatnxmValue res = new MatnxmValue(n, m);
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < m; j++)
-                res.value[i][j] = f.apply(x.value[i][j], y.value);
+        if (!flipped) {
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < m; j++)
+                    res.value[i][j] = f.apply(x.value[i][j], y.value);
+        } else {
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < m; j++)
+                    res.value[i][j] = f.apply(y.value, x.value[i][j]);
+        }
         return res;
     }
 }

@@ -24,6 +24,10 @@ public class ProgramListener extends LangBaseListener {
             ConstantVisitor constantVisitor = new ConstantVisitor(globalScope);
             Value value = declarationList.expr(i).accept(constantVisitor);
             String name = variableMaybeArray.IDENTIFIER().getText();
+            if (value == null) {
+                System.out.println(constantVisitor.exception.getMessage());
+                continue;
+            }
             globalScope.constants.put(name, value);
         }
     }

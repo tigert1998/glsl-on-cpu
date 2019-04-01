@@ -34,10 +34,15 @@ public class VecnValue extends Value {
         return res;
     }
 
-    static public VecnValue applyFunction(VecnValue x, FloatValue y, BiFunction<Float, Float, Float> f) {
+    static public VecnValue applyFunction(VecnValue x, FloatValue y, BiFunction<Float, Float, Float> f, boolean flipped) {
         VecnValue res = new VecnValue(x.value.length);
-        for (int i = 0; i < res.value.length; i++)
-            res.value[i] = f.apply(x.value[i], y.value);
+        if (!flipped) {
+            for (int i = 0; i < res.value.length; i++)
+                res.value[i] = f.apply(x.value[i], y.value);
+        } else {
+            for (int i = 0; i < res.value.length; i++)
+                res.value[i] = f.apply(y.value, x.value[i]);
+        }
         return res;
     }
 }

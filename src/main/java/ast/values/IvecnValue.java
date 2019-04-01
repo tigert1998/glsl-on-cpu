@@ -34,10 +34,15 @@ public class IvecnValue extends Value {
         return res;
     }
 
-    static public IvecnValue applyFunction(IvecnValue x, IntValue y, BiFunction<Integer, Integer, Integer> f) {
+    static public IvecnValue applyFunction(IvecnValue x, IntValue y, BiFunction<Integer, Integer, Integer> f, boolean flipped) {
         IvecnValue res = new IvecnValue(x.value.length);
-        for (int i = 0; i < res.value.length; i++)
-            res.value[i] = f.apply(x.value[i], y.value);
+        if (!flipped) {
+            for (int i = 0; i < res.value.length; i++)
+                res.value[i] = f.apply(x.value[i], y.value);
+        } else {
+            for (int i = 0; i < res.value.length; i++)
+                res.value[i] = f.apply(y.value, x.value[i]);
+        }
         return res;
     }
 }

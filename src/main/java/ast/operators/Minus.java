@@ -9,6 +9,20 @@ import java.util.function.*;
 public class Minus extends Operator implements UnaryOperator, BinaryOperator {
     public static Minus OP = new Minus();
 
+    private Value applyFunctionOnVectorScalar(Value v, Value s, boolean flipped) {
+        var type = v.getType();
+        if (type instanceof IvecnType) {
+            return IvecnValue.applyFunction((IvecnValue) v, (IntValue) s, (x, y) -> x - y, flipped);
+        } else if (type instanceof UvecnType) {
+            return UvecnValue.applyFunction((UvecnValue) v, (UintValue) s, (x, y) -> x - y, flipped);
+        } else if (type instanceof VecnType) {
+            return VecnValue.applyFunction((VecnValue) v, (FloatValue) s, (x, y) -> x - y, flipped);
+        } else {
+            // matnxm
+            return MatnxmValue.applyFunction((MatnxmValue) v, (FloatValue) s, (x, y) -> x - y, flipped);
+        }
+    }
+
     @Override
     public boolean canBeApplied(Type type) {
         return Plus.OP.canBeApplied(type);
@@ -62,21 +76,9 @@ public class Minus extends Operator implements UnaryOperator, BinaryOperator {
                 return MatnxmValue.applyFunction((MatnxmValue) value1, (MatnxmValue) value2, (x, y) -> x - y);
             }
         } else {
-            BiFunction<Value, Value, Value> vsFunc = (Value v, Value s) -> {
-                var type = v.getType();
-                if (type instanceof IvecnType) {
-                    return IvecnValue.applyFunction((IvecnValue) v, (IntValue) s, (x, y) -> x - y);
-                } else if (type instanceof UvecnType) {
-                    return UvecnValue.applyFunction((UvecnValue) v, (UintValue) s, (x, y) -> x - y);
-                } else if (type instanceof VecnType) {
-                    return VecnValue.applyFunction((VecnValue) v, (FloatValue) s, (x, y) -> x - y);
-                } else {
-                    // matnxm
-                    return MatnxmValue.applyFunction((MatnxmValue) v, (FloatValue) s, (x, y) -> x - y);
-                }
-            };
             return type1 instanceof IntType || type1 instanceof UintType || type1 instanceof FloatType
-                    ? vsFunc.apply(value2, value1) : vsFunc.apply(value1, value2);
+                    ? applyFunctionOnVectorScalar(value2, value1, true) :
+                    applyFunctionOnVectorScalar(value1, value2, false);
         }
     }
 

@@ -45,7 +45,7 @@ public class Plus extends Operator implements UnaryOperator, BinaryOperator {
                         || (v instanceof VecnType && s instanceof FloatType)
                         || (v instanceof MatnxmType && s instanceof FloatType);
 
-        return vsChecker.apply(type1, type2) && vsChecker.apply(type2, type1);
+        return vsChecker.apply(type1, type2) || vsChecker.apply(type2, type1);
     }
 
     @Override
@@ -75,14 +75,14 @@ public class Plus extends Operator implements UnaryOperator, BinaryOperator {
             BiFunction<Value, Value, Value> vsFunc = (Value v, Value s) -> {
                 var type = v.getType();
                 if (type instanceof IvecnType) {
-                    return IvecnValue.applyFunction((IvecnValue) v, (IntValue) s, (x, y) -> x + y);
+                    return IvecnValue.applyFunction((IvecnValue) v, (IntValue) s, (x, y) -> x + y, false);
                 } else if (type instanceof UvecnType) {
-                    return UvecnValue.applyFunction((UvecnValue) v, (UintValue) s, (x, y) -> x + y);
+                    return UvecnValue.applyFunction((UvecnValue) v, (UintValue) s, (x, y) -> x + y, false);
                 } else if (type instanceof VecnType) {
-                    return VecnValue.applyFunction((VecnValue) v, (FloatValue) s, (x, y) -> x + y);
+                    return VecnValue.applyFunction((VecnValue) v, (FloatValue) s, (x, y) -> x + y, false);
                 } else {
                     // matnxm
-                    return MatnxmValue.applyFunction((MatnxmValue) v, (FloatValue) s, (x, y) -> x + y);
+                    return MatnxmValue.applyFunction((MatnxmValue) v, (FloatValue) s, (x, y) -> x + y, false);
                 }
             };
             return type1 instanceof IntType || type1 instanceof UintType || type1 instanceof FloatType

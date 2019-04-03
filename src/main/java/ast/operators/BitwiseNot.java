@@ -1,6 +1,7 @@
 package ast.operators;
 
 import ast.Scope;
+import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
 
@@ -16,7 +17,7 @@ public class BitwiseNot extends Operator implements UnaryOperator {
     }
 
     @Override
-    public Value apply(Value value, Scope scope) throws NotLValueException, OperatorCannotBeAppliedException {
+    public Value apply(Value value, Scope scope) throws SyntaxErrorException {
         var type = value.getType();
         if (type instanceof IntType) {
             return new IntValue(~((IntValue) value).value);

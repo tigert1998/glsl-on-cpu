@@ -1,6 +1,7 @@
 package ast.operators;
 
 import ast.Scope;
+import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
 
@@ -35,7 +36,7 @@ public class Mod extends Operator implements BinaryOperator {
     }
 
     @Override
-    public Value apply(Value value1, Value value2, Scope scope) throws NotLValueException, OperatorCannotBeAppliedException {
+    public Value apply(Value value1, Value value2, Scope scope) throws SyntaxErrorException {
         Type type1 = value1.getType(), type2 = value2.getType();
         if (!canBeApplied(type1, type2))
             throw new OperatorCannotBeAppliedException(this, type1, type2);

@@ -20,5 +20,6 @@ public class Main {
         ProgramListener programListener = new ProgramListener();
         ParseTreeWalker.DEFAULT.walk(programListener, parseTree);
         programListener.getGlobalScope().LogConstants();
+        programListener.getGlobalScope().LogStructs();
     }
 }

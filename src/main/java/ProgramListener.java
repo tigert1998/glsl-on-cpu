@@ -1,4 +1,5 @@
 import ast.*;
+import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
 
@@ -11,12 +12,6 @@ public class ProgramListener extends LangBaseListener {
 
     @Override
     public void exitConstDeclarationStmt(LangParser.ConstDeclarationStmtContext ctx) {
-        if (ctx.type().structType() != null) {
-            Main.error("struct isn't supported yet!");
-        }
-
-        Type type = Utility.typeFromBasicTypeContext(ctx.type().basicType());
-
         var declarationList = ctx.constDeclarationList();
         int length = declarationList.variableMaybeArray().size();
         for (int i = 0; i < length; i++) {
@@ -29,6 +24,15 @@ public class ProgramListener extends LangBaseListener {
                 continue;
             }
             globalScope.constants.put(name, value);
+        }
+    }
+
+    @Override
+    public void exitNormalDeclarationStmt(LangParser.NormalDeclarationStmtContext ctx) {
+        try {
+            var type = Utility.typeFromTypeContext(ctx.type(), globalScope);
+        } catch (SyntaxErrorException exception) {
+            System.out.println(exception.getMessage());
         }
     }
 }

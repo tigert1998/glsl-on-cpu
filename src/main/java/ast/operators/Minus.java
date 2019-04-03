@@ -1,10 +1,9 @@
 package ast.operators;
 
 import ast.*;
+import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
-
-import java.util.function.*;
 
 public class Minus extends Operator implements UnaryOperator, BinaryOperator {
     public static Minus OP = new Minus();
@@ -29,7 +28,7 @@ public class Minus extends Operator implements UnaryOperator, BinaryOperator {
     }
 
     @Override
-    public Value apply(Value value, Scope scope) throws NotLValueException, OperatorCannotBeAppliedException {
+    public Value apply(Value value, Scope scope) throws SyntaxErrorException {
         var type = value.getType();
         if (type instanceof IntType) {
             return new IntValue(-((IntValue) value).value);
@@ -54,7 +53,7 @@ public class Minus extends Operator implements UnaryOperator, BinaryOperator {
 
     @Override
     public Value apply(Value value1, Value value2, Scope scope)
-            throws NotLValueException, OperatorCannotBeAppliedException {
+            throws SyntaxErrorException {
         Type type1 = value1.getType(), type2 = value2.getType();
         if (!canBeApplied(type1, type2))
             throw new OperatorCannotBeAppliedException(this, type1, type2);

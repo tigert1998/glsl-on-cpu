@@ -1,12 +1,54 @@
 package ast.types;
 
+import ast.exceptions.*;
+
 import java.util.*;
 
 public class StructType extends Type {
     static public class FieldInfo {
-        private Type type;
-        private String name;
+        public String id = null;
+        public Type type = null;
+        public FieldInfo(String id, Type type) {
+            this.id = id;
+            this.type = type;
+        }
     };
 
-    List<FieldInfo> fields = null;
+    public String id = null;
+    private List<FieldInfo> fieldInfoList = new ArrayList<>();
+    private Map<String, FieldInfo> fieldInfoMap = new TreeMap<>();
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof StructType)) return false;
+        return id.equals(((StructType) obj).id);
+    }
+
+    public StructType(String id) {
+        this.id = id;
+    }
+
+    public void addFieldInfo(FieldInfo info) throws SyntaxErrorException {
+        if (fieldInfoMap.containsKey(info.id))
+            throw SyntaxErrorException.duplicateFieldName(info.id);
+
+        fieldInfoList.add(info);
+        fieldInfoMap.put(info.id, info);
+    }
+
+    @Override
+    public String toString() {
+        var sb = new StringBuilder("struct " + id + " {\n");
+        fieldInfoList.forEach(info -> {
+            String infoTypeStr;
+            if (info.type instanceof StructType) {
+                infoTypeStr = ((StructType) info.type).id;
+            } else {
+                infoTypeStr = info.type.toString();
+            }
+            sb.append('\t').append(infoTypeStr).append(' ').append(info.id).append(";\n");
+        });
+        sb.append("}");
+        return new String(sb);
+    }
 }

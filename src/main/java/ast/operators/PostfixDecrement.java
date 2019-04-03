@@ -1,6 +1,7 @@
 package ast.operators;
 
 import ast.*;
+import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
 
@@ -18,7 +19,7 @@ public class PostfixDecrement extends Operator implements UnaryOperator {
     }
 
     @Override
-    public Value apply(Value value, Scope scope) throws NotLValueException, OperatorCannotBeAppliedException {
+    public Value apply(Value value, Scope scope) throws SyntaxErrorException {
         UnaryOperator.checkIsLValue(value, scope);
         String id = value.getId();
         Value oldValue = value;

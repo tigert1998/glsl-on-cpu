@@ -1,32 +1,9 @@
+import ast.Scope;
+import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
 
 public class Utility {
-    static private int getDigitAt(String text, int idx) {
-        return text.charAt(idx) - '0';
-    }
-
-    static public Type typeFromBasicTypeContext(LangParser.BasicTypeContext ctx) {
-        if (ctx.BOOL() != null) return BoolType.TYPE;
-        if (ctx.BVECN() != null) return BvecnType.fromN(getDigitAt(ctx.BVECN().getText(), 4));
-        if (ctx.FLOAT() != null) return FloatType.TYPE;
-        if (ctx.INT() != null) return IntType.TYPE;
-        if (ctx.IVECN() != null) return IvecnType.fromN(getDigitAt(ctx.IVECN().getText(), 4));
-        if (ctx.MATNXM() != null) {
-            int n = getDigitAt(ctx.MATNXM().getText(), 3);
-            int m = getDigitAt(ctx.MATNXM().getText(), 5);
-            return MatnxmType.fromNM(n, m);
-        }
-        if (ctx.MATN() != null) {
-            int n = getDigitAt(ctx.MATN().getText(), 3);
-            return MatnxmType.fromNM(n, n);
-        }
-        if (ctx.UINT() != null) return UintType.TYPE;
-        if (ctx.UVECN() != null) return UvecnType.fromN(getDigitAt(ctx.UVECN().getText(), 4));
-        if (ctx.VECN() != null) return VecnType.fromN(getDigitAt(ctx.VECN().getText(), 3));
-        return null;
-    }
-
     private static int parseIntLiteralText(String str) {
         if (str.startsWith("0x") || str.startsWith("0X"))
             return Integer.parseInt(str.substring(2), 16);
@@ -47,5 +24,98 @@ public class Utility {
         if (ctx.REAL_LITERAL() != null)
             return new FloatValue(Float.parseFloat(ctx.REAL_LITERAL().getText()));
         return null;
+    }
+
+    public static int evalExprAsArraySize(LangParser.ExprContext exprCtx, Scope scope) throws SyntaxErrorException {
+        var visitor = new ConstantVisitor(scope);
+        Value value = exprCtx.accept(visitor);
+        if (visitor.exception != null) throw visitor.exception;
+        if (!(value.getType() instanceof IntType || value.getType() instanceof UintType))
+            throw SyntaxErrorException.invalidArraySizeType();
+        if (value instanceof IntValue) return ((IntValue) value).value;
+        else return (int) (long) ((UintValue) value).value;
+    }
+
+    public static StructType typeFromStructDefinitionContext(LangParser.StructDefinitionContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        String id = ctx.structName.getText();
+        if (scope.variables.containsKey(id) || scope.constants.containsKey(id)
+                || scope.structs.containsKey(id) || scope.functions.containsKey(id))
+            throw SyntaxErrorException.redefinition(id);
+
+        StructType result = new StructType(id);
+        for (int i = 0; i < ctx.structFieldDeclarationStmt().size(); i++) {
+            var stmtCtx = ctx.structFieldDeclarationStmt(i);
+
+            if (stmtCtx.type().structType() != null && stmtCtx.type().structType().structDefinition() != null)
+                throw SyntaxErrorException.embeddedStructDefinition();
+
+            Type type = typeFromTypeContext(stmtCtx.type(), scope);
+            for (int j = 0; j < stmtCtx.variableMaybeArray().size(); j++) {
+                var varCtx = stmtCtx.variableMaybeArray(j);
+                String varID = varCtx.IDENTIFIER().getText();
+
+                Type actualType = typeWithArraySuffix(type, varCtx.specifiedArrayLength(), scope);
+                if (actualType instanceof ArrayType && ((ArrayType) actualType).isLengthUnknown())
+                    throw SyntaxErrorException.structArrayMemberUnknownSize(varID);
+
+                result.addFieldInfo(new StructType.FieldInfo(varID, actualType));
+            }
+        }
+
+        scope.structs.put(id, result);
+        return result;
+    }
+
+    private static Type typeWithoutArrayFromBasicTypeContext(LangParser.BasicTypeContext ctx) {
+        if (ctx.BOOL() != null) return BoolType.TYPE;
+        else if (ctx.INT() != null) return IntType.TYPE;
+        else if (ctx.UINT() != null) return UintType.TYPE;
+        else if (ctx.FLOAT() != null) return FloatType.TYPE;
+        else if (ctx.BVECN() != null) return BvecnType.fromText(ctx.BVECN().getText());
+        else if (ctx.IVECN() != null) return IvecnType.fromText(ctx.IVECN().getText());
+        else if (ctx.UVECN() != null) return UvecnType.fromText(ctx.UVECN().getText());
+        else if (ctx.VECN() != null) return VecnType.fromText(ctx.VECN().getText());
+        else if (ctx.MATNXM() != null) return MatnxmType.fromText(ctx.MATNXM().getText());
+        else return MatnxmType.fromText(ctx.MATN().getText());
+    }
+
+    private static Type typeWithArraySuffix(Type type, LangParser.SpecifiedArrayLengthContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        if (ctx == null) return type;
+
+        if (type instanceof ArrayType) throw SyntaxErrorException.arrayOfArrays();
+
+        if (ctx.expr() == null) return new ArrayType(type);
+        int len = evalExprAsArraySize(ctx.expr(), scope);
+        return new ArrayType(type, len);
+    }
+
+    private static Type typeFromBasicTypeContext(LangParser.BasicTypeContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        Type type = typeWithoutArrayFromBasicTypeContext(ctx);
+        return typeWithArraySuffix(type, ctx.specifiedArrayLength(), scope);
+    }
+
+    private static Type typeFromStructTypeContext(LangParser.StructTypeContext ctx, Scope scope)
+            throws SyntaxErrorException{
+        Type type;
+        if (ctx.IDENTIFIER() != null) {
+            String id = ctx.IDENTIFIER().getText();
+            if (!scope.structs.containsKey(id))
+                throw SyntaxErrorException.undeclaredID(id);
+            type = scope.structs.get(id);
+        } else {
+            type = typeFromStructDefinitionContext(ctx.structDefinition(), scope);
+        }
+        return typeWithArraySuffix(type, ctx.specifiedArrayLength(), scope);
+    }
+
+    public static Type typeFromTypeContext(LangParser.TypeContext ctx, Scope scope) throws SyntaxErrorException {
+        if (ctx.basicType() != null) {
+            return typeFromBasicTypeContext(ctx.basicType(), scope);
+        } else {
+            return typeFromStructTypeContext(ctx.structType(), scope);
+        }
     }
 }

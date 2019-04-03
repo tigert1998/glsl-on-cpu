@@ -1,11 +1,12 @@
 import ast.*;
+import ast.exceptions.*;
 import ast.operators.*;
 import ast.values.*;
 import java.util.*;
 
 public class ConstantVisitor extends LangBaseVisitor<Value> {
     private Scope scope = null;
-    public Exception exception = null;
+    public SyntaxErrorException exception = null;
 
     public ConstantVisitor(Scope scope) {
         this.scope = scope;
@@ -24,6 +25,14 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         return values;
     }
 
+    private Value extractValue(LangParser.ExprContext exprCtx) {
+        var visitor = new ConstantVisitor(scope);
+        var value = exprCtx.accept(visitor);
+        if (visitor.exception != null)
+            this.exception = visitor.exception;
+        return value;
+    }
+
     @Override
     public Value visitLiteralExpr(LangParser.LiteralExprContext ctx) {
         return Utility.valueFromLiteralExprContext(ctx);
@@ -36,23 +45,19 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
 
     @Override
     public Value visitPostfixUnaryExpr(LangParser.PostfixUnaryExprContext ctx) {
-        exception = new Exception("cannot apply operation on l-value here");
+        exception = SyntaxErrorException.lvalueRequired();
         return null;
     }
 
     @Override
     public Value visitPrefixUnaryExpr(LangParser.PrefixUnaryExprContext ctx) {
         if (ctx.INCREMENT() != null || ctx.DECREMENT() != null) {
-            exception = new Exception("cannot apply operation on l-value here");
+            exception = SyntaxErrorException.lvalueRequired();
             return null;
         }
-        var newVisitor = new ConstantVisitor(scope);
-        var value = ctx.expr().accept(newVisitor);
-        if (value == null) {
-            exception = newVisitor.exception;
-            return null;
-        }
-        UnaryOperator op = null;
+        var value = extractValue(ctx.expr());
+        if (exception != null) return null;
+        UnaryOperator op;
         if (ctx.PLUS() != null) {
             op = Plus.OP;
         } else if (ctx.MINUS() != null) {
@@ -64,7 +69,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         }
         try {
             return op.apply(value, scope);
-        } catch (Exception exception) {
+        } catch (SyntaxErrorException exception) {
             this.exception = exception;
             return null;
         }
@@ -74,7 +79,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     public Value visitMultDivModBinaryExpr(LangParser.MultDivModBinaryExprContext ctx) {
         var values = extractValues(2, ctx.expr());
         if (values == null) return null;
-        BinaryOperator op = null;
+        BinaryOperator op;
         if (ctx.MULT() != null) {
             op = Mult.OP;
         } else if (ctx.DIV() != null) {
@@ -84,7 +89,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         }
         try {
             return op.apply(values[0], values[1], scope);
-        } catch (Exception exception) {
+        } catch (SyntaxErrorException exception) {
             this.exception = exception;
             return null;
         }
@@ -97,9 +102,16 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         BinaryOperator op = ctx.PLUS() != null ? Plus.OP : Minus.OP;
         try {
             return op.apply(values[0], values[1], scope);
-        } catch (Exception exception) {
+        } catch (SyntaxErrorException exception) {
             this.exception = exception;
             return null;
         }
+    }
+
+    @Override
+    public Value visitParameteredExpr(LangParser.ParameteredExprContext ctx) {
+        var value = extractValue(ctx.expr());
+        if (exception != null) return null;
+        return value;
     }
 }

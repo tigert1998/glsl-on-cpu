@@ -1,6 +1,7 @@
 package ast.operators;
 
 import ast.*;
+import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
 
@@ -21,7 +22,7 @@ public class Plus extends Operator implements UnaryOperator, BinaryOperator {
     }
 
     @Override
-    public Value apply(Value value, Scope scope) throws NotLValueException, OperatorCannotBeAppliedException {
+    public Value apply(Value value, Scope scope) throws SyntaxErrorException {
         if (!canBeApplied(value.getType()))
             throw new OperatorCannotBeAppliedException(this, value.getType());
         return value;
@@ -50,7 +51,7 @@ public class Plus extends Operator implements UnaryOperator, BinaryOperator {
 
     @Override
     public Value apply(Value value1, Value value2, Scope scope)
-            throws NotLValueException, OperatorCannotBeAppliedException {
+            throws SyntaxErrorException {
         Type type1 = value1.getType(), type2 = value2.getType();
         if (!canBeApplied(type1, type2))
             throw new OperatorCannotBeAppliedException(this, type1, type2);

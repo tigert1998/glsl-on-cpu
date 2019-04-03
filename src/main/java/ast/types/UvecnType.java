@@ -3,25 +3,21 @@ package ast.types;
 public class UvecnType extends Type {
     private int n;
 
-    private static UvecnType UVEC2 = new UvecnType(2);
-    private static UvecnType UVEC3 = new UvecnType(3);
-    private static UvecnType UVEC4 = new UvecnType(4);
+    private static UvecnType[] predefinedTypes = new UvecnType[5];
 
-    private UvecnType(int n) {
-        this.n = n;
+    static {
+        for (int i = 2; i <= 4; i++) predefinedTypes[i] = new UvecnType(i);
     }
 
     static public UvecnType fromN(int n) {
-        switch (n) {
-            case 2:
-                return UVEC2;
-            case 3:
-                return UVEC3;
-            case 4:
-                return UVEC4;
-            default:
-                return null;
-        }
+        return predefinedTypes[n];
+    }
+
+    private UvecnType(int n) { this.n = n; }
+
+    static public UvecnType fromText(String text) {
+        int digit = text.charAt(text.length() - 1) - '0';
+        return fromN(digit);
     }
 
     @Override

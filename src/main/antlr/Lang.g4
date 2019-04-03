@@ -52,19 +52,23 @@ declarationList: variableMaybeArray ('=' expr)? (',' variableMaybeArray ('=' exp
 
 exprStmt: expr ';';
 
-variableMaybeArray: IDENTIFIER ('[' expr? ']')?;
+variableMaybeArray: IDENTIFIER specifiedArrayLength?;
 
 // encapsulate types
 
-structDefinition: STRUCT structName=IDENTIFIER? '{' (type variableMaybeArray (',' variableMaybeArray)* ';')+ '}';
+structDefinition: STRUCT structName=IDENTIFIER? '{' structFieldDeclarationStmt+ '}';
+
+structFieldDeclarationStmt: type variableMaybeArray (',' variableMaybeArray)* ';';
 
 type: basicType | structType;
 
 basicType:
-    (BOOL | INT | UINT | FLOAT | BVECN | IVECN | UVECN | VECN | MATNXM | MATN) ('[' expr? ']')?;
+    (BOOL | INT | UINT | FLOAT | BVECN | IVECN | UVECN | VECN | MATNXM | MATN) specifiedArrayLength?;
 
 structType:
-    (IDENTIFIER | structDefinition) ('[' expr? ']')?;
+    (IDENTIFIER | structDefinition) specifiedArrayLength?;
+
+specifiedArrayLength: '[' expr? ']';
 
 // expression
 
@@ -73,7 +77,7 @@ expr:
     | IDENTIFIER                                       # referenceExpr
     | basicTypeConstructorInvocation                   # basicTypeConstructorInvocationExpr
     | functionOrStructConstructorInvocation            # functionOrStructConstructorInvocationExpr
-    | expr '[' expr ']'                                # arraySubscriptingExpr
+    | expr ('[' expr ']')+                             # arraySubscriptingExpr
     | expr '.' functionOrStructConstructorInvocation   # memberFunctionInvocationExpr
     | expr '.' IDENTIFIER                              # elementSelectionExpr
     | expr (INCREMENT | DECREMENT)                     # postfixUnaryExpr

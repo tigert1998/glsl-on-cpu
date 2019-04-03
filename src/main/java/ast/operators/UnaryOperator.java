@@ -1,6 +1,7 @@
 package ast.operators;
 
 import ast.*;
+import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
 
@@ -8,7 +9,7 @@ public interface UnaryOperator {
     boolean canBeApplied(Type type);
 
     Value apply(Value value, Scope scope)
-            throws NotLValueException, OperatorCannotBeAppliedException;
+            throws SyntaxErrorException;
 
     static Value increment(Value value) throws OperatorCannotBeAppliedException {
         // removes id information
@@ -48,8 +49,8 @@ public interface UnaryOperator {
             throw new OperatorCannotBeAppliedException(PrefixDecrement.OP, type);
     }
 
-    static void checkIsLValue(Value value, Scope scope) throws NotLValueException {
+    static void checkIsLValue(Value value, Scope scope) throws SyntaxErrorException {
         if (value.getId() == null || scope.variables.get(value.getId()) == null)
-            throw new NotLValueException();
+            throw SyntaxErrorException.lvalueRequired();
     }
 }

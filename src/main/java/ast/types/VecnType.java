@@ -3,25 +3,23 @@ package ast.types;
 public class VecnType extends Type {
     private int n;
 
-    private static VecnType VEC2 = new VecnType(2);
-    private static VecnType VEC3 = new VecnType(3);
-    private static VecnType VEC4 = new VecnType(4);
+    private static VecnType[] predefinedTypes = new VecnType[5];
+
+    static {
+        for (int i = 2; i <= 4; i++) predefinedTypes[i] = new VecnType(i);
+    }
+
+    static public VecnType fromN(int n) {
+        return predefinedTypes[n];
+    }
 
     public VecnType(int n) {
         this.n = n;
     }
 
-    static public VecnType fromN(int n) {
-        switch (n) {
-            case 2:
-                return VEC2;
-            case 3:
-                return VEC3;
-            case 4:
-                return VEC4;
-            default:
-                return null;
-        }
+    static public VecnType fromText(String text) {
+        int digit = text.charAt(text.length() - 1) - '0';
+        return fromN(digit);
     }
 
     @Override

@@ -4,25 +4,23 @@ public class IvecnType extends Type {
     private int n;
 
     // prevent multiple new
-    private static IvecnType IVEC2 = new IvecnType(2);
-    private static IvecnType IVEC3 = new IvecnType(3);
-    private static IvecnType IVEC4 = new IvecnType(4);
+    private static IvecnType[] predefinedTypes = new IvecnType[5];
+
+    static {
+        for (int i = 2; i <= 4; i++) predefinedTypes[i] = new IvecnType(i);
+    }
 
     private IvecnType(int n) {
         this.n = n;
     }
 
     static public IvecnType fromN(int n) {
-        switch (n) {
-            case 2:
-                return IVEC2;
-            case 3:
-                return IVEC3;
-            case 4:
-                return IVEC4;
-            default:
-                return null;
-        }
+        return predefinedTypes[n];
+    }
+
+    static public IvecnType fromText(String text) {
+        int digit = text.charAt(text.length() - 1);
+        return fromN(digit);
     }
 
     @Override

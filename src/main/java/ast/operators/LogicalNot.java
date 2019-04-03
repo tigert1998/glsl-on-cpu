@@ -13,12 +13,10 @@ public class LogicalNot extends Operator implements UnaryOperator {
         return type instanceof BoolType;
     }
 
+    // always needs to check canBeApplied to make sure it returns correct answer
     @Override
-    public Value apply(Value value, Scope scope) throws SyntaxErrorException {
-        var type = value.getType();
-        if (canBeApplied(type)) {
-            return new BoolValue(!((BoolValue) value).value);
-        } else throw new OperatorCannotBeAppliedException(this, type);
+    public Value apply(Value value, Scope scope) {
+        return new BoolValue(!((BoolValue) value).value);
     }
 
     @Override

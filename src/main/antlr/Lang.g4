@@ -12,7 +12,7 @@ functionParameter: (CONST? IN? | OUT | INOUT) type variableMaybeArray;
 
 // statements
 
-functionForwardDeclarationStmt: functionSignature ';'; // forward function declaration don't belong to normal stmt
+functionForwardDeclarationStmt: functionSignature ';'; // forward function declaration doesn't belong to normal stmt
 
 stmt:
     declarationStmt
@@ -47,8 +47,8 @@ constDeclarationStmt: CONST type constDeclarationList ';';
 
 normalDeclarationStmt: type declarationList ';';
 
-constDeclarationList: variableMaybeArray '=' expr (',' variableMaybeArray '=' expr)*;
-declarationList: variableMaybeArray ('=' expr)? (',' variableMaybeArray ('=' expr)?)*;
+constDeclarationList: (variableMaybeArray '=' expr (',' variableMaybeArray '=' expr)*)?;
+declarationList: (variableMaybeArray ('=' expr)? (',' variableMaybeArray ('=' expr)?)*)?;
 
 exprStmt: expr ';';
 
@@ -80,8 +80,8 @@ expr:
     | expr ('[' expr ']')+                             # arraySubscriptingExpr
     | expr '.' functionOrStructConstructorInvocation   # memberFunctionInvocationExpr
     | expr '.' IDENTIFIER                              # elementSelectionExpr
-    | expr (INCREMENT | DECREMENT)                     # postfixUnaryExpr
-    | (
+    | expr op=(INCREMENT | DECREMENT)                  # postfixUnaryExpr
+    | op=(
         INCREMENT
         | DECREMENT
         | PLUS
@@ -89,23 +89,23 @@ expr:
         | LOGICAL_NOT
         | BITWISE_NOT
     ) expr                                             # prefixUnaryExpr
-    | expr (MULT | DIV | MOD) expr                     # multDivModBinaryExpr
-    | expr (PLUS | MINUS) expr                         # plusMinusBinaryExpr
-    | expr (SHL | SHR) expr                            # shlShrBinaryExpr
-    | expr (
+    | expr op=(MULT | DIV | MOD) expr                  # multDivModBinaryExpr
+    | expr op=(PLUS | MINUS) expr                      # plusMinusBinaryExpr
+    | expr op=(SHL | SHR) expr                         # shlShrBinaryExpr
+    | expr op=(
         LESS
         | LESS_EQUAL
         | GREATER
         | GREATER_EQUAL
     ) expr                                             # lessGreaterBinaryExpr
-    | expr (EQUAL | NOT_EQUAL) expr                    # eqNeqBinaryExpr
-    | expr BITWISE_AND expr                            # bitwiseAndBinaryExpr
-    | expr BITWISE_XOR expr                            # bitwiseXorBinaryExpr
-    | expr BITWISE_OR expr                             # bitwiseOrBinaryExpr
-    | expr LOGICAL_AND expr                            # logicalAndBinaryExpr
-    | expr LOGICAL_OR expr                             # logicalOrBinaryExpr
+    | expr op=(EQUAL | NOT_EQUAL) expr                 # eqNeqBinaryExpr
+    | expr op=BITWISE_AND expr                         # bitwiseAndBinaryExpr
+    | expr op=BITWISE_XOR expr                         # bitwiseXorBinaryExpr
+    | expr op=BITWISE_OR expr                          # bitwiseOrBinaryExpr
+    | expr op=LOGICAL_AND expr                         # logicalAndBinaryExpr
+    | expr op=LOGICAL_OR expr                          # logicalOrBinaryExpr
     | expr '?' expr ':' expr                           # ternaryConditionalExpr
-    | expr (
+    | expr op=(
         ASSIGN
         | MULT_ASSIGN
         | DIV_ASSIGN

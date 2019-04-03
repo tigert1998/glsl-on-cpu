@@ -8,10 +8,9 @@ import ast.values.*;
 public interface UnaryOperator {
     boolean canBeApplied(Type type);
 
-    Value apply(Value value, Scope scope)
-            throws SyntaxErrorException;
+    Value apply(Value value, Scope scope);
 
-    static Value increment(Value value) throws OperatorCannotBeAppliedException {
+    static Value increment(Value value) {
         // removes id information
         var type = value.getType();
         if (type instanceof IntType) {
@@ -24,13 +23,13 @@ public interface UnaryOperator {
             return ((VecnValue) value).map(x -> x + 1);
         } else if (type instanceof IvecnType) {
             return ((IvecnValue) value).map(x -> x + 1);
-        } else if (type instanceof MatnxmType) {
+        } else {
+            // matnxm
             return ((MatnxmValue) value).map(x -> x + 1);
-        } else
-            throw new OperatorCannotBeAppliedException(PrefixIncrement.OP, type);
+        }
     }
 
-    static Value decrement(Value value) throws OperatorCannotBeAppliedException {
+    static Value decrement(Value value) {
         // removes id information
         var type = value.getType();
         if (type instanceof IntType) {
@@ -43,14 +42,14 @@ public interface UnaryOperator {
             return ((VecnValue) value).map(x -> x - 1);
         } else if (type instanceof IvecnType) {
             return ((IvecnValue) value).map(x -> x - 1);
-        } else if (type instanceof MatnxmType) {
+        } else {
+            // matnxm
             return ((MatnxmValue) value).map(x -> x - 1);
-        } else
-            throw new OperatorCannotBeAppliedException(PrefixDecrement.OP, type);
+        }
     }
 
-    static void checkIsLValue(Value value, Scope scope) throws SyntaxErrorException {
-        if (value.getId() == null || scope.variables.get(value.getId()) == null)
-            throw SyntaxErrorException.lvalueRequired();
-    }
+//    static void checkIsLValue(Value value, Scope scope) throws SyntaxErrorException {
+//        if (value.getId() == null || scope.variables.get(value.getId()) == null)
+//            throw SyntaxErrorException.lvalueRequired();
+//    }
 }

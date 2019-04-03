@@ -1,39 +1,58 @@
 package ast.exceptions;
 
+import org.antlr.v4.runtime.Token;
+
 public class SyntaxErrorException extends Exception {
-    public SyntaxErrorException(String message) {
-        super(message);
+    public SyntaxErrorException(int lineID, int columnID, String message) {
+        super(lineID + ":" + columnID + ": " + message);
     }
 
-    public static SyntaxErrorException undeclaredID(String id) {
-        return new SyntaxErrorException("'" + id + "': undeclared identifier");
+    public SyntaxErrorException(Token errToken, String message) {
+        this(errToken.getLine(), errToken.getCharPositionInLine(), message);
     }
 
-    public static SyntaxErrorException redefinition(String id) {
-        return new SyntaxErrorException("'" + id + "': redefinition");
+    public static SyntaxErrorException undeclaredID(Token errToken, String id) {
+        return new SyntaxErrorException(errToken,
+                "'" + id + "': undeclared identifier");
     }
 
-    public static SyntaxErrorException invalidArraySizeType() {
-        return new SyntaxErrorException("array size must be a constant integer expression");
+    public static SyntaxErrorException redefinition(Token errToken, String id) {
+        return new SyntaxErrorException(errToken,
+                "'" + id + "': redefinition");
     }
 
-    public static SyntaxErrorException arrayOfArrays() {
-        return new SyntaxErrorException("cannot declare array of arrays");
+    public static SyntaxErrorException invalidArraySizeType(Token errToken) {
+        return new SyntaxErrorException(errToken,
+                "array size must be a constant integer expression");
     }
 
-    public static SyntaxErrorException structArrayMemberUnknownSize(String id) {
-        return new SyntaxErrorException("'" + id + "': array members of structs must specify a size");
+    public static SyntaxErrorException arrayOfArrays(Token errToken) {
+        return new SyntaxErrorException(errToken,
+                "cannot declare array of arrays");
     }
 
-    public static SyntaxErrorException lvalueRequired() {
-        return new SyntaxErrorException("l-value required (cannot modify a const)");
+    public static SyntaxErrorException structArrayMemberUnknownSize(Token errToken, String id) {
+        return new SyntaxErrorException(errToken,
+                "'" + id + "': array members of structs must specify a size");
     }
 
-    public static SyntaxErrorException embeddedStructDefinition() {
-        return new SyntaxErrorException("embedded struct definitions are not allowed");
+    public static SyntaxErrorException lvalueRequired(Token errToken) {
+        return new SyntaxErrorException(errToken,
+                "l-value required (cannot modify a const)");
     }
 
-    public static SyntaxErrorException duplicateFieldName(String id) {
-        return new SyntaxErrorException("'" + id + "': duplicate field name in structure");
+    public static SyntaxErrorException embeddedStructDefinition(Token errToken) {
+        return new SyntaxErrorException(errToken,
+                "embedded struct definitions are not allowed");
+    }
+
+    public static SyntaxErrorException duplicateFieldName(Token errToken, String id) {
+        return new SyntaxErrorException(errToken,
+                "'" + id + "': duplicate field name in structure");
+    }
+
+    public static SyntaxErrorException arraySizeNotPositive(Token errToken) {
+        return new SyntaxErrorException(errToken,
+                "array size must be greater than zero");
     }
 }

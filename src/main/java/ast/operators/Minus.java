@@ -28,7 +28,7 @@ public class Minus extends Operator implements UnaryOperator, BinaryOperator {
     }
 
     @Override
-    public Value apply(Value value, Scope scope) throws SyntaxErrorException {
+    public Value apply(Value value, Scope scope) {
         var type = value.getType();
         if (type instanceof IntType) {
             return new IntValue(-((IntValue) value).value);
@@ -40,10 +40,10 @@ public class Minus extends Operator implements UnaryOperator, BinaryOperator {
             return ((VecnValue) value).map(x -> -x);
         } else if (type instanceof IvecnType) {
             return ((IvecnValue) value).map(x -> -x);
-        } else if (type instanceof MatnxmType) {
+        } else {
+            // matnxm
             return ((MatnxmValue) value).map(x -> -x);
-        } else
-            throw new OperatorCannotBeAppliedException(this, type);
+        }
     }
 
     @Override
@@ -51,12 +51,10 @@ public class Minus extends Operator implements UnaryOperator, BinaryOperator {
         return Plus.OP.canBeApplied(type1, type2);
     }
 
+    // always needs to check canBeApplied to make sure it returns correct answer
     @Override
-    public Value apply(Value value1, Value value2, Scope scope)
-            throws SyntaxErrorException {
+    public Value apply(Value value1, Value value2, Scope scope) {
         Type type1 = value1.getType(), type2 = value2.getType();
-        if (!canBeApplied(type1, type2))
-            throw new OperatorCannotBeAppliedException(this, type1, type2);
         if (type1.equals(type2)) {
             if (type1 instanceof IntType) {
                 return new IntValue(((IntValue) value1).value - ((IntValue) value2).value);

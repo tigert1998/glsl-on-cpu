@@ -21,10 +21,9 @@ public class Plus extends Operator implements UnaryOperator, BinaryOperator {
                 || type instanceof MatnxmType;
     }
 
+    // always needs to check canBeApplied to make sure it returns correct answer
     @Override
-    public Value apply(Value value, Scope scope) throws SyntaxErrorException {
-        if (!canBeApplied(value.getType()))
-            throw new OperatorCannotBeAppliedException(this, value.getType());
+    public Value apply(Value value, Scope scope) {
         return value;
     }
 
@@ -49,12 +48,10 @@ public class Plus extends Operator implements UnaryOperator, BinaryOperator {
         return vsChecker.apply(type1, type2) || vsChecker.apply(type2, type1);
     }
 
+    // always needs to check canBeApplied to make sure it returns correct answer
     @Override
-    public Value apply(Value value1, Value value2, Scope scope)
-            throws SyntaxErrorException {
+    public Value apply(Value value1, Value value2, Scope scope) {
         Type type1 = value1.getType(), type2 = value2.getType();
-        if (!canBeApplied(type1, type2))
-            throw new OperatorCannotBeAppliedException(this, type1, type2);
         if (type1.equals(type2)) {
             if (type1 instanceof IntType) {
                 return new IntValue(((IntValue) value1).value + ((IntValue) value2).value);

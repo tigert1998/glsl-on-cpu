@@ -18,9 +18,9 @@ public class PrefixDecrement extends Operator implements UnaryOperator {
                 || type instanceof MatnxmType;
     }
 
+    // make sure value is a l-value
     @Override
-    public Value apply(Value value, Scope scope) throws SyntaxErrorException {
-        UnaryOperator.checkIsLValue(value, scope);
+    public Value apply(Value value, Scope scope) {
         String id = value.getId();
         value = UnaryOperator.decrement(value);
         value.setId(id);

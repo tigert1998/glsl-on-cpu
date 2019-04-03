@@ -17,6 +17,13 @@ public class UvecnValue extends Value {
         return new String(builder);
     }
 
+    public UvecnValue map(Function<Long, Long> f) {
+        UvecnValue result = new UvecnValue(value.length);
+        for (int i = 0; i < value.length; i++)
+            result.value[i] = f.apply(value[i]);
+        return result;
+    }
+
     static public UvecnValue applyFunction(UvecnValue x, UvecnValue y, BiFunction<Long, Long, Long> f) {
         UvecnValue res = new UvecnValue(x.value.length);
         for (int i = 0; i < res.value.length; i++)

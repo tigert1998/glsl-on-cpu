@@ -17,7 +17,7 @@ public class BitwiseNot extends Operator implements UnaryOperator {
     }
 
     @Override
-    public Value apply(Value value, Scope scope) throws SyntaxErrorException {
+    public Value apply(Value value, Scope scope) {
         var type = value.getType();
         if (type instanceof IntType) {
             return new IntValue(~((IntValue) value).value);
@@ -25,10 +25,10 @@ public class BitwiseNot extends Operator implements UnaryOperator {
             return new UintValue(~((UintValue) value).value);
         } else if (type instanceof IvecnType) {
             return ((IvecnValue) value).map(x -> ~x);
-        } else if (type instanceof UvecnType) {
-            return ((IvecnValue) value).map(x -> ~x);
-        } else
-            throw new OperatorCannotBeAppliedException(this, type);
+        } else {
+            // uvecn
+            return ((UvecnValue) value).map(x -> ~x);
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package ast.types;
 
 import ast.exceptions.*;
+import org.antlr.v4.runtime.Token;
 
 import java.util.*;
 
@@ -28,12 +29,13 @@ public class StructType extends Type {
         this.id = id;
     }
 
-    public void addFieldInfo(FieldInfo info) throws SyntaxErrorException {
-        if (fieldInfoMap.containsKey(info.id))
-            throw SyntaxErrorException.duplicateFieldName(info.id);
-
+    public void addFieldInfo(FieldInfo info) {
         fieldInfoList.add(info);
         fieldInfoMap.put(info.id, info);
+    }
+
+    public boolean fieldIDExists(String id) {
+        return fieldInfoMap.containsKey(id);
     }
 
     @Override

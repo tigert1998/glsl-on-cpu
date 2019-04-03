@@ -31,9 +31,13 @@ public class Utility {
         Value value = exprCtx.accept(visitor);
         if (visitor.exception != null) throw visitor.exception;
         if (!(value.getType() instanceof IntType || value.getType() instanceof UintType))
-            throw SyntaxErrorException.invalidArraySizeType();
-        if (value instanceof IntValue) return ((IntValue) value).value;
-        else return (int) (long) ((UintValue) value).value;
+            throw SyntaxErrorException.invalidArraySizeType(exprCtx.start);
+        int res;
+        if (value instanceof IntValue) res = ((IntValue) value).value;
+        else res = (int) (long) ((UintValue) value).value;
+        if (res <= 0)
+            throw SyntaxErrorException.arraySizeNotPositive(exprCtx.start);
+        return res;
     }
 
     public static StructType typeFromStructDefinitionContext(LangParser.StructDefinitionContext ctx, Scope scope)
@@ -41,14 +45,14 @@ public class Utility {
         String id = ctx.structName.getText();
         if (scope.variables.containsKey(id) || scope.constants.containsKey(id)
                 || scope.structs.containsKey(id) || scope.functions.containsKey(id))
-            throw SyntaxErrorException.redefinition(id);
+            throw SyntaxErrorException.redefinition(ctx.structName, id);
 
         StructType result = new StructType(id);
         for (int i = 0; i < ctx.structFieldDeclarationStmt().size(); i++) {
             var stmtCtx = ctx.structFieldDeclarationStmt(i);
 
             if (stmtCtx.type().structType() != null && stmtCtx.type().structType().structDefinition() != null)
-                throw SyntaxErrorException.embeddedStructDefinition();
+                throw SyntaxErrorException.embeddedStructDefinition(stmtCtx.type().start);
 
             Type type = typeFromTypeContext(stmtCtx.type(), scope);
             for (int j = 0; j < stmtCtx.variableMaybeArray().size(); j++) {
@@ -57,8 +61,10 @@ public class Utility {
 
                 Type actualType = typeWithArraySuffix(type, varCtx.specifiedArrayLength(), scope);
                 if (actualType instanceof ArrayType && ((ArrayType) actualType).isLengthUnknown())
-                    throw SyntaxErrorException.structArrayMemberUnknownSize(varID);
+                    throw SyntaxErrorException.structArrayMemberUnknownSize(varCtx.start, varID);
 
+                if (result.fieldIDExists(varID))
+                    throw SyntaxErrorException.duplicateFieldName(varCtx.start, varID);
                 result.addFieldInfo(new StructType.FieldInfo(varID, actualType));
             }
         }
@@ -84,7 +90,7 @@ public class Utility {
             throws SyntaxErrorException {
         if (ctx == null) return type;
 
-        if (type instanceof ArrayType) throw SyntaxErrorException.arrayOfArrays();
+        if (type instanceof ArrayType) throw SyntaxErrorException.arrayOfArrays(ctx.start);
 
         if (ctx.expr() == null) return new ArrayType(type);
         int len = evalExprAsArraySize(ctx.expr(), scope);
@@ -103,7 +109,7 @@ public class Utility {
         if (ctx.IDENTIFIER() != null) {
             String id = ctx.IDENTIFIER().getText();
             if (!scope.structs.containsKey(id))
-                throw SyntaxErrorException.undeclaredID(id);
+                throw SyntaxErrorException.undeclaredID(ctx.start, id);
             type = scope.structs.get(id);
         } else {
             type = typeFromStructDefinitionContext(ctx.structDefinition(), scope);

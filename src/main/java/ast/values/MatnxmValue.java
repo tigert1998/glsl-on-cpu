@@ -12,11 +12,11 @@ public class MatnxmValue extends Value {
         value = new Float[n][m];
     }
 
-    private int getN() {
+    public int getN() {
         return ((MatnxmType) type).getN();
     }
 
-    private int getM() {
+    public int getM() {
         return ((MatnxmType) type).getM();
     }
 
@@ -29,7 +29,7 @@ public class MatnxmValue extends Value {
         return result;
     }
 
-    static public MatnxmValue applyFunction(MatnxmValue x, MatnxmValue y, BiFunction<Float, Float, Float> f) {
+    static public MatnxmValue pointwise(MatnxmValue x, MatnxmValue y, BiFunction<Float, Float, Float> f) {
         int n = x.getN(), m = x.getM();
         MatnxmValue res = new MatnxmValue(n, m);
         for (int i = 0; i < n; i++)
@@ -38,18 +38,21 @@ public class MatnxmValue extends Value {
         return res;
     }
 
-    static public MatnxmValue applyFunction(MatnxmValue x, FloatValue y, BiFunction<Float, Float, Float> f, boolean flipped) {
+    static public MatnxmValue pointwise(MatnxmValue x, FloatValue y, BiFunction<Float, Float, Float> f) {
         int n = x.getN(), m = x.getM();
         MatnxmValue res = new MatnxmValue(n, m);
-        if (!flipped) {
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < m; j++)
+                res.value[i][j] = f.apply(x.value[i][j], y.value);
+        return res;
+    }
+
+    static public MatnxmValue pointwise(FloatValue x, MatnxmValue y, BiFunction<Float, Float, Float> f) {
+        int n = y.getN(), m = y.getM();
+        MatnxmValue res = new MatnxmValue(n, m);
             for (int i = 0; i < n; i++)
                 for (int j = 0; j < m; j++)
-                    res.value[i][j] = f.apply(x.value[i][j], y.value);
-        } else {
-            for (int i = 0; i < n; i++)
-                for (int j = 0; j < m; j++)
-                    res.value[i][j] = f.apply(y.value, x.value[i][j]);
-        }
+                    res.value[i][j] = f.apply(x.value, y.value[i][j]);
         return res;
     }
 }

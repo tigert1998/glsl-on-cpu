@@ -24,22 +24,24 @@ public class UvecnValue extends Value {
         return result;
     }
 
-    static public UvecnValue applyFunction(UvecnValue x, UvecnValue y, BiFunction<Long, Long, Long> f) {
+    static public UvecnValue pointwise(UvecnValue x, UvecnValue y, BiFunction<Long, Long, Long> f) {
         UvecnValue res = new UvecnValue(x.value.length);
         for (int i = 0; i < res.value.length; i++)
             res.value[i] = f.apply(x.value[i], y.value[i]);
         return res;
     }
 
-    static public UvecnValue applyFunction(UvecnValue x, UintValue y, BiFunction<Long, Long, Long> f, boolean flipped) {
+    static public UvecnValue pointwise(UvecnValue x, UintValue y, BiFunction<Long, Long, Long> f) {
         UvecnValue res = new UvecnValue(x.value.length);
-        if (!flipped) {
-            for (int i = 0; i < res.value.length; i++)
-                res.value[i] = f.apply(x.value[i], y.value);
-        } else {
-            for (int i = 0; i < res.value.length; i++)
-                res.value[i] = f.apply(y.value, x.value[i]);
-        }
+        for (int i = 0; i < res.value.length; i++)
+            res.value[i] = f.apply(x.value[i], y.value);
+        return res;
+    }
+
+    static public UvecnValue pointwise(UintValue x, UvecnValue y, BiFunction<Long, Long, Long> f) {
+        UvecnValue res = new UvecnValue(y.value.length);
+        for (int i = 0; i < res.value.length; i++)
+            res.value[i] = f.apply(x.value, y.value[i]);
         return res;
     }
 }

@@ -19,6 +19,10 @@ public class VecnValue extends Value {
         return result;
     }
 
+    public int getN() {
+        return ((VecnType) type).getN();
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("vec" + value.length + "(" + value[0]);
@@ -27,22 +31,24 @@ public class VecnValue extends Value {
         return new String(builder);
     }
 
-    static public VecnValue applyFunction(VecnValue x, VecnValue y, BiFunction<Float, Float, Float> f) {
+    static public VecnValue pointwise(VecnValue x, VecnValue y, BiFunction<Float, Float, Float> f) {
         VecnValue res = new VecnValue(x.value.length);
         for (int i = 0; i < res.value.length; i++)
             res.value[i] = f.apply(x.value[i], y.value[i]);
         return res;
     }
 
-    static public VecnValue applyFunction(VecnValue x, FloatValue y, BiFunction<Float, Float, Float> f, boolean flipped) {
+    static public VecnValue pointwise(VecnValue x, FloatValue y, BiFunction<Float, Float, Float> f) {
         VecnValue res = new VecnValue(x.value.length);
-        if (!flipped) {
-            for (int i = 0; i < res.value.length; i++)
-                res.value[i] = f.apply(x.value[i], y.value);
-        } else {
-            for (int i = 0; i < res.value.length; i++)
-                res.value[i] = f.apply(y.value, x.value[i]);
-        }
+        for (int i = 0; i < res.value.length; i++)
+            res.value[i] = f.apply(x.value[i], y.value);
+        return res;
+    }
+
+    static public VecnValue pointwise(FloatValue x, VecnValue y, BiFunction<Float, Float, Float> f) {
+        VecnValue res = new VecnValue(y.value.length);
+        for (int i = 0; i < res.value.length; i++)
+            res.value[i] = f.apply(x.value, y.value[i]);
         return res;
     }
 }

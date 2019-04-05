@@ -3,7 +3,7 @@ package ast.values;
 import ast.types.*;
 
 public class UintValue extends Value {
-    public Long value = null;
+    public long value;
 
     public UintValue(long value) {
         this.value = value;

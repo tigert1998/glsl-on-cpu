@@ -76,7 +76,7 @@ public class Mult extends Operator implements BinaryOperator {
         var result = new VecnValue(n);
         for (int i = 0; i < n; i++)
             for (int j = 0; j < l; j++)
-                result.value[i] += x.value[j] * y.value[i][j];
+                result.values[i] += x.values[j] * y.values[i][j];
         return result;
     }
 
@@ -86,7 +86,7 @@ public class Mult extends Operator implements BinaryOperator {
         var result = new VecnValue(n);
         for (int i = 0; i < n; i++)
             for (int j = 0; j < l; j++)
-                result.value[i] += x.value[j][i] * y.value[j];
+                result.values[i] += x.values[j][i] * y.values[j];
         return result;
     }
 
@@ -96,9 +96,9 @@ public class Mult extends Operator implements BinaryOperator {
         var result = new MatnxmValue(n, m);
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {
-                result.value[i][j] = 0.f;
+                result.values[i][j] = 0.f;
                 for (int k = 0; k < l; k++)
-                    result.value[i][j] += x.value[k][j] * y.value[i][k];
+                    result.values[i][j] += x.values[k][j] * y.values[i][k];
             }
         }
         return result;

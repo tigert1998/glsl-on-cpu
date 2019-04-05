@@ -97,7 +97,7 @@ public class Utility {
         return new ArrayType(type, len);
     }
 
-    private static Type typeFromBasicTypeContext(LangParser.BasicTypeContext ctx, Scope scope)
+    public static Type typeFromBasicTypeContext(LangParser.BasicTypeContext ctx, Scope scope)
             throws SyntaxErrorException {
         Type type = typeWithoutArrayFromBasicTypeContext(ctx);
         return typeWithArraySuffix(type, ctx.specifiedArrayLength(), scope);

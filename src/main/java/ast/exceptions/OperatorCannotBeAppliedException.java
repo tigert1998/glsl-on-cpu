@@ -9,6 +9,6 @@ public class OperatorCannotBeAppliedException extends UnlocatedSyntaxErrorExcept
     }
 
     public OperatorCannotBeAppliedException(Operator operator, Type type1, Type type2) {
-        super("'" + operator + "' cannot be applied on " + type1 + " and " + type2);
+        super("'" + operator + "' cannot be applied between " + type1 + " and " + type2);
     }
 }

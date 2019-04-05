@@ -42,7 +42,7 @@ public class SyntaxErrorException extends Exception {
 
     public static SyntaxErrorException lvalueRequired(Token token) {
         return new SyntaxErrorException(token,
-                "l-value required (cannot modify a const)");
+                "l-values required (cannot modify a const)");
     }
 
     public static SyntaxErrorException embeddedStructDefinition(Token token) {

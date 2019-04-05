@@ -4,10 +4,10 @@ public class IvecnType extends Type {
     private int n;
 
     // prevent multiple new
-    private static IvecnType[] predefinedTypes = new IvecnType[5];
+    private static IvecnType[] predefinedTypes = new IvecnType[3];
 
     static {
-        for (int i = 2; i <= 4; i++) predefinedTypes[i] = new IvecnType(i);
+        for (int i = 2; i <= 4; i++) predefinedTypes[i - 2] = new IvecnType(i);
     }
 
     private IvecnType(int n) {
@@ -15,7 +15,7 @@ public class IvecnType extends Type {
     }
 
     static public IvecnType fromN(int n) {
-        return predefinedTypes[n];
+        return predefinedTypes[n - 2];
     }
 
     public int getN() {

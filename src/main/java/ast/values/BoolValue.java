@@ -3,7 +3,7 @@ package ast.values;
 import ast.types.*;
 
 public class BoolValue extends Value {
-    public Boolean value = null;
+    public boolean value;
 
     public BoolValue(boolean value) {
         this.value = value;

@@ -3,7 +3,7 @@ package ast.values;
 import ast.types.*;
 
 public class IntValue extends Value {
-    public Integer value = null;
+    public int value;
 
     public IntValue(int value) {
         this.value = value;

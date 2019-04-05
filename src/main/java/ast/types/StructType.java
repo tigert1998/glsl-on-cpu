@@ -40,15 +40,13 @@ public class StructType extends Type {
 
     @Override
     public String toString() {
+        return id;
+    }
+
+    public String toDetailedString() {
         var sb = new StringBuilder("struct " + id + " {\n");
         fieldInfoList.forEach(info -> {
-            String infoTypeStr;
-            if (info.type instanceof StructType) {
-                infoTypeStr = ((StructType) info.type).id;
-            } else {
-                infoTypeStr = info.type.toString();
-            }
-            sb.append('\t').append(infoTypeStr).append(' ').append(info.id).append(";\n");
+            sb.append('\t').append(info.type.toString()).append(' ').append(info.id).append(";\n");
         });
         sb.append("}");
         return new String(sb);

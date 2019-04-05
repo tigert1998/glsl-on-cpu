@@ -1,19 +1,17 @@
 package ast.types;
 
-import java.util.*;
-
 public class BvecnType extends Type {
     private int n;
 
     // prevent multiple new
-    private static BvecnType[] predefinedTypes = new BvecnType[5];
+    private static BvecnType[] predefinedTypes = new BvecnType[3];
 
     static {
-        for (int i = 2; i <= 4; i++) predefinedTypes[i] = new BvecnType(i);
+        for (int i = 2; i <= 4; i++) predefinedTypes[i - 2] = new BvecnType(i);
     }
 
     static public BvecnType fromN(int n) {
-        return predefinedTypes[n];
+        return predefinedTypes[n - 2];
     }
 
     public int getN() {

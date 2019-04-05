@@ -24,6 +24,10 @@ public class ArrayType extends Type {
         return length;
     }
 
+    public void setLength(int length) {
+        this.length = length;
+    }
+
     public boolean isLengthUnknown() {
         return lengthUnknown;
     }

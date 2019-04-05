@@ -3,21 +3,21 @@ package ast.types;
 public class VecnType extends Type {
     private int n;
 
-    private static VecnType[] predefinedTypes = new VecnType[5];
+    private static VecnType[] predefinedTypes = new VecnType[3];
 
     static {
-        for (int i = 2; i <= 4; i++) predefinedTypes[i] = new VecnType(i);
+        for (int i = 2; i <= 4; i++) predefinedTypes[i - 2] = new VecnType(i);
     }
 
     static public VecnType fromN(int n) {
-        return predefinedTypes[n];
+        return predefinedTypes[n - 2];
     }
 
     public int getN() {
         return n;
     }
 
-    public VecnType(int n) {
+    private VecnType(int n) {
         this.n = n;
     }
 

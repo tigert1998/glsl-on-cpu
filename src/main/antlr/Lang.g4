@@ -170,7 +170,7 @@ IDENTIFIER: [_a-zA-Z][_a-zA-Z0-9]*;
 boolLiteral: TRUE | FALSE;
 INT_LITERAL: [1-9][0-9]* | '0' | '0'+[1-7][0-7]* | '0'[xX][0-9a-fA-F]+;
 UINT_LITERAL: INT_LITERAL 'u';
-REAL_LITERAL: [0-9]+'.'[0-9]* ([eE] [+-]? [0-9]+)?;
+REAL_LITERAL: [0-9]*'.'[0-9]* ([eE] [+-]? [0-9]+)?;
 
 // operators
 

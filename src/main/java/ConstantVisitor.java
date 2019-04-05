@@ -2,6 +2,7 @@ import ast.*;
 import ast.exceptions.*;
 import ast.operators.*;
 import ast.values.*;
+import ast.types.*;
 
 import java.util.*;
 
@@ -13,7 +14,8 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         this.scope = scope;
     }
 
-    private Value[] extractValues(int total, List<LangParser.ExprContext> exprCtxList) {
+    private Value[] extractValues(List<LangParser.ExprContext> exprCtxList) {
+        int total = exprCtxList.size();
         Value[] values = new Value[total];
         var visitor = new ConstantVisitor(scope);
         for (int i = 0; i < total; i++) {
@@ -42,6 +44,26 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     @Override
     public Value visitReferenceExpr(LangParser.ReferenceExprContext ctx) {
         return scope.constants.get(ctx.IDENTIFIER().getText());
+    }
+
+    @Override
+    public Value visitBasicTypeConstructorInvocationExpr(LangParser.BasicTypeConstructorInvocationExprContext ctx) {
+        var invocationCtx = ctx.basicTypeConstructorInvocation();
+        var values = extractValues(invocationCtx.expr());
+        if (values == null) return null;
+        Type type;
+        try {
+            type = Utility.typeFromBasicTypeContext(invocationCtx.basicType(), scope);
+        } catch (SyntaxErrorException exception) {
+            this.exception = exception;
+            return null;
+        }
+        try {
+            return Value.constructor(type, values);
+        } catch (ConstructionFailedException exception) {
+            this.exception = new SyntaxErrorException(ctx.start, exception);
+            return null;
+        }
     }
 
     @Override
@@ -78,7 +100,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
 
     @Override
     public Value visitMultDivModBinaryExpr(LangParser.MultDivModBinaryExprContext ctx) {
-        var values = extractValues(2, ctx.expr());
+        var values = extractValues(ctx.expr());
         if (values == null) return null;
         BinaryOperator op;
         if (ctx.MULT() != null) {
@@ -98,7 +120,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
 
     @Override
     public Value visitPlusMinusBinaryExpr(LangParser.PlusMinusBinaryExprContext ctx) {
-        var values = extractValues(2, ctx.expr());
+        var values = extractValues(ctx.expr());
         if (values == null) return null;
         BinaryOperator op = ctx.PLUS() != null ? Plus.OP : Minus.OP;
         try {

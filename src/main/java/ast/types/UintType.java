@@ -12,4 +12,9 @@ public class UintType extends Type {
     public String toString() {
         return "uint";
     }
+
+    @Override
+    public Type collapse() {
+        return TYPE;
+    }
 }

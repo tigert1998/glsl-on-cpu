@@ -20,7 +20,7 @@ public class VecnValue extends Value {
     }
 
     public int getN() {
-        return ((VecnType) type).getN();
+        return value.length;
     }
 
     @Override

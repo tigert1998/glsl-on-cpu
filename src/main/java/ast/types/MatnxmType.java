@@ -50,4 +50,9 @@ public class MatnxmType extends Type {
         if (n == m) return "mat" + n;
         return "mat" + n + "x" + m;
     }
+
+    @Override
+    public Type collapse() {
+        return FloatType.TYPE;
+    }
 }

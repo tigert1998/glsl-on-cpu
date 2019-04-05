@@ -42,4 +42,8 @@ public class ArrayType extends Type {
         if (lengthUnknown) return type + "[]";
         return type + "[" + length + "]";
     }
+
+    public Type collapse() {
+        return type;
+    }
 }

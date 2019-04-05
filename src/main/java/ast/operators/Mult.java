@@ -1,58 +1,107 @@
 package ast.operators;
 
-import ast.*;
 import ast.exceptions.*;
-import ast.types.*;
 import ast.values.*;
-
-import java.util.function.*;
 
 public class Mult extends Operator implements BinaryOperator {
     public static Mult OP = new Mult();
 
-    @Override
-    public boolean canBeApplied(Type type1, Type type2) {
-        return Plus.OP.canBeApplied(type1, type2);
+    // scalar
+    protected Value apply(IntValue x, IntValue y) {
+        return new IntValue(x.value * y.value);
     }
 
-    // always needs to check canBeApplied to make sure it returns correct answer
-    @Override
-    public Value apply(Value value1, Value value2, Scope scope) {
-        Type type1 = value1.getType(), type2 = value2.getType();
-        if (type1.equals(type2)) {
-            if (type1 instanceof IntType) {
-                return new IntValue(((IntValue) value1).value * ((IntValue) value2).value);
-            } else if (type1 instanceof UintType) {
-                return new UintValue(((UintValue) value1).value * ((UintValue) value2).value);
-            } else if (type1 instanceof FloatType) {
-                return new FloatValue(((FloatValue) value1).value * ((FloatValue) value2).value);
-            } else if (type1 instanceof IvecnType) {
-                return IvecnValue.applyFunction((IvecnValue) value1, (IvecnValue) value2, (x, y) -> x * y);
-            } else if (type1 instanceof UvecnType) {
-                return UvecnValue.applyFunction((UvecnValue) value1, (UvecnValue) value2, (x, y) -> x * y);
-            } else if (type1 instanceof VecnType) {
-                return VecnValue.applyFunction((VecnValue) value1, (VecnValue) value2, (x, y) -> x * y);
-            } else {
-                // matnxm
-                return MatnxmValue.applyFunction((MatnxmValue) value1, (MatnxmValue) value2, (x, y) -> x * y);
+    protected Value apply(UintValue x, UintValue y) {
+        return new UintValue(x.value * y.value);
+    }
+
+    protected Value apply(FloatValue x, FloatValue y) {
+        return new FloatValue(x.value * y.value);
+    }
+
+    // ivecn
+    protected Value apply(IvecnValue x, IvecnValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+        return IvecnValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    protected Value apply(IntValue x, IvecnValue y) {
+        return IvecnValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    protected Value apply(IvecnValue x, IntValue y) {
+        return IvecnValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    // uvecn
+    protected Value apply(UvecnValue x, UvecnValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+        return UvecnValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    protected Value apply(UintValue x, UvecnValue y) {
+        return UvecnValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    protected Value apply(UvecnValue x, UintValue y) {
+        return UvecnValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    // vecn
+    protected Value apply(VecnValue x, VecnValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+        return VecnValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    protected Value apply(FloatValue x, VecnValue y) {
+        return VecnValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    protected Value apply(VecnValue x, FloatValue y) {
+        return VecnValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    // matnxm
+    protected Value apply(FloatValue x, MatnxmValue y) {
+        return MatnxmValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    protected Value apply(MatnxmValue x, FloatValue y) {
+        return MatnxmValue.pointwise(x, y, (a, b) -> a * b);
+    }
+
+    protected Value apply(VecnValue x, MatnxmValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() == y.getM()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+        int n = y.getN(), l = x.getN();
+        var result = new VecnValue(n);
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < l; j++)
+                result.value[i] += x.value[j] * y.value[i][j];
+        return result;
+    }
+
+    protected Value apply(MatnxmValue x, VecnValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+        int n = x.getM(), l = x.getN();
+        var result = new VecnValue(n);
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < l; j++)
+                result.value[i] += x.value[j][i] * y.value[j];
+        return result;
+    }
+
+    protected Value apply(MatnxmValue x, MatnxmValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getM()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+        int l = x.getN(), m = x.getM(), n = y.getN();
+        var result = new MatnxmValue(n, m);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                result.value[i][j] = 0.f;
+                for (int k = 0; k < l; k++)
+                    result.value[i][j] += x.value[k][j] * y.value[i][k];
             }
-        } else {
-            BiFunction<Value, Value, Value> vsFunc = (Value v, Value s) -> {
-                var type = v.getType();
-                if (type instanceof IvecnType) {
-                    return IvecnValue.applyFunction((IvecnValue) v, (IntValue) s, (x, y) -> x * y, false);
-                } else if (type instanceof UvecnType) {
-                    return UvecnValue.applyFunction((UvecnValue) v, (UintValue) s, (x, y) -> x * y, false);
-                } else if (type instanceof VecnType) {
-                    return VecnValue.applyFunction((VecnValue) v, (FloatValue) s, (x, y) -> x * y, false);
-                } else {
-                    // matnxm
-                    return MatnxmValue.applyFunction((MatnxmValue) v, (FloatValue) s, (x, y) -> x * y, false);
-                }
-            };
-            return type1 instanceof IntType || type1 instanceof UintType || type1 instanceof FloatType
-                    ? vsFunc.apply(value2, value1) : vsFunc.apply(value1, value2);
         }
+        return result;
     }
 
     @Override

@@ -19,6 +19,10 @@ public class IvecnValue extends Value {
         return result;
     }
 
+    public int getN() {
+        return value.length;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("ivec" + value.length + "(" + value[0]);

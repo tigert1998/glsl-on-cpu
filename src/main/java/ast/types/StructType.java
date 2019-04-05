@@ -53,4 +53,9 @@ public class StructType extends Type {
         sb.append("}");
         return new String(sb);
     }
+
+    @Override
+    public Type collapse() {
+        return null;
+    }
 }

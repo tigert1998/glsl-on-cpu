@@ -17,6 +17,10 @@ public class UvecnValue extends Value {
         return new String(builder);
     }
 
+    public int getN() {
+        return value.length;
+    }
+
     public UvecnValue map(Function<Long, Long> f) {
         UvecnValue result = new UvecnValue(value.length);
         for (int i = 0; i < value.length; i++)

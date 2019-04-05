@@ -13,6 +13,10 @@ public class UvecnType extends Type {
         return predefinedTypes[n];
     }
 
+    public int getN() {
+        return n;
+    }
+
     private UvecnType(int n) { this.n = n; }
 
     static public UvecnType fromText(String text) {
@@ -29,5 +33,10 @@ public class UvecnType extends Type {
     @Override
     public String toString() {
         return "uvec" + n;
+    }
+
+    @Override
+    public Type collapse() {
+        return UintType.TYPE;
     }
 }

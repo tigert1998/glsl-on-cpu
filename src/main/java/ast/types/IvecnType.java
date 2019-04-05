@@ -18,6 +18,10 @@ public class IvecnType extends Type {
         return predefinedTypes[n];
     }
 
+    public int getN() {
+        return n;
+    }
+
     static public IvecnType fromText(String text) {
         int digit = text.charAt(text.length() - 1);
         return fromN(digit);
@@ -32,5 +36,10 @@ public class IvecnType extends Type {
     @Override
     public String toString() {
         return "ivec" + n;
+    }
+
+    @Override
+    public Type collapse() {
+        return IntType.TYPE;
     }
 }

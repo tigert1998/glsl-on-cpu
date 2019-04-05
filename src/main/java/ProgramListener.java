@@ -12,6 +12,14 @@ public class ProgramListener extends LangBaseListener {
 
     @Override
     public void exitConstDeclarationStmt(LangParser.ConstDeclarationStmtContext ctx) {
+        Type type;
+        try {
+            type = Utility.typeFromTypeContext(ctx.type(), globalScope);
+        } catch (SyntaxErrorException exception) {
+            System.out.println(exception.getMessage());
+            return;
+        }
+
         var declarationList = ctx.constDeclarationList();
         int length = declarationList.variableMaybeArray().size();
         for (int i = 0; i < length; i++) {

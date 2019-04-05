@@ -1,9 +1,7 @@
 import ast.*;
 import ast.exceptions.*;
 import ast.operators.*;
-import ast.types.Type;
 import ast.values.*;
-import org.antlr.v4.runtime.Token;
 
 import java.util.*;
 
@@ -34,20 +32,6 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         if (visitor.exception != null)
             this.exception = visitor.exception;
         return value;
-    }
-
-    private boolean checkBinaryOperatorApplicable(Token token, BinaryOperator op, Value[] values) {
-        Type type1 = values[0].getType(), type2 = values[1].getType();
-        if (op.canBeApplied(type1, type2)) return true;
-        this.exception = new OperatorCannotBeAppliedException(token, (Operator) op, type1, type2);
-        return false;
-    }
-
-    private boolean checkUnaryOperatorApplicable(Token token, UnaryOperator op, Value value) {
-        var type = value.getType();
-        if (op.canBeApplied(type)) return true;
-        this.exception = new OperatorCannotBeAppliedException(token, (Operator) op, type);
-        return false;
     }
 
     @Override
@@ -84,8 +68,12 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         } else {
             op = BitwiseNot.OP;
         }
-        if (!checkUnaryOperatorApplicable(ctx.op, op, value)) return null;
-        return op.apply(value, scope);
+        try {
+            return op.apply(value);
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exception = new SyntaxErrorException(ctx.op, exception);
+            return null;
+        }
     }
 
     @Override
@@ -100,8 +88,12 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         } else {
             op = Mod.OP;
         }
-        if (!checkBinaryOperatorApplicable(ctx.op, op, values)) return null;
-        return op.apply(values[0], values[1], scope);
+        try {
+            return op.apply(values[0], values[1]);
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exception = new SyntaxErrorException(ctx.op, exception);
+            return null;
+        }
     }
 
     @Override
@@ -109,8 +101,12 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         var values = extractValues(2, ctx.expr());
         if (values == null) return null;
         BinaryOperator op = ctx.PLUS() != null ? Plus.OP : Minus.OP;
-        if (!checkBinaryOperatorApplicable(ctx.op, op, values)) return null;
-        return op.apply(values[0], values[1], scope);
+        try {
+            return op.apply(values[0], values[1]);
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exception = new SyntaxErrorException(ctx.op, exception);
+            return null;
+        }
     }
 
     @Override

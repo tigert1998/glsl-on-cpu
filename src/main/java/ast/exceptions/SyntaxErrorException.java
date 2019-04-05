@@ -11,6 +11,10 @@ public class SyntaxErrorException extends Exception {
         this(token.getLine(), token.getCharPositionInLine(), message);
     }
 
+    public SyntaxErrorException(Token token, UnlocatedSyntaxErrorException exception) {
+        this(token, exception.getMessage());
+    }
+
     public static SyntaxErrorException undeclaredID(Token token, String id) {
         return new SyntaxErrorException(token,
                 "'" + id + "': undeclared identifier");

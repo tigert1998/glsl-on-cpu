@@ -13,6 +13,10 @@ public class VecnType extends Type {
         return predefinedTypes[n];
     }
 
+    public int getN() {
+        return n;
+    }
+
     public VecnType(int n) {
         this.n = n;
     }
@@ -31,5 +35,10 @@ public class VecnType extends Type {
     @Override
     public String toString() {
         return "vec" + n;
+    }
+
+    @Override
+    public Type collapse() {
+        return FloatType.TYPE;
     }
 }

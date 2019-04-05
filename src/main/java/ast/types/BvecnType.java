@@ -16,6 +16,10 @@ public class BvecnType extends Type {
         return predefinedTypes[n];
     }
 
+    public int getN() {
+        return n;
+    }
+
     static public BvecnType fromText(String text) {
         int digit = text.charAt(text.length() - 1) - '0';
         return fromN(digit);
@@ -34,5 +38,9 @@ public class BvecnType extends Type {
     @Override
     public String toString() {
         return "bvec" + n;
+    }
+
+    public Type collapse() {
+        return BoolType.TYPE;
     }
 }

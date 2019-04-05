@@ -20,19 +20,19 @@ public class Minus extends Operator implements UnaryOperator, BinaryOperator {
     }
 
     protected Value apply(VecnValue x) {
-        return x.map(a -> -a);
+        return VecnValue.pointwise(x, a -> -a);
     }
 
     protected Value apply(IvecnValue x) {
-        return x.map(a -> -a);
+        return IvecnValue.pointwise(x, a -> -a);
     }
 
     protected Value apply(UvecnValue x) {
-        return x.map(a -> -a);
+        return UvecnValue.pointwise(x, a -> -a);
     }
 
     protected Value apply(MatnxmValue x) {
-        return x.map(a -> -a);
+        return MatnxmValue.pointwise(x, a -> -a);
     }
 
     // binary operator

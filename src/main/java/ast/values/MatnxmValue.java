@@ -20,12 +20,12 @@ public class MatnxmValue extends Value {
         return ((MatnxmType) type).getM();
     }
 
-    public MatnxmValue map(Function<Float, Float> f) {
-        int n = getN(), m = getM();
+    static public MatnxmValue pointwise(MatnxmValue x, Function<Float, Float> f) {
+        int n = x.getN(), m = x.getM();
         MatnxmValue result = new MatnxmValue(n, m);
         for (int i = 0; i < n; i++)
             for (int j = 0; j < m; j++)
-                result.value[i][j] = f.apply(value[i][j]);
+                result.value[i][j] = f.apply(x.value[i][j]);
         return result;
     }
 

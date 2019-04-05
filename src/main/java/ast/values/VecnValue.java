@@ -12,13 +12,6 @@ public class VecnValue extends Value {
         value = new Float[n];
     }
 
-    public VecnValue map(Function<Float, Float> f) {
-        VecnValue result = new VecnValue(value.length);
-        for (int i = 0; i < value.length; i++)
-            result.value[i] = f.apply(value[i]);
-        return result;
-    }
-
     public int getN() {
         return value.length;
     }
@@ -31,23 +24,30 @@ public class VecnValue extends Value {
         return new String(builder);
     }
 
+    static public VecnValue pointwise(VecnValue x, Function<Float, Float> f) {
+        VecnValue result = new VecnValue(x.getN());
+        for (int i = 0; i < x.getN(); i++)
+            result.value[i] = f.apply(x.value[i]);
+        return result;
+    }
+
     static public VecnValue pointwise(VecnValue x, VecnValue y, BiFunction<Float, Float, Float> f) {
-        VecnValue res = new VecnValue(x.value.length);
-        for (int i = 0; i < res.value.length; i++)
+        VecnValue res = new VecnValue(x.getN());
+        for (int i = 0; i < res.getN(); i++)
             res.value[i] = f.apply(x.value[i], y.value[i]);
         return res;
     }
 
     static public VecnValue pointwise(VecnValue x, FloatValue y, BiFunction<Float, Float, Float> f) {
-        VecnValue res = new VecnValue(x.value.length);
-        for (int i = 0; i < res.value.length; i++)
+        VecnValue res = new VecnValue(x.getN());
+        for (int i = 0; i < res.getN(); i++)
             res.value[i] = f.apply(x.value[i], y.value);
         return res;
     }
 
     static public VecnValue pointwise(FloatValue x, VecnValue y, BiFunction<Float, Float, Float> f) {
-        VecnValue res = new VecnValue(y.value.length);
-        for (int i = 0; i < res.value.length; i++)
+        VecnValue res = new VecnValue(y.getN());
+        for (int i = 0; i < res.getN(); i++)
             res.value[i] = f.apply(x.value, y.value[i]);
         return res;
     }

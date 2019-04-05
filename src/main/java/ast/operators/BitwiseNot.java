@@ -14,11 +14,11 @@ public class BitwiseNot extends Operator implements UnaryOperator {
     }
 
     protected Value apply(IvecnValue x) {
-        return x.map(a -> ~a);
+        return IvecnValue.pointwise(x, a -> ~a);
     }
 
     protected Value apply(UvecnValue x) {
-        return x.map(a -> ~a);
+        return UvecnValue.pointwise(x, a -> ~a);
     }
 
     @Override

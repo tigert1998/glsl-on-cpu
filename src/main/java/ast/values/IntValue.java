@@ -12,6 +12,6 @@ public class IntValue extends Value {
 
     @Override
     public String toString() {
-        return value + ": int";
+        return String.valueOf(value);
     }
 }

@@ -12,6 +12,6 @@ public class UintValue extends Value {
 
     @Override
     public String toString() {
-        return value + ": uint";
+        return value + "u";
     }
 }

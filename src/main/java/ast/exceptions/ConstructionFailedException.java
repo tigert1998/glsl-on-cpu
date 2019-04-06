@@ -38,4 +38,14 @@ public class ConstructionFailedException extends UnlocatedSyntaxErrorException {
     public static ConstructionFailedException matrixFromMatrix() {
         return new ConstructionFailedException("constructing matrix from matrix can only take one argument");
     }
+
+    public static ConstructionFailedException fieldNumberNotMatch() {
+        return new ConstructionFailedException(
+                "number of constructor parameters does not match the number of structure fields");
+    }
+
+    public static ConstructionFailedException fieldTypeNotMatch() {
+        return new ConstructionFailedException(
+                "structure constructor arguments do not match structure fields");
+    }
 }

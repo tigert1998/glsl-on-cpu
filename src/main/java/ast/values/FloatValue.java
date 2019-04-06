@@ -12,6 +12,6 @@ public class FloatValue extends Value {
 
     @Override
     public String toString() {
-        return value + ": float";
+        return String.valueOf(value);
     }
 }

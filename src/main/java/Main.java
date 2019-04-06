@@ -1,9 +1,5 @@
-import ast.*;
-
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
-
-import java.util.*;
 
 public class Main {
     public static void error(String message) {

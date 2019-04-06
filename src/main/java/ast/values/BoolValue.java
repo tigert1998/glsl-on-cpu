@@ -12,6 +12,6 @@ public class BoolValue extends Value {
 
     @Override
     public String toString() {
-        return value + ": bool";
+        return String.valueOf(value);
     }
 }

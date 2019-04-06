@@ -24,7 +24,7 @@ public class Scope {
 
     public void LogStructs() {
         for (var kv : structs.entrySet()) {
-            System.out.println(kv.getValue());
+            System.out.println(kv.getValue().toDetailedString());
         }
     }
 }

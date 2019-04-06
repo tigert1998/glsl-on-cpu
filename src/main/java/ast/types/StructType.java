@@ -38,6 +38,14 @@ public class StructType extends Type {
         return fieldInfoMap.containsKey(id);
     }
 
+    public FieldInfo getFieldInfo(int i) {
+        return fieldInfoList.get(i);
+    }
+
+    public int totalFields() {
+        return fieldInfoList.size();
+    }
+
     @Override
     public String toString() {
         return id;

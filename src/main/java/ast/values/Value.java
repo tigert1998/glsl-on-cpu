@@ -218,6 +218,18 @@ public class Value {
         return new MatnxmValue(type, valueList);
     }
 
+    static private StructValue constructor(StructType type, Value[] values) throws ConstructionFailedException {
+        if (values.length == 0) throw ConstructionFailedException.noArgument();
+        if (values.length != type.totalFields()) throw ConstructionFailedException.fieldNumberNotMatch();
+        for (int i = 0; i < values.length; i++) {
+            var value = values[i];
+            var field = type.getFieldInfo(i);
+            if (!value.getType().equals(field.type))
+                throw ConstructionFailedException.fieldTypeNotMatch();
+        }
+        return new StructValue(type, values);
+    }
+
     static public Value constructor(Type type, Value[] values) throws ConstructionFailedException {
         try {
             var method = Value.class.getDeclaredMethod("constructor", type.getClass(), values.getClass());

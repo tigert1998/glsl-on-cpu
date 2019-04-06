@@ -103,8 +103,8 @@ public class Utility {
         return typeWithArraySuffix(type, ctx.specifiedArrayLength(), scope);
     }
 
-    private static Type typeFromStructTypeContext(LangParser.StructTypeContext ctx, Scope scope)
-            throws SyntaxErrorException{
+    public static Type typeFromStructTypeContext(LangParser.StructTypeContext ctx, Scope scope)
+            throws SyntaxErrorException {
         Type type;
         if (ctx.IDENTIFIER() != null) {
             String id = ctx.IDENTIFIER().getText();

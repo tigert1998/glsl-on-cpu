@@ -67,6 +67,28 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     }
 
     @Override
+    public Value visitFunctionOrStructConstructorInvocationExpr(
+            LangParser.FunctionOrStructConstructorInvocationExprContext ctx) {
+        var invocationCtx = ctx.functionOrStructConstructorInvocation();
+        var values = extractValues(invocationCtx.expr());
+        if (values == null) return null;
+        Type type;
+        try {
+            type = Utility.typeFromStructTypeContext(invocationCtx.structType(), scope);
+        } catch (SyntaxErrorException exception) {
+            // built in function not supported yet
+            this.exception = SyntaxErrorException.lvalueRequired(ctx.start);
+            return null;
+        }
+        try {
+            return Value.constructor(type, values);
+        } catch (ConstructionFailedException exception) {
+            this.exception = new SyntaxErrorException(ctx.start, exception);
+            return null;
+        }
+    }
+
+    @Override
     public Value visitPostfixUnaryExpr(LangParser.PostfixUnaryExprContext ctx) {
         exception = SyntaxErrorException.lvalueRequired(ctx.stop);
         return null;

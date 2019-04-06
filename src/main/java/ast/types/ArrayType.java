@@ -25,6 +25,7 @@ public class ArrayType extends Type {
     }
 
     public void setLength(int length) {
+        lengthUnknown = false;
         this.length = length;
     }
 

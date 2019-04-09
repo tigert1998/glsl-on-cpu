@@ -26,15 +26,20 @@ public class Utility {
         return null;
     }
 
-    public static int evalExprAsArraySize(LangParser.ExprContext exprCtx, Scope scope) throws SyntaxErrorException {
+    public static int evalExprAsIntegral(LangParser.ExprContext exprCtx, Scope scope) throws SyntaxErrorException {
         var visitor = new ConstantVisitor(scope);
         Value value = exprCtx.accept(visitor);
         if (visitor.exception != null) throw visitor.exception;
         if (!(value.getType() instanceof IntType || value.getType() instanceof UintType))
-            throw SyntaxErrorException.invalidArraySizeType(exprCtx.start);
+            throw SyntaxErrorException.notIntegerExpression(exprCtx.start);
         int res;
         if (value instanceof IntValue) res = ((IntValue) value).value;
         else res = (int) (long) ((UintValue) value).value;
+        return res;
+    }
+
+    public static int evalExprAsArraySize(LangParser.ExprContext exprCtx, Scope scope) throws SyntaxErrorException {
+        int res = evalExprAsIntegral(exprCtx, scope);
         if (res <= 0)
             throw SyntaxErrorException.arraySizeNotPositive(exprCtx.start);
         return res;

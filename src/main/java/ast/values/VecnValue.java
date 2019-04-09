@@ -1,11 +1,12 @@
 package ast.values;
 
+import ast.exceptions.*;
 import ast.types.*;
 
 import java.util.*;
 import java.util.function.*;
 
-public class VecnValue extends Value implements Vectorized {
+public class VecnValue extends Value implements Vectorized, Indexed {
     public float[] values = null;
 
     public VecnValue(int n) {
@@ -70,5 +71,11 @@ public class VecnValue extends Value implements Vectorized {
         for (int i = 0; i < res.getN(); i++)
             res.values[i] = f.apply(x.value, y.values[i]);
         return res;
+    }
+
+    @Override
+    public Value valueAt(int i) throws InvalidIndexException {
+        if (i < 0 || i >= values.length) throw InvalidIndexException.outOfRange();
+        return new FloatValue(values[i]);
     }
 }

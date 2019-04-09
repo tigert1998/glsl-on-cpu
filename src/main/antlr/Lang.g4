@@ -77,7 +77,7 @@ expr:
     | IDENTIFIER                                       # referenceExpr
     | basicTypeConstructorInvocation                   # basicTypeConstructorInvocationExpr
     | functionOrStructConstructorInvocation            # functionOrStructConstructorInvocationExpr
-    | expr ('[' expr ']')+                             # arraySubscriptingExpr
+    | expr ('[' idx=expr ']')                          # arraySubscriptingExpr
     | expr '.' functionOrStructConstructorInvocation   # memberFunctionInvocationExpr
     | expr '.' IDENTIFIER                              # elementSelectionExpr
     | expr op=(INCREMENT | DECREMENT)                  # postfixUnaryExpr

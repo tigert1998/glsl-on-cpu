@@ -1,10 +1,11 @@
 package ast.values;
 
+import ast.exceptions.InvalidIndexException;
 import ast.types.*;
 
 import java.util.*;
 
-public class BvecnValue extends Value implements Vectorized {
+public class BvecnValue extends Value implements Vectorized, Indexed {
     public boolean[] values = null;
 
     public int getN() {
@@ -33,5 +34,11 @@ public class BvecnValue extends Value implements Vectorized {
         for (int i = 0; i < result.length; i++)
             result[i] = new BoolValue(values[i]);
         return result;
+    }
+
+    @Override
+    public Value valueAt(int i) throws InvalidIndexException {
+        if (i < 0 || i >= getN()) throw InvalidIndexException.outOfRange();
+        return new BoolValue(values[i]);
     }
 }

@@ -25,9 +25,9 @@ public class SyntaxErrorException extends Exception {
                 "'" + id + "': redefinition");
     }
 
-    public static SyntaxErrorException invalidArraySizeType(Token token) {
+    public static SyntaxErrorException notIntegerExpression(Token token) {
         return new SyntaxErrorException(token,
-                "array size must be a constant integer expression");
+                "integer expression required");
     }
 
     public static SyntaxErrorException arrayOfArrays(Token token) {
@@ -58,5 +58,10 @@ public class SyntaxErrorException extends Exception {
     public static SyntaxErrorException arraySizeNotPositive(Token token) {
         return new SyntaxErrorException(token,
                 "array size must be greater than zero");
+    }
+
+    public static SyntaxErrorException invalidSubscriptingType(Token token, String name) {
+        return new SyntaxErrorException(token,
+                "'" + name + "': left of '[' is not of type array, matrix or vector");
     }
 }

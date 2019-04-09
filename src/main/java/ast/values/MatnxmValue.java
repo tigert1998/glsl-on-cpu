@@ -1,11 +1,12 @@
 package ast.values;
 
+import ast.exceptions.*;
 import ast.types.*;
 
 import java.util.*;
 import java.util.function.*;
 
-public class MatnxmValue extends Value implements Vectorized {
+public class MatnxmValue extends Value implements Vectorized, Indexed {
     public float[][] values = null;
 
     public MatnxmValue(int n, int m) {
@@ -98,5 +99,14 @@ public class MatnxmValue extends Value implements Vectorized {
         }
         sb.append("]: ").append(getType());
         return new String(sb);
+    }
+
+    @Override
+    public Value valueAt(int i) throws InvalidIndexException {
+        if (i < 0 || i >= getN()) throw InvalidIndexException.outOfRange();
+        var result = new VecnValue(getM());
+        for (int j = 0; j < getM(); j++)
+            result.values[j] = values[i][j];
+        return result;
     }
 }

@@ -1,8 +1,9 @@
 package ast.values;
 
+import ast.exceptions.InvalidIndexException;
 import ast.types.*;
 
-public class ArrayValue extends Value {
+public class ArrayValue extends Value implements Indexed {
     public Value[] values = null;
 
     public ArrayValue(ArrayType type, Value[] values) {
@@ -20,5 +21,11 @@ public class ArrayValue extends Value {
         }
         sb.append(")");
         return new String(sb);
+    }
+
+    @Override
+    public Value valueAt(int i) throws InvalidIndexException {
+        if (i < 0 || i >= values.length) throw InvalidIndexException.outOfRange();
+        return values[i];
     }
 }

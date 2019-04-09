@@ -89,6 +89,30 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     }
 
     @Override
+    public Value visitArraySubscriptingExpr(LangParser.ArraySubscriptingExprContext ctx) {
+        Value x = extractValue(ctx.expr(0));
+        if (x == null) return null;
+        int idx;
+        try {
+            idx = Utility.evalExprAsIntegral(ctx.idx, scope);
+        } catch (SyntaxErrorException exception) {
+            this.exception = exception;
+            return null;
+        }
+        if (x instanceof Indexed) {
+            try {
+                return ((Indexed) x).valueAt(idx);
+            } catch (InvalidIndexException exception) {
+                this.exception = new SyntaxErrorException(ctx.idx.start, exception);
+                return null;
+            }
+        } else {
+            this.exception = SyntaxErrorException.invalidSubscriptingType(ctx.start, ctx.expr(0).getText());
+            return null;
+        }
+    }
+
+    @Override
     public Value visitPostfixUnaryExpr(LangParser.PostfixUnaryExprContext ctx) {
         exception = SyntaxErrorException.lvalueRequired(ctx.stop);
         return null;

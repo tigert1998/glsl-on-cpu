@@ -3,7 +3,7 @@ package ast.exceptions;
 import ast.types.*;
 
 public class ConstructionFailedException extends UnlocatedSyntaxErrorException {
-    public ConstructionFailedException(String message) {
+    private ConstructionFailedException(String message) {
         super(message);
     }
 

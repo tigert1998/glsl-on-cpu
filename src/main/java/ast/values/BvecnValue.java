@@ -1,11 +1,11 @@
 package ast.values;
 
-import ast.exceptions.InvalidIndexException;
+import ast.exceptions.*;
 import ast.types.*;
 
 import java.util.*;
 
-public class BvecnValue extends Value implements Vectorized, Indexed {
+public class BvecnValue extends Value implements Vectorized, Indexed, Selected {
     public boolean[] values = null;
 
     public int getN() {
@@ -40,5 +40,21 @@ public class BvecnValue extends Value implements Vectorized, Indexed {
     public Value valueAt(int i) throws InvalidIndexException {
         if (i < 0 || i >= getN()) throw InvalidIndexException.outOfRange();
         return new BoolValue(values[i]);
+    }
+
+    @Override
+    public Value select(String name) throws InvalidSelectionException {
+        int[] indices = SwizzleUtility.swizzle(values.length, name);
+        var res = new BvecnValue(indices.length);
+        for (int i = 0; i < indices.length; i++) res.values[i] = this.values[indices[i]];
+        return res;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("bvec" + values.length + "(" + values[0]);
+        for (int i = 1; i < values.length; i++) builder.append(", ").append(values[i]);
+        builder.append(")");
+        return new String(builder);
     }
 }

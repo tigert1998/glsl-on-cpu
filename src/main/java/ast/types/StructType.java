@@ -1,8 +1,5 @@
 package ast.types;
 
-import ast.exceptions.*;
-import org.antlr.v4.runtime.Token;
-
 import java.util.*;
 
 public class StructType extends Type {
@@ -17,7 +14,7 @@ public class StructType extends Type {
 
     public String id = null;
     private List<FieldInfo> fieldInfoList = new ArrayList<>();
-    private Map<String, FieldInfo> fieldInfoMap = new TreeMap<>();
+    private Map<String, Integer> fieldInfoMap = new TreeMap<>();
 
     @Override
     public boolean equals(Object obj) {
@@ -31,7 +28,7 @@ public class StructType extends Type {
 
     public void addFieldInfo(FieldInfo info) {
         fieldInfoList.add(info);
-        fieldInfoMap.put(info.id, info);
+        fieldInfoMap.put(info.id, fieldInfoList.size() - 1);
     }
 
     public boolean fieldIDExists(String id) {
@@ -40,6 +37,10 @@ public class StructType extends Type {
 
     public FieldInfo getFieldInfo(int i) {
         return fieldInfoList.get(i);
+    }
+
+    public Integer getFieldInfoIndex(String name) {
+        return fieldInfoMap.get(name);
     }
 
     public int totalFields() {

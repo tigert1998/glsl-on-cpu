@@ -113,6 +113,22 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     }
 
     @Override
+    public Value visitElementSelectionExpr(LangParser.ElementSelectionExprContext ctx) {
+        Value x = extractValue(ctx.expr());
+        if (x instanceof Selected) {
+            try {
+                return ((Selected) x).select(ctx.IDENTIFIER().getText());
+            } catch (InvalidSelectionException exception) {
+                this.exception = new SyntaxErrorException(ctx.selection, exception);
+                return null;
+            }
+        } else {
+            this.exception = SyntaxErrorException.invalidSelectionType(ctx.start, ctx.expr().getText());
+            return null;
+        }
+    }
+
+    @Override
     public Value visitPostfixUnaryExpr(LangParser.PostfixUnaryExprContext ctx) {
         exception = SyntaxErrorException.lvalueRequired(ctx.stop);
         return null;

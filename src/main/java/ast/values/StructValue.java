@@ -1,13 +1,21 @@
 package ast.values;
 
+import ast.exceptions.*;
 import ast.types.*;
 
-public class StructValue extends Value {
+public class StructValue extends Value implements Selected {
     public Value[] values;
 
     StructValue(StructType type, Value[] values) {
         this.values = values;
         this.type = type;
+    }
+
+    @Override
+    public Value select(String name) throws InvalidSelectionException {
+        Integer idx = ((StructType) type).getFieldInfoIndex(name);
+        if (idx == null) throw InvalidSelectionException.noSuchField(name);
+        return values[idx];
     }
 
     @Override

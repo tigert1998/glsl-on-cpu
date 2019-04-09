@@ -64,4 +64,9 @@ public class SyntaxErrorException extends Exception {
         return new SyntaxErrorException(token,
                 "'" + name + "': left of '[' is not of type array, matrix or vector");
     }
+
+    public static SyntaxErrorException invalidSelectionType(Token token, String name) {
+        return new SyntaxErrorException(token,
+                "'" + name + "': field selection requires structure, vector, or interface block on left hand side");
+    }
 }

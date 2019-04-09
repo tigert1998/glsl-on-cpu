@@ -6,8 +6,8 @@ import ast.types.*;
 import java.util.*;
 import java.util.function.*;
 
-public class VecnValue extends Value implements Vectorized, Indexed {
-    public float[] values = null;
+public class VecnValue extends Value implements Vectorized, Indexed, Selected {
+    public float[] values;
 
     public VecnValue(int n) {
         this.type = VecnType.fromN(n);
@@ -77,5 +77,13 @@ public class VecnValue extends Value implements Vectorized, Indexed {
     public Value valueAt(int i) throws InvalidIndexException {
         if (i < 0 || i >= values.length) throw InvalidIndexException.outOfRange();
         return new FloatValue(values[i]);
+    }
+
+    @Override
+    public Value select(String name) throws InvalidSelectionException {
+        int[] indices = SwizzleUtility.swizzle(values.length, name);
+        var res = new VecnValue(indices.length);
+        for (int i = 0; i < indices.length; i++) res.values[i] = this.values[indices[i]];
+        return res;
     }
 }

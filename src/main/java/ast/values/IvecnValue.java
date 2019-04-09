@@ -1,12 +1,12 @@
 package ast.values;
 
-import ast.exceptions.InvalidIndexException;
+import ast.exceptions.*;
 import ast.types.*;
 
 import java.util.*;
 import java.util.function.*;
 
-public class IvecnValue extends Value implements Vectorized, Indexed {
+public class IvecnValue extends Value implements Vectorized, Indexed, Selected {
     public int[] values = null;
 
     public IvecnValue(int n) {
@@ -77,5 +77,13 @@ public class IvecnValue extends Value implements Vectorized, Indexed {
     public Value valueAt(int i) throws InvalidIndexException {
         if (i < 0 || i >= getN()) throw InvalidIndexException.outOfRange();
         return new IntValue(values[i]);
+    }
+
+    @Override
+    public Value select(String name) throws InvalidSelectionException {
+        int[] indices = SwizzleUtility.swizzle(values.length, name);
+        var res = new IvecnValue(indices.length);
+        for (int i = 0; i < indices.length; i++) res.values[i] = this.values[indices[i]];
+        return res;
     }
 }

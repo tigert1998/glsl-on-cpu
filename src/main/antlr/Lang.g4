@@ -79,7 +79,7 @@ expr:
     | functionOrStructConstructorInvocation            # functionOrStructConstructorInvocationExpr
     | expr ('[' idx=expr ']')                          # arraySubscriptingExpr
     | expr '.' functionOrStructConstructorInvocation   # memberFunctionInvocationExpr
-    | expr '.' IDENTIFIER                              # elementSelectionExpr
+    | expr '.' selection=IDENTIFIER                    # elementSelectionExpr
     | expr op=(INCREMENT | DECREMENT)                  # postfixUnaryExpr
     | op=(
         INCREMENT

@@ -11,7 +11,7 @@ public class Scope {
         private boolean defined, referenced;
     }
 
-    public Map<String, FunctionInfo> functions = new TreeMap<>();
+    public Map<String, List<FunctionInfo>> functions = new TreeMap<>();
     public Map<String, Value> constants = new TreeMap<>();
     public Map<String, Value> variables = new TreeMap<>();
     public Map<String, StructType> structs = new TreeMap<>();

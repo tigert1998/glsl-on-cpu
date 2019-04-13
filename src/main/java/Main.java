@@ -3,9 +3,6 @@ import org.antlr.v4.runtime.tree.*;
 import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
 
-import java.awt.*;
-import java.nio.charset.StandardCharsets;
-
 import static org.bytedeco.llvm.global.LLVM.*;
 
 public class Main {
@@ -27,51 +24,35 @@ public class Main {
 
         var entry = LLVMAppendBasicBlock(fib, "entry");
         LLVMPositionBuilderAtEnd(builder, entry);
-        var a = LLVMBuildAlloca(builder, LLVMInt32Type(), "a");
-        var b = LLVMBuildAlloca(builder, LLVMInt32Type(), "b");
-        var i = LLVMBuildAlloca(builder, LLVMInt32Type(), "i");
-        LLVMBuildStore(builder, LLVMConstInt(LLVMInt32Type(), 1, 0), a);
-        LLVMBuildStore(builder, LLVMConstInt(LLVMInt32Type(), 1, 0), b);
-        LLVMBuildStore(builder, LLVMConstInt(LLVMInt32Type(), 1, 0), i);
-        var forCond = LLVMAppendBasicBlock(fib, "for.cond");
-        var forBody = LLVMAppendBasicBlock(fib, "for.body");
-        var forStep = LLVMAppendBasicBlock(fib, "for.step");
-        var forEnd = LLVMAppendBasicBlock(fib, "for.end");
-        LLVMBuildBr(builder, forCond);
+        var ap = LLVMBuildAlloca(builder, LLVMInt32Type(), "ap");
+        var bp = LLVMBuildAlloca(builder, LLVMInt32Type(), "bp");
+        LLVMBuildStore(builder, LLVMUtility.constant(1), ap);
+        LLVMBuildStore(builder, LLVMUtility.constant(1), bp);
 
-        LLVMPositionBuilderAtEnd(builder, forCond);
-        var iv = LLVMBuildLoad(builder, i, "iv");
-        var cmp = LLVMBuildICmp(builder, LLVMIntSGE, iv, LLVMGetParam(fib, 0), "cmp");
-        LLVMBuildCondBr(builder, cmp, forEnd, forBody);
+        var end = LLVMUtility.appendForLoop(fib, LLVMUtility.constant(1), LLVMGetParam(fib, 0), "for",
+                (bodyBuilder -> {
+                    var a = LLVMBuildLoad(bodyBuilder, ap, "a");
+                    var b = LLVMBuildLoad(bodyBuilder, bp, "b");
+                    var c = LLVMBuildAdd(bodyBuilder, a, b, "c");
+                    LLVMBuildStore(bodyBuilder, b, ap);
+                    LLVMBuildStore(bodyBuilder, c, bp);
+                    return null;
+        }));
 
-        LLVMPositionBuilderAtEnd(builder, forBody);
-        var av = LLVMBuildLoad(builder, a, "av");
-        var bv = LLVMBuildLoad(builder, b, "bv");
-        var c = LLVMBuildAdd(builder, av, bv, "c");
-        LLVMBuildStore(builder, bv, a);
-        LLVMBuildStore(builder, c, b);
-        LLVMBuildBr(builder, forStep);
-
-        LLVMPositionBuilderAtEnd(builder, forStep);
-        iv = LLVMBuildLoad(builder, i, "iv");
-        var inc = LLVMBuildAdd(builder, iv, LLVMConstInt(LLVMInt32Type(), 1, 0), "inc");
-        LLVMBuildStore(builder, inc, i);
-        LLVMBuildBr(builder, forCond);
-
-        LLVMPositionBuilderAtEnd(builder, forEnd);
-        av = LLVMBuildLoad(builder, a, "av");
-        LLVMBuildRet(builder, av);
+        LLVMPositionBuilderAtEnd(builder, end);
+        var a = LLVMBuildLoad(builder, ap, "a");
+        LLVMBuildRet(builder, a);
 
         var main = LLVMAddFunction(mod, "main",
                 LLVMFunctionType(LLVMInt32Type(), new PointerPointer<>(), 0, 0));
         entry = LLVMAppendBasicBlock(main, "entry");
         LLVMPositionBuilderAtEnd(builder, entry);
 
-        i = LLVMBuildCall(builder, fib,
-                new PointerPointer<>(new LLVMValueRef[]{LLVMConstInt(LLVMInt32Type(), 10, 0)}),
-                1, "i");
-        LLVMBuildCall(builder, printd, new PointerPointer<>(new LLVMValueRef[]{i}), 1, "");
-        LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 0, 0));
+        var res = LLVMBuildCall(builder, fib,
+                new PointerPointer<>(new LLVMValueRef[]{LLVMUtility.constant(10)}),
+                1, "res");
+        LLVMBuildCall(builder, printd, new PointerPointer<>(new LLVMValueRef[]{res}), 1, "");
+        LLVMBuildRet(builder, LLVMUtility.constant(0));
 
         var outMessage = new BytePointer((Pointer) null);
         LLVMVerifyModule(mod, LLVMAbortProcessAction, outMessage);

@@ -14,4 +14,11 @@ public class BoolValue extends Value {
     public String toString() {
         return String.valueOf(value);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof BoolValue)) return false;
+        var bool = (BoolValue) obj;
+        return bool.value == this.value;
+    }
 }

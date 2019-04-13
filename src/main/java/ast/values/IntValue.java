@@ -14,4 +14,11 @@ public class IntValue extends Value {
     public String toString() {
         return String.valueOf(value);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof IntValue)) return false;
+        var bool = (IntValue) obj;
+        return bool.value == this.value;
+    }
 }

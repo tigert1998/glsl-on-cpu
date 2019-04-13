@@ -28,4 +28,15 @@ public class ArrayValue extends Value implements Indexed {
         if (i < 0 || i >= values.length) throw InvalidIndexException.outOfRange();
         return values[i];
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ArrayValue)) return false;
+        var arr = (ArrayValue) obj;
+        if (!arr.getType().equals(this.getType())) return false;
+        for (int i = 0; i < values.length; i++) {
+            if (!arr.values[i].equals(values[i])) return false;
+        }
+        return true;
+    }
 }

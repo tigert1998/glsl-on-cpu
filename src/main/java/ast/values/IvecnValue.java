@@ -86,4 +86,13 @@ public class IvecnValue extends Value implements Vectorized, Indexed, Selected {
         for (int i = 0; i < indices.length; i++) res.values[i] = this.values[indices[i]];
         return res;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof IvecnValue)) return false;
+        var ivecn = (IvecnValue) obj;
+        if (!ivecn.getType().equals(this.getType())) return false;
+        for (int i = 0; i < getN(); i++) if (values[i] != ivecn.values[i]) return false;
+        return true;
+    }
 }

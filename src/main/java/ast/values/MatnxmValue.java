@@ -109,4 +109,14 @@ public class MatnxmValue extends Value implements Vectorized, Indexed {
             result.values[j] = values[i][j];
         return result;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof MatnxmValue)) return false;
+        var matnxm = (MatnxmValue) obj;
+        if (!matnxm.getType().equals(this.getType())) return false;
+        for (int i = 0; i < getN(); i++) for (int j = 0; j < getM(); j++)
+            if (values[i][j] != matnxm.values[i][j]) return false;
+        return true;
+    }
 }

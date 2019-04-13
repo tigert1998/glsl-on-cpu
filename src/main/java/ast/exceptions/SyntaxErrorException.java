@@ -1,5 +1,6 @@
 package ast.exceptions;
 
+import ast.types.*;
 import org.antlr.v4.runtime.Token;
 
 public class SyntaxErrorException extends Exception {
@@ -68,5 +69,10 @@ public class SyntaxErrorException extends Exception {
     public static SyntaxErrorException invalidSelectionType(Token token, String name) {
         return new SyntaxErrorException(token,
                 "'" + name + "': field selection requires structure, vector, or interface block on left hand side");
+    }
+
+    public static SyntaxErrorException cannotConvert(Token token, Type from, Type to) {
+        return new SyntaxErrorException(token,
+                "cannot convert from '" + from + "' to '" + to + "'");
     }
 }

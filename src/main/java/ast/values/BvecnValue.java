@@ -57,4 +57,13 @@ public class BvecnValue extends Value implements Vectorized, Indexed, Selected {
         builder.append(")");
         return new String(builder);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof BvecnValue)) return false;
+        var bvecn = (BvecnValue) obj;
+        if (!bvecn.getType().equals(this.getType())) return false;
+        for (int i = 0; i < getN(); i++) if (values[i] != bvecn.values[i]) return false;
+        return true;
+    }
 }

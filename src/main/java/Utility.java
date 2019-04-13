@@ -91,7 +91,7 @@ public class Utility {
         else return MatnxmType.fromText(ctx.MATN().getText());
     }
 
-    private static Type typeWithArraySuffix(Type type, LangParser.SpecifiedArrayLengthContext ctx, Scope scope)
+    public static Type typeWithArraySuffix(Type type, LangParser.SpecifiedArrayLengthContext ctx, Scope scope)
             throws SyntaxErrorException {
         if (ctx == null) return type;
 

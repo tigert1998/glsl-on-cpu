@@ -75,7 +75,8 @@ public class Main {
         ParseTreeWalker.DEFAULT.walk(programListener, parseTree);
         programListener.getGlobalScope().LogConstants();
         programListener.getGlobalScope().LogStructs();
-
-        testLLVM();
+        for (var exception : programListener.getExceptionList()) {
+            System.out.println(exception.getMessage());
+        }
     }
 }

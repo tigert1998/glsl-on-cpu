@@ -14,4 +14,11 @@ public class UintValue extends Value {
     public String toString() {
         return value + "u";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof UintValue)) return false;
+        var uint = (UintValue) obj;
+        return uint.value == this.value;
+    }
 }

@@ -14,4 +14,11 @@ public class FloatValue extends Value {
     public String toString() {
         return String.valueOf(value);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof FloatValue)) return false;
+        var bool = (FloatValue) obj;
+        return bool.value == this.value;
+    }
 }

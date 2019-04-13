@@ -43,6 +43,10 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
 
     @Override
     public Value visitReferenceExpr(LangParser.ReferenceExprContext ctx) {
+        if (!scope.constants.containsKey(ctx.IDENTIFIER().getText())) {
+            this.exception = SyntaxErrorException.undeclaredID(ctx.start, ctx.IDENTIFIER().getText());
+            return null;
+        }
         return scope.constants.get(ctx.IDENTIFIER().getText());
     }
 
@@ -115,6 +119,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     @Override
     public Value visitElementSelectionExpr(LangParser.ElementSelectionExprContext ctx) {
         Value x = extractValue(ctx.expr());
+        if (x == null) return null;
         if (x instanceof Selected) {
             try {
                 return ((Selected) x).select(ctx.IDENTIFIER().getText());
@@ -191,6 +196,48 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
             this.exception = new SyntaxErrorException(ctx.op, exception);
             return null;
         }
+    }
+
+    @Override
+    public Value visitLessGreaterBinaryExpr(LangParser.LessGreaterBinaryExprContext ctx) {
+        var values = extractValues(ctx.expr());
+        if (values == null) return null;
+        BinaryOperator op;
+        if (ctx.LESS() != null)
+            op = Less.OP;
+        else if (ctx.LESS_EQUAL() != null)
+            op = LessEqual.OP;
+        else if (ctx.GREATER() != null)
+            op = Greater.OP;
+        else op = GreaterEqual.OP;
+        try {
+            return op.apply(values[0], values[1]);
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exception = new SyntaxErrorException(ctx.op, exception);
+            return null;
+        }
+    }
+
+    @Override
+    public Value visitEqNeqBinaryExpr(LangParser.EqNeqBinaryExprContext ctx) {
+        var values = extractValues(ctx.expr());
+        if (values == null) return null;
+        BinaryOperator op;
+        if (ctx.EQUAL() != null)
+            op = Equal.OP;
+        else op = NotEqual.OP;
+        try {
+            return op.apply(values[0], values[1]);
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exception = new SyntaxErrorException(ctx.op, exception);
+            return null;
+        }
+    }
+
+    @Override
+    public Value visitAssignExpr(LangParser.AssignExprContext ctx) {
+        this.exception = SyntaxErrorException.lvalueRequired(ctx.start);
+        return null;
     }
 
     @Override

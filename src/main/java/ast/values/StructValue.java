@@ -30,4 +30,15 @@ public class StructValue extends Value implements Selected {
         sb.append("}");
         return new String(sb);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof StructValue)) return false;
+        var struct = (StructValue) obj;
+        if (!struct.getType().equals(this.getType())) return false;
+        for (int i = 0; i < values.length; i++) {
+            if (!struct.values[i].equals(values[i])) return false;
+        }
+        return true;
+    }
 }

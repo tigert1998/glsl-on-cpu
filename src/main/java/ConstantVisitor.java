@@ -117,6 +117,28 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     }
 
     @Override
+    public Value visitMemberFunctionInvocationExpr(LangParser.MemberFunctionInvocationExprContext ctx) {
+        // only length
+        var method = ctx.method;
+        if (method.expr().size() >= 1 ||
+                method.structType().IDENTIFIER() == null ||
+                method.structType().specifiedArrayLength() != null ||
+                !method.structType().IDENTIFIER().getText().equals("length")) {
+            this.exception = SyntaxErrorException.invalidMethod(
+                    ctx.method.start, method.structType().IDENTIFIER().getText());
+            return null;
+        }
+        var value = extractValue(ctx.expr());
+        if (value == null) return null;
+        if (!(value instanceof ArrayValue)) {
+            this.exception = SyntaxErrorException.lengthOnlyArrays(ctx.start);
+            return null;
+        } else {
+            return new IntValue(((ArrayValue) value).values.length);
+        }
+    }
+
+    @Override
     public Value visitElementSelectionExpr(LangParser.ElementSelectionExprContext ctx) {
         Value x = extractValue(ctx.expr());
         if (x == null) return null;

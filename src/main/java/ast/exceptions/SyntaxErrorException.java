@@ -75,4 +75,12 @@ public class SyntaxErrorException extends Exception {
         return new SyntaxErrorException(token,
                 "cannot convert from '" + from + "' to '" + to + "'");
     }
+
+    public static SyntaxErrorException invalidMethod(Token token, String name) {
+        return new SyntaxErrorException(token, "'" + name + "': invalid method");
+    }
+
+    public static SyntaxErrorException lengthOnlyArrays(Token token) {
+        return new SyntaxErrorException(token, "length can only be called on arrays");
+    }
 }

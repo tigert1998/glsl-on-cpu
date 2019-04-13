@@ -74,13 +74,13 @@ specifiedArrayLength: '[' expr? ']';
 
 expr:
     (boolLiteral | INT_LITERAL | UINT_LITERAL | REAL_LITERAL) # literalExpr
-    | IDENTIFIER                                       # referenceExpr
-    | basicTypeConstructorInvocation                   # basicTypeConstructorInvocationExpr
-    | functionOrStructConstructorInvocation            # functionOrStructConstructorInvocationExpr
-    | expr ('[' idx=expr ']')                          # arraySubscriptingExpr
-    | expr '.' functionOrStructConstructorInvocation   # memberFunctionInvocationExpr
-    | expr '.' selection=IDENTIFIER                    # elementSelectionExpr
-    | expr op=(INCREMENT | DECREMENT)                  # postfixUnaryExpr
+    | IDENTIFIER                                              # referenceExpr
+    | basicTypeConstructorInvocation                          # basicTypeConstructorInvocationExpr
+    | functionOrStructConstructorInvocation                   # functionOrStructConstructorInvocationExpr
+    | expr ('[' idx=expr ']')                                 # arraySubscriptingExpr
+    | expr '.' method=functionOrStructConstructorInvocation   # memberFunctionInvocationExpr
+    | expr '.' selection=IDENTIFIER                           # elementSelectionExpr
+    | expr op=(INCREMENT | DECREMENT)                         # postfixUnaryExpr
     | op=(
         INCREMENT
         | DECREMENT

@@ -3,6 +3,7 @@ import ast.exceptions.*;
 import ast.operators.*;
 import ast.values.*;
 import ast.types.*;
+import org.antlr.v4.runtime.Token;
 
 import java.util.*;
 
@@ -14,6 +15,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         this.scope = scope;
     }
 
+    // utilities
     private Value[] extractValues(List<LangParser.ExprContext> exprCtxList) {
         int total = exprCtxList.size();
         Value[] values = new Value[total];
@@ -36,6 +38,25 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         return value;
     }
 
+    private Value applyBinaryOperator(Token opToken, BinaryOperator op, Value[] values) {
+        try {
+            return op.apply(values[0], values[1]);
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exception = new SyntaxErrorException(opToken, exception);
+            return null;
+        }
+    }
+
+    private Value applyUnaryOperator(Token opToken, UnaryOperator op, Value value) {
+        try {
+            return op.apply(value);
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exception = new SyntaxErrorException(opToken, exception);
+            return null;
+        }
+    }
+
+    // visiting methods
     @Override
     public Value visitLiteralExpr(LangParser.LiteralExprContext ctx) {
         return Utility.valueFromLiteralExprContext(ctx);
@@ -179,12 +200,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         } else {
             op = BitwiseNot.OP;
         }
-        try {
-            return op.apply(value);
-        } catch (OperatorCannotBeAppliedException exception) {
-            this.exception = new SyntaxErrorException(ctx.op, exception);
-            return null;
-        }
+        return applyUnaryOperator(ctx.op, op, value);
     }
 
     @Override
@@ -199,12 +215,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         } else {
             op = Mod.OP;
         }
-        try {
-            return op.apply(values[0], values[1]);
-        } catch (OperatorCannotBeAppliedException exception) {
-            this.exception = new SyntaxErrorException(ctx.op, exception);
-            return null;
-        }
+        return applyBinaryOperator(ctx.op, op, values);
     }
 
     @Override
@@ -212,12 +223,15 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         var values = extractValues(ctx.expr());
         if (values == null) return null;
         BinaryOperator op = ctx.PLUS() != null ? Plus.OP : Minus.OP;
-        try {
-            return op.apply(values[0], values[1]);
-        } catch (OperatorCannotBeAppliedException exception) {
-            this.exception = new SyntaxErrorException(ctx.op, exception);
-            return null;
-        }
+        return applyBinaryOperator(ctx.op, op, values);
+    }
+
+    @Override
+    public Value visitShlShrBinaryExpr(LangParser.ShlShrBinaryExprContext ctx) {
+        var values = extractValues(ctx.expr());
+        if (values == null) return null;
+        BinaryOperator op = ctx.SHL() != null ? Shl.OP : Shr.OP;
+        return applyBinaryOperator(ctx.op, op, values);
     }
 
     @Override
@@ -232,12 +246,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         else if (ctx.GREATER() != null)
             op = Greater.OP;
         else op = GreaterEqual.OP;
-        try {
-            return op.apply(values[0], values[1]);
-        } catch (OperatorCannotBeAppliedException exception) {
-            this.exception = new SyntaxErrorException(ctx.op, exception);
-            return null;
-        }
+        return applyBinaryOperator(ctx.op, op, values);
     }
 
     @Override
@@ -248,12 +257,23 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         if (ctx.EQUAL() != null)
             op = Equal.OP;
         else op = NotEqual.OP;
-        try {
-            return op.apply(values[0], values[1]);
-        } catch (OperatorCannotBeAppliedException exception) {
-            this.exception = new SyntaxErrorException(ctx.op, exception);
+        return applyBinaryOperator(ctx.op, op, values);
+    }
+
+    @Override
+    public Value visitTernaryConditionalExpr(LangParser.TernaryConditionalExprContext ctx) {
+        var values = extractValues(ctx.expr());
+        if (values == null) return null;
+        if (!(values[0] instanceof BoolValue)) {
+            this.exception = SyntaxErrorException.notBooleanExpression(ctx.expr(0).start);
             return null;
         }
+        if (!values[1].getType().equals(values[2].getType())) {
+            this.exception = SyntaxErrorException.cannotConvert(ctx.expr(1).start,
+                    values[2].getType(), values[1].getType());
+            return null;
+        }
+        return ((BoolValue) values[0]).value ? values[1] : values[2];
     }
 
     @Override

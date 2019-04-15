@@ -59,7 +59,23 @@ public class IvecnValue extends Value implements Vectorized, Indexed, Selected {
         return res;
     }
 
+    // for shl and shr
+    static public IvecnValue pointwise(IvecnValue x, UvecnValue y, BiFunction<Integer, Long, Integer> f) {
+        IvecnValue res = new IvecnValue(x.getN());
+        for (int i = 0; i < res.getN(); i++)
+            res.values[i] = f.apply(x.values[i], y.values[i]);
+        return res;
+    }
+
     static public IvecnValue pointwise(IvecnValue x, IntValue y, BiFunction<Integer, Integer, Integer> f) {
+        IvecnValue res = new IvecnValue(x.getN());
+        for (int i = 0; i < res.getN(); i++)
+            res.values[i] = f.apply(x.values[i], y.value);
+        return res;
+    }
+
+    // for shl and shr
+    static public IvecnValue pointwise(IvecnValue x, UintValue y, BiFunction<Integer, Long, Integer> f) {
         IvecnValue res = new IvecnValue(x.getN());
         for (int i = 0; i < res.getN(); i++)
             res.values[i] = f.apply(x.values[i], y.value);

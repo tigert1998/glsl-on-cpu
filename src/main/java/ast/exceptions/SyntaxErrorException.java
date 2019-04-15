@@ -31,6 +31,11 @@ public class SyntaxErrorException extends Exception {
                 "integer expression required");
     }
 
+    public static SyntaxErrorException notBooleanExpression(Token token) {
+        return new SyntaxErrorException(token,
+                "boolean expression required");
+    }
+
     public static SyntaxErrorException arrayOfArrays(Token token) {
         return new SyntaxErrorException(token,
                 "cannot declare array of arrays");

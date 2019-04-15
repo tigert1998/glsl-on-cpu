@@ -23,7 +23,7 @@ public class IvecnType extends Type {
     }
 
     static public IvecnType fromText(String text) {
-        int digit = text.charAt(text.length() - 1);
+        int digit = text.charAt(text.length() - 1) - '0';
         return fromN(digit);
     }
 

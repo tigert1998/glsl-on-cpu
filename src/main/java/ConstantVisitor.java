@@ -261,6 +261,30 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     }
 
     @Override
+    public Value visitBitwiseAndBinaryExpr(LangParser.BitwiseAndBinaryExprContext ctx) {
+        var values = extractValues(ctx.expr());
+        if (values == null) return null;
+        BinaryOperator op = BitwiseAnd.OP;
+        return applyBinaryOperator(ctx.op, op, values);
+    }
+
+    @Override
+    public Value visitBitwiseXorBinaryExpr(LangParser.BitwiseXorBinaryExprContext ctx) {
+        var values = extractValues(ctx.expr());
+        if (values == null) return null;
+        BinaryOperator op = BitwiseXor.OP;
+        return applyBinaryOperator(ctx.op, op, values);
+    }
+
+    @Override
+    public Value visitBitwiseOrBinaryExpr(LangParser.BitwiseOrBinaryExprContext ctx) {
+        var values = extractValues(ctx.expr());
+        if (values == null) return null;
+        BinaryOperator op = BitwiseOr.OP;
+        return applyBinaryOperator(ctx.op, op, values);
+    }
+
+    @Override
     public Value visitLogicalAndBinaryExpr(LangParser.LogicalAndBinaryExprContext ctx) {
         var values = extractValues(ctx.expr());
         if (values == null) return null;

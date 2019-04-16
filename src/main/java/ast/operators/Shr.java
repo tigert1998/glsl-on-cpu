@@ -1,5 +1,6 @@
 package ast.operators;
 
+import ast.exceptions.*;
 import ast.values.*;
 
 public class Shr extends Operator implements BinaryOperator {
@@ -40,19 +41,23 @@ public class Shr extends Operator implements BinaryOperator {
     }
 
     // vector and vector
-    protected Value apply(IvecnValue x, IvecnValue y) {
+    protected Value apply(IvecnValue x, IvecnValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
         return IvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
-    protected Value apply(IvecnValue x, UvecnValue y) {
+    protected Value apply(IvecnValue x, UvecnValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
         return IvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
-    protected Value apply(UvecnValue x, IvecnValue y) {
+    protected Value apply(UvecnValue x, IvecnValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
         return UvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
-    protected Value apply(UvecnValue x, UvecnValue y) {
+    protected Value apply(UvecnValue x, UvecnValue y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
         return UvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 

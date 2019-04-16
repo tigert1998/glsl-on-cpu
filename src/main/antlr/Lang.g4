@@ -103,6 +103,7 @@ expr:
     | expr op=BITWISE_XOR expr                         # bitwiseXorBinaryExpr
     | expr op=BITWISE_OR expr                          # bitwiseOrBinaryExpr
     | expr op=LOGICAL_AND expr                         # logicalAndBinaryExpr
+    | expr op=LOGICAL_XOR expr                         # logicalXorBinaryExpr
     | expr op=LOGICAL_OR expr                          # logicalOrBinaryExpr
     | expr '?' expr ':' expr                           # ternaryConditionalExpr
     | expr op=(
@@ -204,6 +205,8 @@ BITWISE_XOR: '^';
 BITWISE_OR: '|';
 
 LOGICAL_AND: '&&';
+
+LOGICAL_XOR: '^^';
 
 LOGICAL_OR: '||';
 

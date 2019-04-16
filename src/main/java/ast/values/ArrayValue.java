@@ -6,9 +6,15 @@ import ast.types.*;
 public class ArrayValue extends Value implements Indexed {
     public Value[] values = null;
 
-    public ArrayValue(ArrayType type, Value[] values) {
-        this.values = values;
+    public ArrayValue(ArrayType type, Value value) {
         this.type = type;
+        this.values = new Value[type.getLength()];
+        for (int i = 0; i < values.length; i++) values[i] = value;
+    }
+
+    public ArrayValue(ArrayType type, Value[] values) {
+        this.type = type;
+        this.values = values;
     }
 
     @Override

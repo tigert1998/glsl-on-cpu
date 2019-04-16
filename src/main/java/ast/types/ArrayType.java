@@ -1,5 +1,7 @@
 package ast.types;
 
+import ast.values.*;
+
 public class ArrayType extends Type {
     private Type type;
     private int length;
@@ -50,5 +52,10 @@ public class ArrayType extends Type {
 
     public Type collapse() {
         return type;
+    }
+
+    @Override
+    public ArrayValue getDefaultValue() {
+        return new ArrayValue(this, type.getDefaultValue());
     }
 }

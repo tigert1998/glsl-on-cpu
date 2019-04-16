@@ -15,6 +15,8 @@ public class Main {
         var mod = LLVMModuleCreateWithName("fib");
         var builder = LLVMCreateBuilder();
 
+        LLVMStructType(LLVMArrayType(LLVMFloatType(), 9), 1, 1);
+
         var printd = LLVMAddFunction(mod,"printd",
                 LLVMFunctionType(LLVMVoidType(), LLVMInt32Type(), 1, 0));
         LLVMSetLinkage(printd, LLVMExternalLinkage);
@@ -78,5 +80,7 @@ public class Main {
         for (var exception : programListener.getExceptionList()) {
             System.out.println(exception.getMessage());
         }
+
+        testLLVM();
     }
 }

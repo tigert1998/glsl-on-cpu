@@ -1,5 +1,7 @@
 package ast.types;
 
+import ast.values.*;
+
 import java.util.*;
 
 public class StructType extends Type {
@@ -12,7 +14,7 @@ public class StructType extends Type {
         }
     };
 
-    public String id = null;
+    public String id;
     private List<FieldInfo> fieldInfoList = new ArrayList<>();
     private Map<String, Integer> fieldInfoMap = new TreeMap<>();
 
@@ -64,5 +66,13 @@ public class StructType extends Type {
     @Override
     public Type collapse() {
         return null;
+    }
+
+    @Override
+    public StructValue getDefaultValue() {
+        Value[] values = new Value[totalFields()];
+        for (int i = 0; i < values.length; i++)
+            values[i] = fieldInfoList.get(i).type.getDefaultValue();
+        return new StructValue(this, values);
     }
 }

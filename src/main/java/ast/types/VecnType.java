@@ -1,12 +1,19 @@
 package ast.types;
 
+import ast.values.*;
+
 public class VecnType extends Type {
     private int n;
 
     private static VecnType[] predefinedTypes = new VecnType[3];
+    private static VecnValue[] defaultValues = new VecnValue[3];
 
     static {
-        for (int i = 2; i <= 4; i++) predefinedTypes[i - 2] = new VecnType(i);
+        FloatValue zeroValue = FloatType.TYPE.getDefaultValue();
+        for (int i = 2; i <= 4; i++) {
+            predefinedTypes[i - 2] = new VecnType(i);
+            defaultValues[i - 2] = new VecnValue(predefinedTypes[i - 2], zeroValue);
+        }
     }
 
     static public VecnType fromN(int n) {
@@ -40,5 +47,10 @@ public class VecnType extends Type {
     @Override
     public Type collapse() {
         return FloatType.TYPE;
+    }
+
+    @Override
+    public VecnValue getDefaultValue() {
+        return defaultValues[n - 2];
     }
 }

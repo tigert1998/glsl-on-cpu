@@ -1,7 +1,11 @@
 package ast.types;
 
+import ast.values.*;
+
 public class UintType extends Type {
     public static UintType TYPE = new UintType();
+
+    private static UintValue defaultValue = new UintValue(0);
 
     @Override
     public boolean equals(Object obj) {
@@ -16,5 +20,10 @@ public class UintType extends Type {
     @Override
     public Type collapse() {
         return TYPE;
+    }
+
+    @Override
+    public UintValue getDefaultValue() {
+        return defaultValue;
     }
 }

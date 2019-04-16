@@ -1,4 +1,6 @@
 package ast.expr;
 
-public class Expr {
+import ast.AST;
+
+public class Expr extends AST {
 }

@@ -1,13 +1,21 @@
 package ast.types;
 
+import ast.values.*;
+
 public class MatnxmType extends Type {
     private int n, m;
+
+    // prevent multiple new
     private static MatnxmType[][] predefinedTypes = new MatnxmType[3][3];
+    private static MatnxmValue[][] defaultValues = new MatnxmValue[3][3];
 
     static {
+        FloatValue zeroValue = FloatType.TYPE.getDefaultValue();
         for (int i = 2; i <= 4; i++)
-            for (int j = 2; j <= 4; j++)
+            for (int j = 2; j <= 4; j++) {
                 predefinedTypes[i - 2][j - 2] = new MatnxmType(i, j);
+                defaultValues[i - 2][j - 2] = new MatnxmValue(predefinedTypes[i - 2][j - 2], zeroValue);
+            }
     }
 
     private MatnxmType(int n, int m) {
@@ -54,5 +62,10 @@ public class MatnxmType extends Type {
     @Override
     public Type collapse() {
         return FloatType.TYPE;
+    }
+
+    @Override
+    public MatnxmValue getDefaultValue() {
+        return defaultValues[n - 2][m - 2];
     }
 }

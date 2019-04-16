@@ -1,13 +1,20 @@
 package ast.types;
 
+import ast.values.*;
+
 public class BvecnType extends Type {
     private int n;
 
     // prevent multiple new
     private static BvecnType[] predefinedTypes = new BvecnType[3];
+    private static BvecnValue[] defaultValues = new BvecnValue[3];
 
     static {
-        for (int i = 2; i <= 4; i++) predefinedTypes[i - 2] = new BvecnType(i);
+        BoolValue falseValue = BoolType.TYPE.getDefaultValue();
+        for (int i = 2; i <= 4; i++) {
+            predefinedTypes[i - 2] = new BvecnType(i);
+            defaultValues[i - 2] = new BvecnValue(predefinedTypes[i - 2], falseValue);
+        }
     }
 
     static public BvecnType fromN(int n) {
@@ -40,5 +47,10 @@ public class BvecnType extends Type {
 
     public Type collapse() {
         return BoolType.TYPE;
+    }
+
+    @Override
+    public BvecnValue getDefaultValue() {
+        return defaultValues[n - 2];
     }
 }

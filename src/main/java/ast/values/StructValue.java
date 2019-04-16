@@ -6,7 +6,7 @@ import ast.types.*;
 public class StructValue extends Value implements Selected {
     public Value[] values;
 
-    StructValue(StructType type, Value[] values) {
+    public StructValue(StructType type, Value[] values) {
         this.values = values;
         this.type = type;
     }

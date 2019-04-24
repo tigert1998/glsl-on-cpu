@@ -66,5 +66,9 @@ public class ProgramListener extends LangBaseListener {
         } catch (SyntaxErrorException exception) {
             System.out.println(exception.getMessage());
         }
+        var list = ctx.declarationList();
+        list.declarationItem().forEach(item -> {
+
+        });
     }
 }

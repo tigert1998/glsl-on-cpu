@@ -1,3 +1,4 @@
+import ast.AST;
 import ast.Scope;
 import ast.exceptions.*;
 import ast.types.*;
@@ -21,9 +22,7 @@ public class Utility {
             String str = ctx.UINT_LITERAL().getText();
             return new UintValue(parseIntLiteralText(str.substring(0, str.length() - 1)));
         }
-        if (ctx.REAL_LITERAL() != null)
-            return new FloatValue(Float.parseFloat(ctx.REAL_LITERAL().getText()));
-        return null;
+        return new FloatValue(Float.parseFloat(ctx.REAL_LITERAL().getText()));
     }
 
     public static int evalExprAsIntegral(LangParser.ExprContext exprCtx, Scope scope) throws SyntaxErrorException {

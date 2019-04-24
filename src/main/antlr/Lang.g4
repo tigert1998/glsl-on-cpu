@@ -47,8 +47,10 @@ constDeclarationStmt: CONST type constDeclarationList ';';
 
 normalDeclarationStmt: type declarationList ';';
 
+declarationItem: variableMaybeArray ('=' expr)?;
+
 constDeclarationList: (variableMaybeArray '=' expr (',' variableMaybeArray '=' expr)*)?;
-declarationList: (variableMaybeArray ('=' expr)? (',' variableMaybeArray ('=' expr)?)*)?;
+declarationList: (declarationItem (',' declarationItem)*)?;
 
 exprStmt: expr ';';
 

@@ -13,7 +13,7 @@ public class Scope {
 
     public Map<String, List<FunctionInfo>> functions = new TreeMap<>();
     public Map<String, Value> constants = new TreeMap<>();
-    public Map<String, Value> variables = new TreeMap<>();
+    public Set<String> variables = new TreeSet<>();
     public Map<String, StructType> structs = new TreeMap<>();
 
     public void LogConstants() {

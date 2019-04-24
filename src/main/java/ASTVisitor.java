@@ -19,11 +19,12 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
 
     @Override
     public AST visitReferenceExpr(LangParser.ReferenceExprContext ctx) {
-        String name = ctx.IDENTIFIER().getText();
-        if (scope.constants.containsKey(name))
-            return new ConstExpr(scope.constants.get(name));
-        else if (scope.variables.containsKey(name))
-            return null;
+        String id = ctx.IDENTIFIER().getText();
+        if (scope.constants.containsKey(id))
+            return new ConstExpr(scope.constants.get(id));
+        else if (scope.variables.contains(id))
+            return new ReferenceExpr(id);
+        this.exception = SyntaxErrorException.undeclaredID(ctx.start, id);
         return null;
     }
 }

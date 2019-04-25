@@ -1,5 +1,8 @@
 import ast.*;
 import ast.exceptions.*;
+import ast.expr.ConstExpr;
+import ast.expr.Expr;
+import ast.stmt.DeclarationStmt;
 import ast.types.*;
 import ast.values.*;
 
@@ -8,6 +11,7 @@ import java.util.*;
 public class ProgramListener extends LangBaseListener {
     private Scope globalScope = new Scope();
     private List<SyntaxErrorException> exceptionList = new ArrayList<>();
+    private ProgramAST programAST = new ProgramAST();
 
     public Scope getGlobalScope() {
         return globalScope;
@@ -15,6 +19,10 @@ public class ProgramListener extends LangBaseListener {
 
     public List<SyntaxErrorException> getExceptionList() {
         return exceptionList;
+    }
+
+    public ProgramAST getProgramAST() {
+        return programAST;
     }
 
     @Override
@@ -50,7 +58,7 @@ public class ProgramListener extends LangBaseListener {
                 exceptionList.add(exception);
                 continue;
             }
-            if (globalScope.constants.containsKey(name) || globalScope.variables.containsKey(name)) {
+            if (Utility.idDefinedBefore(name, globalScope)) {
                 exceptionList.add(SyntaxErrorException.redefinition(variableMaybeArray.start, name));
                 continue;
             }
@@ -61,14 +69,42 @@ public class ProgramListener extends LangBaseListener {
     @Override
     public void exitNormalDeclarationStmt(LangParser.NormalDeclarationStmtContext ctx) {
         // only add struct declarations
+        Type type;
         try {
-            var type = Utility.typeFromTypeContext(ctx.type(), globalScope);
+            type = Utility.typeFromTypeContext(ctx.type(), globalScope);
         } catch (SyntaxErrorException exception) {
-            System.out.println(exception.getMessage());
+            exceptionList.add(exception);
+            return;
         }
         var list = ctx.declarationList();
         list.declarationItem().forEach(item -> {
-
+            Type actualType;
+            var variableMaybeArray = item.variableMaybeArray();
+            String id = variableMaybeArray.IDENTIFIER().getText();
+            if (Utility.idDefinedBefore(id, globalScope)) {
+                exceptionList.add(SyntaxErrorException.redefinition(item.start, id));
+                return;
+            }
+            try {
+                actualType = Utility.typeWithArraySuffix(type,
+                        variableMaybeArray.specifiedArrayLength(), globalScope);
+            } catch (SyntaxErrorException exception) {
+                exceptionList.add(exception);
+                return;
+            }
+            var visitor = new ASTVisitor(globalScope);
+            if (item.expr() == null) {
+                programAST.putDeclarationStmt(
+                        new DeclarationStmt(actualType, id, new ConstExpr(actualType.getDefaultValue())));
+                return;
+            }
+            var ast = item.expr().accept(visitor);
+            if (ast == null) {
+                exceptionList.add(visitor.exception);
+                return;
+            }
+            globalScope.variables.add(id);
+            programAST.putDeclarationStmt(new DeclarationStmt(actualType, id, (Expr) ast));
         });
     }
 }

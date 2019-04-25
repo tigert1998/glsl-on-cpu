@@ -13,6 +13,13 @@ public class Utility {
         return Integer.parseInt(str, 10);
     }
 
+    public static boolean idDefinedBefore(String id, Scope scope) {
+        return scope.constants.containsKey(id) ||
+                scope.variables.contains(id) ||
+                scope.structs.containsKey(id) ||
+                scope.functions.containsKey(id);
+    }
+
     public static Value valueFromLiteralExprContext(LangParser.LiteralExprContext ctx) {
         if (ctx.boolLiteral() != null)
             return new BoolValue(ctx.boolLiteral().FALSE() == null);
@@ -47,9 +54,7 @@ public class Utility {
     public static StructType typeFromStructDefinitionContext(LangParser.StructDefinitionContext ctx, Scope scope)
             throws SyntaxErrorException {
         String id = ctx.structName.getText();
-        if (scope.variables.containsKey(id) || scope.constants.containsKey(id)
-                || scope.structs.containsKey(id) || scope.functions.containsKey(id))
-            throw SyntaxErrorException.redefinition(ctx.structName, id);
+        if (idDefinedBefore(id, scope)) throw SyntaxErrorException.redefinition(ctx.structName, id);
 
         StructType result = new StructType(id);
         for (int i = 0; i < ctx.structFieldDeclarationStmt().size(); i++) {

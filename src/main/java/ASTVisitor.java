@@ -4,8 +4,8 @@ import ast.exceptions.SyntaxErrorException;
 import ast.expr.*;
 
 public class ASTVisitor extends LangBaseVisitor<AST> {
-    Scope scope;
-    SyntaxErrorException exception;
+    private Scope scope;
+    public SyntaxErrorException exception;
 
     public ASTVisitor(Scope scope) {
         this.scope = scope;

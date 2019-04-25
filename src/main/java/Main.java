@@ -77,6 +77,11 @@ public class Main {
         ParseTreeWalker.DEFAULT.walk(programListener, parseTree);
         programListener.getGlobalScope().LogConstants();
         programListener.getGlobalScope().LogStructs();
+
+        System.out.println("<<<<<<<");
+        System.out.println(programListener.getProgramAST());
+        System.out.println(">>>>>>>");
+
         for (var exception : programListener.getExceptionList()) {
             System.out.println(exception.getMessage());
         }

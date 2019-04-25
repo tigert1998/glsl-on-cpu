@@ -15,7 +15,7 @@ public class Utility {
 
     public static boolean idDefinedBefore(String id, Scope scope) {
         return scope.constants.containsKey(id) ||
-                scope.variables.contains(id) ||
+                scope.variables.containsKey(id) ||
                 scope.structs.containsKey(id) ||
                 scope.functions.containsKey(id);
     }

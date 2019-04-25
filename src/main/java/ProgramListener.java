@@ -68,7 +68,6 @@ public class ProgramListener extends LangBaseListener {
 
     @Override
     public void exitNormalDeclarationStmt(LangParser.NormalDeclarationStmtContext ctx) {
-        // only add struct declarations
         Type type;
         try {
             type = Utility.typeFromTypeContext(ctx.type(), globalScope);
@@ -103,7 +102,7 @@ public class ProgramListener extends LangBaseListener {
                 exceptionList.add(visitor.exception);
                 return;
             }
-            globalScope.variables.add(id);
+            globalScope.variables.put(id, actualType);
             programAST.putDeclarationStmt(new DeclarationStmt(actualType, id, (Expr) ast));
         });
     }

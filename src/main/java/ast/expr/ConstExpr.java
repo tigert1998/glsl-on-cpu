@@ -7,6 +7,7 @@ public class ConstExpr extends Expr {
 
     public ConstExpr(Value value) {
         this.value = value;
+        this.type = value.getType();
     }
 
     public Value getValue() {

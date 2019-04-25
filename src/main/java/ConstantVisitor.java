@@ -38,18 +38,12 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         return value;
     }
 
-    private Value applyBinaryOperator(Token opToken, BinaryOperator op, Value[] values) {
+    private Value extractValueWithBinaryOperator(Token opToken, List<LangParser.ExprContext> exprCtxList) {
+        var values = extractValues(exprCtxList);
+        if (values == null) return null;
+        BinaryOperator op = (BinaryOperator) Operator.fromText(opToken.getText());
         try {
             return op.apply(values[0], values[1]);
-        } catch (OperatorCannotBeAppliedException exception) {
-            this.exception = new SyntaxErrorException(opToken, exception);
-            return null;
-        }
-    }
-
-    private Value applyUnaryOperator(Token opToken, UnaryOperator op, Value value) {
-        try {
-            return op.apply(value);
         } catch (OperatorCannotBeAppliedException exception) {
             this.exception = new SyntaxErrorException(opToken, exception);
             return null;
@@ -190,122 +184,68 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         }
         var value = extractValue(ctx.expr());
         if (exception != null) return null;
-        UnaryOperator op;
-        if (ctx.PLUS() != null) {
-            op = Plus.OP;
-        } else if (ctx.MINUS() != null) {
-            op = Minus.OP;
-        } else if (ctx.LOGICAL_NOT() != null) {
-            op = LogicalNot.OP;
-        } else {
-            op = BitwiseNot.OP;
+        UnaryOperator op = (UnaryOperator) Operator.fromText(ctx.op.getText());
+        try {
+            return op.apply(value);
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exception = new SyntaxErrorException(ctx.op, exception);
+            return null;
         }
-        return applyUnaryOperator(ctx.op, op, value);
     }
 
     @Override
     public Value visitMultDivModBinaryExpr(LangParser.MultDivModBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op;
-        if (ctx.MULT() != null) {
-            op = Mult.OP;
-        } else if (ctx.DIV() != null) {
-            op = Div.OP;
-        } else {
-            op = Mod.OP;
-        }
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitPlusMinusBinaryExpr(LangParser.PlusMinusBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op = ctx.PLUS() != null ? Plus.OP : Minus.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitShlShrBinaryExpr(LangParser.ShlShrBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op = ctx.SHL() != null ? Shl.OP : Shr.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitLessGreaterBinaryExpr(LangParser.LessGreaterBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op;
-        if (ctx.LESS() != null)
-            op = Less.OP;
-        else if (ctx.LESS_EQUAL() != null)
-            op = LessEqual.OP;
-        else if (ctx.GREATER() != null)
-            op = Greater.OP;
-        else op = GreaterEqual.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitEqNeqBinaryExpr(LangParser.EqNeqBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op;
-        if (ctx.EQUAL() != null)
-            op = Equal.OP;
-        else op = NotEqual.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitBitwiseAndBinaryExpr(LangParser.BitwiseAndBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op = BitwiseAnd.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitBitwiseXorBinaryExpr(LangParser.BitwiseXorBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op = BitwiseXor.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitBitwiseOrBinaryExpr(LangParser.BitwiseOrBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op = BitwiseOr.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitLogicalAndBinaryExpr(LangParser.LogicalAndBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op = LogicalAnd.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitLogicalXorBinaryExpr(LangParser.LogicalXorBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op = LogicalXor.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override
     public Value visitLogicalOrBinaryExpr(LangParser.LogicalOrBinaryExprContext ctx) {
-        var values = extractValues(ctx.expr());
-        if (values == null) return null;
-        BinaryOperator op = LogicalOr.OP;
-        return applyBinaryOperator(ctx.op, op, values);
+        return extractValueWithBinaryOperator(ctx.op, ctx.expr());
     }
 
     @Override

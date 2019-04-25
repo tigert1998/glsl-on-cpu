@@ -2,8 +2,10 @@ import ast.AST;
 import ast.Scope;
 import ast.exceptions.*;
 import ast.expr.*;
+import ast.operators.*;
 import ast.types.*;
 import ast.values.*;
+import org.antlr.v4.runtime.Token;
 
 import java.util.List;
 
@@ -35,6 +37,20 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         if (visitor.exception != null)
             this.exception = visitor.exception;
         return expr;
+    }
+
+    private BinaryExpr extractBinaryExpr(Token opToken, List<LangParser.ExprContext> exprCtxList) {
+        var exprs = extractExprs(exprCtxList);
+        if (exprs == null) return null;
+        BinaryOperator op = (BinaryOperator) Operator.fromText(opToken.getText());
+        try {
+            // check applicable
+            op.apply(exprs[0].getType().getDefaultValue(), exprs[1].getType().getDefaultValue());
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exception = new SyntaxErrorException(opToken, exception);
+            return null;
+        }
+        return new BinaryExpr(op, exprs);
     }
 
     @Override
@@ -109,5 +125,60 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         }
 
         return new SubscriptingExpr(array, idx);
+    }
+
+    @Override
+    public AST visitMultDivModBinaryExpr(LangParser.MultDivModBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitPlusMinusBinaryExpr(LangParser.PlusMinusBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitShlShrBinaryExpr(LangParser.ShlShrBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitLessGreaterBinaryExpr(LangParser.LessGreaterBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitEqNeqBinaryExpr(LangParser.EqNeqBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitBitwiseAndBinaryExpr(LangParser.BitwiseAndBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitBitwiseXorBinaryExpr(LangParser.BitwiseXorBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitBitwiseOrBinaryExpr(LangParser.BitwiseOrBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitLogicalAndBinaryExpr(LangParser.LogicalAndBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitLogicalXorBinaryExpr(LangParser.LogicalXorBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitLogicalOrBinaryExpr(LangParser.LogicalOrBinaryExprContext ctx) {
+        return extractBinaryExpr(ctx.op, ctx.expr());
     }
 }

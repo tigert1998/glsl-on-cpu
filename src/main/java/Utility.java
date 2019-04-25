@@ -1,5 +1,6 @@
 import ast.Scope;
 import ast.exceptions.*;
+import ast.operators.*;
 import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;

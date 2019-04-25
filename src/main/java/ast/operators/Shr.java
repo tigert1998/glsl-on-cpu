@@ -2,63 +2,117 @@ package ast.operators;
 
 import ast.exceptions.*;
 import ast.values.*;
+import ast.types.*;
 
 public class Shr extends Operator implements BinaryOperator {
     public static Shr OP = new Shr();
 
+    // == for values ==
     // scalar
-    protected Value apply(IntValue x, IntValue y) {
+    protected IntValue apply(IntValue x, IntValue y) {
         return new IntValue(x.value >> y.value);
     }
 
-    protected Value apply(IntValue x, UintValue y) {
+    protected IntValue apply(IntValue x, UintValue y) {
         return new IntValue(x.value >> y.value);
     }
 
-    protected Value apply(UintValue x, UintValue y) {
+    protected UintValue apply(UintValue x, UintValue y) {
         return new UintValue(x.value >> y.value);
     }
 
-    protected Value apply(UintValue x, IntValue y) {
+    protected UintValue apply(UintValue x, IntValue y) {
         return new UintValue(x.value >> y.value);
     }
 
     // vector and scalar
-    protected Value apply(IvecnValue x, IntValue y) {
+    protected IvecnValue apply(IvecnValue x, IntValue y) {
         return IvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
-    protected Value apply(IvecnValue x, UintValue y) {
+    protected IvecnValue apply(IvecnValue x, UintValue y) {
         return IvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
-    protected Value apply(UvecnValue x, UintValue y) {
+    protected UvecnValue apply(UvecnValue x, UintValue y) {
         return UvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
-    protected Value apply(UvecnValue x, IntValue y) {
+    protected UvecnValue apply(UvecnValue x, IntValue y) {
         return UvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
     // vector and vector
-    protected Value apply(IvecnValue x, IvecnValue y) throws OperatorCannotBeAppliedException {
-        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected IvecnValue apply(IvecnValue x, IvecnValue y) {
         return IvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
-    protected Value apply(IvecnValue x, UvecnValue y) throws OperatorCannotBeAppliedException {
-        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected IvecnValue apply(IvecnValue x, UvecnValue y) {
         return IvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
-    protected Value apply(UvecnValue x, IvecnValue y) throws OperatorCannotBeAppliedException {
-        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected UvecnValue apply(UvecnValue x, IvecnValue y) {
         return UvecnValue.pointwise(x, y, (a, b) -> a >> b);
     }
 
-    protected Value apply(UvecnValue x, UvecnValue y) throws OperatorCannotBeAppliedException {
-        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected UvecnValue apply(UvecnValue x, UvecnValue y) {
         return UvecnValue.pointwise(x, y, (a, b) -> a >> b);
+    }
+
+    // == for types ==
+    // scalar
+    protected IntType apply(IntType x, IntType y) {
+        return x;
+    }
+
+    protected IntType apply(IntType x, UintType y) {
+        return x;
+    }
+
+    protected UintType apply(UintType x, UintType y) {
+        return x;
+    }
+
+    protected UintType apply(UintType x, IntType y) {
+        return x;
+    }
+
+    // vector and scalar
+    protected IvecnType apply(IvecnType x, IntType y) {
+        return x;
+    }
+
+    protected IvecnType apply(IvecnType x, UintType y) {
+        return x;
+    }
+
+    protected UvecnType apply(UvecnType x, UintType y) {
+        return x;
+    }
+
+    protected UvecnType apply(UvecnType x, IntType y) {
+        return x;
+    }
+
+    // vector and vector
+    protected IvecnType apply(IvecnType x, IvecnType y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
+    }
+
+    protected IvecnType apply(IvecnType x, UvecnType y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
+    }
+
+    protected UvecnType apply(UvecnType x, IvecnType y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
+    }
+
+    protected UvecnType apply(UvecnType x, UvecnType y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
     }
 
     @Override

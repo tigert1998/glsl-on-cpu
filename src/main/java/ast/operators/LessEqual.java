@@ -1,21 +1,36 @@
 package ast.operators;
 
 import ast.values.*;
+import ast.types.*;
 
 public class LessEqual extends Operator implements BinaryOperator {
     public static LessEqual OP = new LessEqual();
 
+    // == for values ==
     // scalar
-    protected Value apply(IntValue x, IntValue y) {
+    protected BoolValue apply(IntValue x, IntValue y) {
         return new BoolValue(x.value <= y.value);
     }
 
-    protected Value apply(UintValue x, UintValue y) {
+    protected BoolValue apply(UintValue x, UintValue y) {
         return new BoolValue(x.value <= y.value);
     }
 
-    protected Value apply(FloatValue x, FloatValue y) {
+    protected BoolValue apply(FloatValue x, FloatValue y) {
         return new BoolValue(x.value <= y.value);
+    }
+
+    // == for types ==
+    protected BoolType apply(IntType x, IntType y) {
+        return BoolType.TYPE;
+    }
+
+    protected BoolType apply(UintType x, UintType y) {
+        return BoolType.TYPE;
+    }
+
+    protected BoolType apply(FloatType x, FloatType y) {
+        return BoolType.TYPE;
     }
 
     @Override

@@ -2,108 +2,205 @@ package ast.operators;
 
 import ast.exceptions.*;
 import ast.values.*;
+import ast.types.*;
 
 public class Plus extends Operator implements UnaryOperator, BinaryOperator {
     public static Plus OP = new Plus();
 
+    // == for values ==
     // unary operator
-    protected Value apply(IntValue x) {
+    protected IntValue apply(IntValue x) {
         return x;
     }
 
-    protected Value apply(UintValue x) {
+    protected UintValue apply(UintValue x) {
         return x;
     }
 
-    protected Value apply(FloatValue x) {
+    protected FloatValue apply(FloatValue x) {
         return x;
     }
 
-    protected Value apply(VecnValue x) {
+    protected VecnValue apply(VecnValue x) {
         return x;
     }
 
-    protected Value apply(IvecnValue x) {
+    protected IvecnValue apply(IvecnValue x) {
         return x;
     }
 
-    protected Value apply(UvecnValue x) {
+    protected UvecnValue apply(UvecnValue x) {
         return x;
     }
 
-    protected Value apply(MatnxmValue x) {
+    protected MatnxmValue apply(MatnxmValue x) {
         return x;
     }
 
     // binary operator
     // scalar
-    protected Value apply(IntValue x, IntValue y) {
+    protected IntValue apply(IntValue x, IntValue y) {
         return new IntValue(x.value + y.value);
     }
 
-    protected Value apply(UintValue x, UintValue y) {
+    protected UintValue apply(UintValue x, UintValue y) {
         return new UintValue(x.value + y.value);
     }
 
-    protected Value apply(FloatValue x, FloatValue y) {
+    protected FloatValue apply(FloatValue x, FloatValue y) {
         return new FloatValue(x.value + y.value);
     }
 
     // ivecn
-    protected Value apply(IvecnValue x, IvecnValue y) throws OperatorCannotBeAppliedException {
-        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected IvecnValue apply(IvecnValue x, IvecnValue y) {
         return IvecnValue.pointwise(x, y, Integer::sum);
     }
 
-    protected Value apply(IntValue x, IvecnValue y) {
+    protected IvecnValue apply(IntValue x, IvecnValue y) {
         return IvecnValue.pointwise(x, y, Integer::sum);
     }
 
-    protected Value apply(IvecnValue x, IntValue y) {
+    protected IvecnValue apply(IvecnValue x, IntValue y) {
         return IvecnValue.pointwise(x, y, Integer::sum);
     }
 
     // uvecn
-    protected Value apply(UvecnValue x, UvecnValue y) throws OperatorCannotBeAppliedException {
-        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected UvecnValue apply(UvecnValue x, UvecnValue y) {
         return UvecnValue.pointwise(x, y, Long::sum);
     }
 
-    protected Value apply(UintValue x, UvecnValue y) {
+    protected UvecnValue apply(UintValue x, UvecnValue y) {
         return UvecnValue.pointwise(x, y, Long::sum);
     }
 
-    protected Value apply(UvecnValue x, UintValue y) {
+    protected UvecnValue apply(UvecnValue x, UintValue y) {
         return UvecnValue.pointwise(x, y, Long::sum);
     }
 
     // vecn
-    protected Value apply(VecnValue x, VecnValue y) throws OperatorCannotBeAppliedException {
-        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected VecnValue apply(VecnValue x, VecnValue y) {
         return VecnValue.pointwise(x, y, Float::sum);
     }
 
-    protected Value apply(FloatValue x, VecnValue y) {
+    protected VecnValue apply(FloatValue x, VecnValue y) {
         return VecnValue.pointwise(x, y, Float::sum);
     }
 
-    protected Value apply(VecnValue x, FloatValue y) {
+    protected VecnValue apply(VecnValue x, FloatValue y) {
         return VecnValue.pointwise(x, y, Float::sum);
     }
 
     // matnxm
-    protected Value apply(FloatValue x, MatnxmValue y) {
+    protected MatnxmValue apply(FloatValue x, MatnxmValue y) {
         return MatnxmValue.pointwise(x, y, Float::sum);
     }
 
-    protected Value apply(MatnxmValue x, FloatValue y) {
+    protected MatnxmValue apply(MatnxmValue x, FloatValue y) {
         return MatnxmValue.pointwise(x, y, Float::sum);
     }
 
-    protected Value apply(MatnxmValue x, MatnxmValue y) throws OperatorCannotBeAppliedException {
-        if (!x.getType().equals(y.getType()))
-            throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected MatnxmValue apply(MatnxmValue x, MatnxmValue y) {
         return MatnxmValue.pointwise(x, y, Float::sum);
+    }
+
+    // == for types ==
+    // unary operator
+    protected IntType apply(IntType x) {
+        return x;
+    }
+
+    protected UintType apply(UintType x) {
+        return x;
+    }
+
+    protected FloatType apply(FloatType x) {
+        return x;
+    }
+
+    protected VecnType apply(VecnType x) {
+        return x;
+    }
+
+    protected IvecnType apply(IvecnType x) {
+        return x;
+    }
+
+    protected UvecnType apply(UvecnType x) {
+        return x;
+    }
+
+    protected MatnxmType apply(MatnxmType x) {
+        return x;
+    }
+
+    // binary operator
+    // scalar
+    protected IntType apply(IntType x, IntType y) {
+        return x;
+    }
+
+    protected UintType apply(UintType x, UintType y) {
+        return x;
+    }
+
+    protected FloatType apply(FloatType x, FloatType y) {
+        return x;
+    }
+
+    // ivecn
+    protected IvecnType apply(IvecnType x, IvecnType y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
+    }
+
+    protected IvecnType apply(IntType x, IvecnType y) {
+        return y;
+    }
+
+    protected IvecnType apply(IvecnType x, IntType y) {
+        return x;
+    }
+
+    // uvecn
+    protected UvecnType apply(UvecnType x, UvecnType y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
+    }
+
+    protected UvecnType apply(UintType x, UvecnType y) {
+        return y;
+    }
+
+    protected UvecnType apply(UvecnType x, UintType y) {
+        return x;
+    }
+
+    // vecn
+    protected VecnType apply(VecnType x, VecnType y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
+    }
+
+    protected VecnType apply(FloatType x, VecnType y) {
+        return y;
+    }
+
+    protected VecnType apply(VecnType x, FloatType y) {
+        return x;
+    }
+
+    // matnxm
+    protected MatnxmType apply(FloatType x, MatnxmType y) {
+        return y;
+    }
+
+    protected MatnxmType apply(MatnxmType x, FloatType y) {
+        return x;
+    }
+
+    protected MatnxmType apply(MatnxmType x, MatnxmType y) throws OperatorCannotBeAppliedException {
+        if (!x.equals(y)) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
     }
 
     @Override

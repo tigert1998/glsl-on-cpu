@@ -1,47 +1,85 @@
 package ast.operators;
 
 import ast.exceptions.*;
+import ast.types.*;
 import ast.values.*;
 
 public class BitwiseAnd extends Operator implements BinaryOperator {
     public static BitwiseAnd OP = new BitwiseAnd();
 
+    // == for values ==
     // scalar and scalar
-    protected Value apply(IntValue x, IntValue y) {
+    protected IntValue apply(IntValue x, IntValue y) {
         return new IntValue(x.value & y.value);
     }
 
-    protected Value apply(UintValue x, UintValue y) {
+    protected UintValue apply(UintValue x, UintValue y) {
         return new UintValue(x.value & y.value);
     }
 
     // scalar and vector
-    protected Value apply(IntValue x, IvecnValue y) {
+    protected IvecnValue apply(IntValue x, IvecnValue y) {
         return IvecnValue.pointwise(x, y, (a, b) -> a & b);
     }
 
-    protected Value apply(UintValue x, UvecnValue y) {
+    protected UvecnValue apply(UintValue x, UvecnValue y) {
         return UvecnValue.pointwise(x, y, (a, b) -> a & b);
     }
 
     // vector and scalar
-    protected Value apply(IvecnValue x, IntValue y) {
+    protected IvecnValue apply(IvecnValue x, IntValue y) {
         return IvecnValue.pointwise(x, y, (a, b) -> a & b);
     }
 
-    protected Value apply(UvecnValue x, UintValue y) {
+    protected UvecnValue apply(UvecnValue x, UintValue y) {
         return UvecnValue.pointwise(x, y, (a, b) -> a & b);
     }
 
     // vector and vector
-    protected Value apply(IvecnValue x, IvecnValue y) throws OperatorCannotBeAppliedException {
-        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected IvecnValue apply(IvecnValue x, IvecnValue y)  {
         return IvecnValue.pointwise(x, y, (a, b) -> a & b);
     }
 
-    protected Value apply(UvecnValue x, UvecnValue y) throws OperatorCannotBeAppliedException {
-        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x.getType(), y.getType());
+    protected UvecnValue apply(UvecnValue x, UvecnValue y)  {
         return UvecnValue.pointwise(x, y, (a, b) -> a & b);
+    }
+
+    // == for types ==
+    protected IntType apply(IntType x, IntType y) {
+        return x;
+    }
+
+    protected UintType apply(UintType x, UintType y) {
+        return x;
+    }
+
+    // scalar type and vector type
+    protected IvecnType apply(IntType x, IvecnType y) {
+        return y;
+    }
+
+    protected UvecnType apply(UintType x, UvecnType y) {
+        return y;
+    }
+
+    // vector type and scalar type
+    protected IvecnType apply(IvecnType x, IntType y) {
+        return x;
+    }
+
+    protected UvecnType apply(UvecnType x, UintType y) {
+        return x;
+    }
+
+    // vector and vector
+    protected IvecnType apply(IvecnType x, IvecnType y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
+    }
+
+    protected UvecnType apply(UvecnType x, UvecnType y) throws OperatorCannotBeAppliedException {
+        if (x.getN() != y.getN()) throw new OperatorCannotBeAppliedException(this, x, y);
+        return x;
     }
 
     @Override

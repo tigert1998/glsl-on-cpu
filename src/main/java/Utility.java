@@ -1,8 +1,8 @@
-import ast.AST;
 import ast.Scope;
 import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
+import org.antlr.v4.runtime.Token;
 
 public class Utility {
     private static int parseIntLiteralText(String str) {
@@ -32,16 +32,20 @@ public class Utility {
         return new FloatValue(Float.parseFloat(ctx.REAL_LITERAL().getText()));
     }
 
-    public static int evalExprAsIntegral(LangParser.ExprContext exprCtx, Scope scope) throws SyntaxErrorException {
-        var visitor = new ConstantVisitor(scope);
-        Value value = exprCtx.accept(visitor);
-        if (visitor.exception != null) throw visitor.exception;
+    public static int evalValueAsIntegral(Value value, Token token) throws SyntaxErrorException {
         if (!(value.getType() instanceof IntType || value.getType() instanceof UintType))
-            throw SyntaxErrorException.notIntegerExpression(exprCtx.start);
+            throw SyntaxErrorException.notIntegerExpression(token);
         int res;
         if (value instanceof IntValue) res = ((IntValue) value).value;
         else res = (int) (long) ((UintValue) value).value;
         return res;
+    }
+
+    public static int evalExprAsIntegral(LangParser.ExprContext exprCtx, Scope scope) throws SyntaxErrorException {
+        var visitor = new ConstantVisitor(scope);
+        Value value = exprCtx.accept(visitor);
+        if (visitor.exception != null) throw visitor.exception;
+        return evalValueAsIntegral(value, exprCtx.start);
     }
 
     public static int evalExprAsArraySize(LangParser.ExprContext exprCtx, Scope scope) throws SyntaxErrorException {

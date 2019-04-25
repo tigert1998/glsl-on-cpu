@@ -2,8 +2,8 @@ import ast.AST;
 import ast.Scope;
 import ast.exceptions.*;
 import ast.expr.*;
-import ast.types.Type;
-import ast.values.Value;
+import ast.types.*;
+import ast.values.*;
 
 import java.util.List;
 
@@ -27,6 +27,14 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             }
         }
         return exprs;
+    }
+
+    private Expr extractExpr(LangParser.ExprContext exprCtx) {
+        var visitor = new ASTVisitor(scope);
+        var expr = (Expr) exprCtx.accept(visitor);
+        if (visitor.exception != null)
+            this.exception = visitor.exception;
+        return expr;
     }
 
     @Override
@@ -70,5 +78,36 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         }
 
         return new ConstructionExpr(type, exprs);
+    }
+
+    @Override
+    public AST visitArraySubscriptingExpr(LangParser.ArraySubscriptingExprContext ctx) {
+        var array = extractExpr(ctx.expr(0));
+        if (array == null) return null;
+        if (!(array.getType().getDefaultValue() instanceof Indexed)) {
+            this.exception = SyntaxErrorException.invalidSubscriptingType(ctx.start, ctx.expr(0).getText());
+            return null;
+        }
+
+        var idx = extractExpr(ctx.expr(1));
+        if (idx == null) return null;
+        if (!(idx.getType() instanceof IntType || idx.getType() instanceof UintType)) {
+            this.exception = SyntaxErrorException.notIntegerExpression(ctx.idx.start);
+            return null;
+        }
+
+        if (idx instanceof ConstExpr) {
+            try {
+                int i = Utility.evalValueAsIntegral(((ConstExpr) idx).getValue(), ctx.idx.start);
+                try {
+                    ((Indexed) array.getType().getDefaultValue()).valueAt(i);
+                } catch (InvalidIndexException exception) {
+                    this.exception = new SyntaxErrorException(ctx.idx.start, exception);
+                    return null;
+                }
+            } catch (SyntaxErrorException ignore) {}
+        }
+
+        return new SubscriptingExpr(array, idx);
     }
 }

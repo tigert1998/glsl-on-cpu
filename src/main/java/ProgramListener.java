@@ -97,13 +97,17 @@ public class ProgramListener extends LangBaseListener {
                         new DeclarationStmt(actualType, id, new ConstExpr(actualType.getDefaultValue())));
                 return;
             }
-            var ast = item.expr().accept(visitor);
-            if (ast == null) {
+            var expr = (Expr) item.expr().accept(visitor);
+            if (expr == null) {
                 exceptionList.add(visitor.exception);
                 return;
             }
+            if (!expr.getType().equals(actualType)) {
+                exceptionList.add(SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType));
+                return;
+            }
             globalScope.variables.put(id, actualType);
-            programAST.putDeclarationStmt(new DeclarationStmt(actualType, id, (Expr) ast));
+            programAST.putDeclarationStmt(new DeclarationStmt(actualType, id, expr));
         });
     }
 }

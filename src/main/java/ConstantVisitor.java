@@ -47,6 +47,9 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
         } catch (OperatorCannotBeAppliedException exception) {
             this.exception = new SyntaxErrorException(opToken, exception);
             return null;
+        } catch (ArithmeticException exception) {
+            this.exception = new SyntaxErrorException(opToken, exception.getMessage());
+            return null;
         }
     }
 

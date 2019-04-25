@@ -49,7 +49,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         } catch (OperatorCannotBeAppliedException exception) {
             this.exception = new SyntaxErrorException(opToken, exception);
             return null;
-        }
+        } catch (ArithmeticException ignore) { }
         return new BinaryExpr(op, exprs);
     }
 

@@ -9,7 +9,7 @@ public class BinaryExpr extends Expr {
 
     public BinaryExpr(BinaryOperator op, Expr[] exprs) {
         try {
-            this.type = op.apply(exprs[0].getType().getDefaultValue(), exprs[1].getType().getDefaultValue()).getType();
+            this.type = op.apply(exprs[0].getType(), exprs[1].getType());
         } catch (OperatorCannotBeAppliedException ignore) {}
         this.op = op;
         this.exprs = exprs;

@@ -1,7 +1,6 @@
 package ast.expr;
 
 import ast.values.SwizzleUtility;
-import ast.types.*;
 
 public class SwizzleExpr extends Expr {
     private Expr expr;

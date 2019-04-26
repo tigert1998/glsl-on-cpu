@@ -15,8 +15,9 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     antlr group: 'org.antlr', name: 'antlr4', version: '4.7.2'
-    implementation 'org.reflections:reflections:0.9.11'
     compile group: 'org.bytedeco', name: 'llvm-platform', version: '8.0.0-1.5'
+    compile group: 'org.json', name: 'json', version: '20180813'
+    implementation 'org.reflections:reflections:0.9.11'
 }
 
 generateGrammarSource {

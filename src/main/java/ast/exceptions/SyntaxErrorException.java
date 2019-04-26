@@ -88,4 +88,8 @@ public class SyntaxErrorException extends Exception {
     public static SyntaxErrorException lengthOnlyArrays(Token token) {
         return new SyntaxErrorException(token, "length can only be called on arrays");
     }
+
+    public static SyntaxErrorException implicitSizedArray(Token token) {
+        return new SyntaxErrorException(token, "implicit sized array need to be initialized");
+    }
 }

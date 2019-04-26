@@ -4,9 +4,9 @@ import ast.expr.Expr;
 import ast.types.Type;
 
 public class DeclarationStmt extends Stmt {
-    private Type type;
-    private String id;
-    private Expr expr;
+    public Type type;
+    public String id;
+    public Expr expr;
 
     public DeclarationStmt(Type type, String id, Expr expr) {
         this.type = type;

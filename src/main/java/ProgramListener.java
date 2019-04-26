@@ -91,24 +91,29 @@ public class ProgramListener extends LangBaseListener {
                 exceptionList.add(exception);
                 return;
             }
-            var visitor = new ASTVisitor(globalScope);
+            DeclarationStmt declarationStmt;
             if (item.expr() == null) {
-                programAST.putDeclarationStmt(
-                        new DeclarationStmt(actualType, id, new ConstExpr(actualType.getDefaultValue())));
-                return;
+                if (actualType instanceof ArrayType && ((ArrayType) actualType).isLengthUnknown()) {
+                    this.exceptionList.add(SyntaxErrorException.implicitSizedArray(variableMaybeArray.start));
+                    return;
+                }
+                declarationStmt = new DeclarationStmt(actualType, id, new ConstExpr(actualType.getDefaultValue()));
+            } else {
+                var visitor = new ASTVisitor(globalScope);
+                var expr = (Expr) item.expr().accept(visitor);
+                if (expr == null) {
+                    exceptionList.add(visitor.exception);
+                    return;
+                }
+                if (!expr.getType().equals(actualType)) {
+                    exceptionList.add(SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType));
+                    return;
+                }
+                actualType = expr.getType();
+                declarationStmt = new DeclarationStmt(actualType, id, expr);
             }
-            var expr = (Expr) item.expr().accept(visitor);
-            if (expr == null) {
-                exceptionList.add(visitor.exception);
-                return;
-            }
-            if (!expr.getType().equals(actualType)) {
-                exceptionList.add(SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType));
-                return;
-            }
-            actualType = expr.getType();
-            globalScope.variables.put(id, actualType);
-            programAST.putDeclarationStmt(new DeclarationStmt(actualType, id, expr));
+            globalScope.variables.put(id, declarationStmt);
+            programAST.putDeclarationStmt(declarationStmt);
         });
     }
 }

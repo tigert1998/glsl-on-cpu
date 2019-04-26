@@ -8,6 +8,7 @@ public class ConstructionExpr extends Expr {
     public ConstructionExpr(Type type, Expr[] exprs) {
         this.type = type;
         this.exprs = exprs;
+        this.isLValue = false;
     }
 
     @Override

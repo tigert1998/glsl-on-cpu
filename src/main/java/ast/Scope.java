@@ -1,5 +1,6 @@
 package ast;
 
+import ast.stmt.DeclarationStmt;
 import ast.types.*;
 import ast.values.*;
 
@@ -13,7 +14,7 @@ public class Scope {
 
     public Map<String, List<FunctionInfo>> functions = new TreeMap<>();
     public Map<String, Value> constants = new TreeMap<>();
-    public Map<String, Type> variables = new TreeMap<>();
+    public Map<String, DeclarationStmt> variables = new TreeMap<>();
     public Map<String, StructType> structs = new TreeMap<>();
 
     public void LogConstants() {

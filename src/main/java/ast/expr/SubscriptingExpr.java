@@ -2,6 +2,7 @@ package ast.expr;
 
 import ast.exceptions.InvalidIndexException;
 import ast.values.Indexed;
+import org.json.JSONObject;
 
 public class SubscriptingExpr extends Expr {
     private Expr x;
@@ -17,7 +18,10 @@ public class SubscriptingExpr extends Expr {
     }
 
     @Override
-    public String toString() {
-        return "(" + x + ")[" + index + "]";
+    protected JSONObject toJSON() {
+        var json = super.toJSON();
+        json.put("x", x.toJSON());
+        json.put("index", index.toJSON());
+        return json;
     }
 }

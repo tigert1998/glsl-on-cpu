@@ -70,7 +70,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         if (scope.constants.containsKey(id))
             return new ConstExpr(scope.constants.get(id));
         else if (scope.variables.containsKey(id))
-            return new ReferenceExpr(scope.variables.get(id), id);
+            return new ReferenceExpr(scope.variables.get(id));
         this.exception = SyntaxErrorException.undeclaredID(ctx.start, id);
         return null;
     }
@@ -207,6 +207,6 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                     exprs[2].getType(), exprs[1].getType());
             return null;
         }
-        return new TernaryConditionalExpr(exprs[0], exprs[1], exprs[2]);
+        return TernaryConditionalExpr.factory(exprs[0], exprs[1], exprs[2]);
     }
 }

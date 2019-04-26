@@ -9,5 +9,6 @@ public class UnaryExpr extends Expr {
     public UnaryExpr(UnaryOperator op, Expr expr) {
         this.op = op;
         this.expr = expr;
+        this.isLValue = false;
     }
 }

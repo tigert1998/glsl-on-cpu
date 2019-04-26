@@ -1,18 +1,21 @@
 package ast.expr;
 
-import ast.types.Type;
+import ast.stmt.DeclarationStmt;
+import org.json.JSONObject;
 
 public class ReferenceExpr extends Expr {
-    private String id;
+    private DeclarationStmt declarationStmt;
 
-    public ReferenceExpr(Type type, String id) {
+    public ReferenceExpr(DeclarationStmt declarationStmt) {
+        this.declarationStmt = declarationStmt;
         isLValue = true;
-        this.type = type;
-        this.id = id;
+        this.type = declarationStmt.type;
     }
 
     @Override
-    public String toString() {
-        return id;
+    protected JSONObject toJSON() {
+        var json = super.toJSON();
+        json.put("id", declarationStmt.id);
+        return json;
     }
 }

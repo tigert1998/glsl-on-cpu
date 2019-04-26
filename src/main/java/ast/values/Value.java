@@ -13,6 +13,14 @@ public class Value {
         return type;
     }
 
+    static public Integer evalAsIntegral(Value value) {
+        if (!(value.getType() instanceof IntType || value.getType() instanceof UintType)) return null;
+        int res;
+        if (value instanceof IntValue) res = ((IntValue) value).value;
+        else res = (int) (long) ((UintValue) value).value;
+        return res;
+    }
+
     static private int dropFractionPart(float v) {
         return (int) (v - (v % 1));
     }

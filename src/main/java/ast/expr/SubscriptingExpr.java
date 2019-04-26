@@ -1,20 +1,33 @@
 package ast.expr;
 
 import ast.exceptions.InvalidIndexException;
-import ast.values.Indexed;
+import ast.values.*;
 import org.json.JSONObject;
 
 public class SubscriptingExpr extends Expr {
     private Expr x;
     private Expr index;
 
-    public SubscriptingExpr(Expr x, Expr index) {
+    private SubscriptingExpr(Expr x, Expr index) {
         isLValue = x.isLValue;
         try {
             this.type = ((Indexed) x.getType().getDefaultValue()).valueAt(0).getType();
-        } catch (InvalidIndexException ignore) {}
+        } catch (InvalidIndexException ignore) {
+        }
         this.x = x;
         this.index = index;
+    }
+
+    static public Expr factory(Expr x, Expr index) {
+        if (x instanceof ConstExpr && index instanceof ConstExpr) {
+            int i = Value.evalAsIntegral(((ConstExpr) index).getValue());
+            try {
+                return new ConstExpr(((Indexed) ((ConstExpr) x).getValue()).valueAt(i));
+            } catch (InvalidIndexException ignore) {
+                return null;
+            }
+        }
+        return new SubscriptingExpr(x, index);
     }
 
     @Override

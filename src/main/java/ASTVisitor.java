@@ -98,14 +98,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             return null;
         }
 
-        for (int i = 0; i < exprs.length; i++) {
-            var expr = exprs[i];
-            if (!(expr instanceof ConstExpr)) return new ConstructionExpr(type, exprs);
-            values[i] = ((ConstExpr) expr).getValue();
-        }
-        try {
-            return new ConstExpr(Value.constructor(type, values));
-        } catch (ConstructionFailedException ignore) { return null; }
+        return ConstructionExpr.factory(type, exprs);
     }
 
     @Override
@@ -133,10 +126,10 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                     this.exception = new SyntaxErrorException(ctx.idx.start, exception);
                     return null;
                 }
-            } catch (SyntaxErrorException ignore) {}
+            } catch (SyntaxErrorException ignore) {
+            }
         }
-
-        return new SubscriptingExpr(array, idx);
+        return SubscriptingExpr.factory(array, idx);
     }
 
     @Override
@@ -208,5 +201,28 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             return null;
         }
         return TernaryConditionalExpr.factory(exprs[0], exprs[1], exprs[2]);
+    }
+
+    @Override
+    public AST visitAssignExpr(LangParser.AssignExprContext ctx) {
+        var exprs = extractExprs(ctx.expr());
+        if (exprs == null) return null;
+        if (!exprs[0].isLValue()) {
+            this.exception = SyntaxErrorException.lvalueRequired(ctx.start);
+            return null;
+        }
+        if (!exprs[0].getType().equals(exprs[1].getType())) {
+            this.exception = SyntaxErrorException.cannotConvert(ctx.start, exprs[1].getType(), exprs[0].getType());
+            return null;
+        }
+        String opText = ctx.op.getText();
+        BinaryOperator op = opText.equals("=") ? null :
+                (BinaryOperator) Operator.fromText(opText.substring(0, opText.length() - 1));
+        return new AssignmentExpr(op, exprs[0], exprs[1]);
+    }
+
+    @Override
+    public AST visitParameteredExpr(LangParser.ParameteredExprContext ctx) {
+        return extractExpr(ctx.expr());
     }
 }

@@ -1,14 +1,30 @@
 package ast.expr;
 
-import ast.types.Type;
+import ast.types.*;
+import ast.values.*;
+import ast.exceptions.*;
 
 public class ConstructionExpr extends Expr {
     private Expr[] exprs;
 
-    public ConstructionExpr(Type type, Expr[] exprs) {
+    private ConstructionExpr(Type type, Expr[] exprs) {
         this.type = type;
         this.exprs = exprs;
         this.isLValue = false;
+    }
+
+    public static Expr factory(Type type, Expr[] exprs) {
+        var values = new Value[exprs.length];
+        for (int i = 0; i < exprs.length; i++) {
+            var expr = exprs[i];
+            if (!(expr instanceof ConstExpr)) return new ConstructionExpr(type, exprs);
+            values[i] = ((ConstExpr) expr).getValue();
+        }
+        try {
+            return new ConstExpr(Value.constructor(type, values));
+        } catch (ConstructionFailedException ignore) {
+            return null;
+        }
     }
 
     @Override

@@ -1,6 +1,5 @@
 import ast.Scope;
 import ast.exceptions.*;
-import ast.operators.*;
 import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;
@@ -34,11 +33,8 @@ public class Utility {
     }
 
     public static int evalValueAsIntegral(Value value, Token token) throws SyntaxErrorException {
-        if (!(value.getType() instanceof IntType || value.getType() instanceof UintType))
-            throw SyntaxErrorException.notIntegerExpression(token);
-        int res;
-        if (value instanceof IntValue) res = ((IntValue) value).value;
-        else res = (int) (long) ((UintValue) value).value;
+        Integer res = Value.evalAsIntegral(value);
+        if (res == null) throw SyntaxErrorException.notIntegerExpression(token);
         return res;
     }
 

@@ -13,6 +13,10 @@ public abstract class Expr extends AST {
         return type;
     }
 
+    public boolean isLValue() {
+        return isLValue;
+    }
+
     protected JSONObject toJSON() {
         var json = new JSONObject();
         json.put("class", getClass().getSimpleName());

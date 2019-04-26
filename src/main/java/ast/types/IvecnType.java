@@ -4,7 +4,7 @@ import ast.values.IntValue;
 import ast.values.IvecnValue;
 import ast.values.Value;
 
-public class IvecnType extends Type {
+public class IvecnType extends Type implements SwizzleType {
     private int n;
 
     // prevent multiple new
@@ -27,8 +27,14 @@ public class IvecnType extends Type {
         return predefinedTypes[n - 2];
     }
 
+    @Override
     public int getN() {
         return n;
+    }
+
+    @Override
+    public SwizzleType changeN(int n) {
+        return fromN(n);
     }
 
     static public IvecnType fromText(String text) {

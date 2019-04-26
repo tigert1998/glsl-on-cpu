@@ -10,10 +10,7 @@ public class SubscriptingExpr extends Expr {
 
     private SubscriptingExpr(Expr x, Expr index) {
         isLValue = x.isLValue;
-        try {
-            this.type = ((Indexed) x.getType().getDefaultValue()).valueAt(0).getType();
-        } catch (InvalidIndexException ignore) {
-        }
+        this.type = x.getType().collapse();
         this.x = x;
         this.index = index;
     }

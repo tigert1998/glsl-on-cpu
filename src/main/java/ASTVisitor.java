@@ -133,6 +133,33 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     @Override
+    public AST visitElementSelectionExpr(LangParser.ElementSelectionExprContext ctx) {
+        var expr = extractExpr(ctx.expr());
+        if (expr == null) return null;
+        String selection = ctx.selection.getText();
+        if (expr.getType() instanceof SwizzleType) {
+            int[] indices;
+            try {
+                indices = SwizzleUtility.swizzle(((SwizzleType) expr.getType()).getN(), selection);
+            } catch (InvalidSelectionException exception) {
+                this.exception = new SyntaxErrorException(ctx.selection, exception);
+                return null;
+            }
+            return SwizzleExpr.factory(expr, indices);
+        } else if (expr.getType() instanceof StructType) {
+            try {
+                return SelectionExpr.factory(expr, selection);
+            } catch (InvalidSelectionException exception) {
+                this.exception = new SyntaxErrorException(ctx.selection, exception);
+                return null;
+            }
+        } else {
+            this.exception = SyntaxErrorException.invalidSelectionType(ctx.start, ctx.expr().getText());
+            return null;
+        }
+    }
+
+    @Override
     public AST visitMultDivModBinaryExpr(LangParser.MultDivModBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }

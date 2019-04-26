@@ -39,18 +39,23 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         return expr;
     }
 
-    private BinaryExpr extractBinaryExpr(Token opToken, List<LangParser.ExprContext> exprCtxList) {
+    private Expr extractBinaryExpr(Token opToken, List<LangParser.ExprContext> exprCtxList) {
         var exprs = extractExprs(exprCtxList);
         if (exprs == null) return null;
         BinaryOperator op = (BinaryOperator) Operator.fromText(opToken.getText());
         try {
             // check applicable
-            op.apply(exprs[0].getType().getDefaultValue(), exprs[1].getType().getDefaultValue());
+            op.apply(exprs[0].getType(), exprs[1].getType());
         } catch (OperatorCannotBeAppliedException exception) {
             this.exception = new SyntaxErrorException(opToken, exception);
             return null;
-        } catch (ArithmeticException ignore) { }
-        return new BinaryExpr(op, exprs);
+        }
+        try {
+            return BinaryExpr.factory(op, exprs);
+        } catch (ArithmeticException exception) {
+            this.exception = new SyntaxErrorException(opToken, exception.getMessage());
+            return null;
+        }
     }
 
     @Override
@@ -82,18 +87,25 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         }
         var exprs = extractExprs(basicTypeConstructorInvocation.expr());
         if (exprs == null) return null;
-        var defaultValues = new Value[exprs.length];
+        var values = new Value[exprs.length];
         for (int i = 0; i < exprs.length; i++)
-            defaultValues[i] = exprs[i].getType().getDefaultValue();
+            values[i] = exprs[i].getType().getDefaultValue();
         try {
             // check syntax
-            Value.constructor(type, defaultValues);
+            Value.constructor(type, values);
         } catch (ConstructionFailedException exception) {
             this.exception = new SyntaxErrorException(ctx.start, exception);
             return null;
         }
 
-        return new ConstructionExpr(type, exprs);
+        for (int i = 0; i < exprs.length; i++) {
+            var expr = exprs[i];
+            if (!(expr instanceof ConstExpr)) return new ConstructionExpr(type, exprs);
+            values[i] = ((ConstExpr) expr).getValue();
+        }
+        try {
+            return new ConstExpr(Value.constructor(type, values));
+        } catch (ConstructionFailedException ignore) { return null; }
     }
 
     @Override
@@ -180,5 +192,21 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     @Override
     public AST visitLogicalOrBinaryExpr(LangParser.LogicalOrBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
+    }
+
+    @Override
+    public AST visitTernaryConditionalExpr(LangParser.TernaryConditionalExprContext ctx) {
+        var exprs = extractExprs(ctx.expr());
+        if (exprs == null) return null;
+        if (!(exprs[0].getType() instanceof BoolType)) {
+            this.exception = SyntaxErrorException.notBooleanExpression(ctx.expr(0).start);
+            return null;
+        }
+        if (!exprs[1].getType().equals(exprs[2].getType())) {
+            this.exception = SyntaxErrorException.cannotConvert(ctx.expr(1).start,
+                    exprs[2].getType(), exprs[1].getType());
+            return null;
+        }
+        return new TernaryConditionalExpr(exprs[0], exprs[1], exprs[2]);
     }
 }

@@ -106,6 +106,7 @@ public class ProgramListener extends LangBaseListener {
                 exceptionList.add(SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType));
                 return;
             }
+            actualType = expr.getType();
             globalScope.variables.put(id, actualType);
             programAST.putDeclarationStmt(new DeclarationStmt(actualType, id, expr));
         });

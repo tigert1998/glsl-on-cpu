@@ -1,4 +1,4 @@
-import ast.Scope;
+import ast.*;
 import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
@@ -11,13 +11,6 @@ public class Utility {
         if (str.charAt(0) == '0')
             return Integer.parseInt(str, 8);
         return Integer.parseInt(str, 10);
-    }
-
-    public static boolean idDefinedBefore(String id, Scope scope) {
-        return scope.constants.containsKey(id) ||
-                scope.variables.containsKey(id) ||
-                scope.structs.containsKey(id) ||
-                scope.functions.containsKey(id);
     }
 
     public static Value valueFromLiteralExprContext(LangParser.LiteralExprContext ctx) {
@@ -55,7 +48,8 @@ public class Utility {
     public static StructType typeFromStructDefinitionContext(LangParser.StructDefinitionContext ctx, Scope scope)
             throws SyntaxErrorException {
         String id = ctx.structName.getText();
-        if (idDefinedBefore(id, scope)) throw SyntaxErrorException.redefinition(ctx.structName, id);
+        if (!scope.canDefineID(id))
+            throw SyntaxErrorException.redefinition(ctx.structName, id);
 
         StructType result = new StructType(id);
         for (int i = 0; i < ctx.structFieldDeclarationStmt().size(); i++) {
@@ -133,5 +127,36 @@ public class Utility {
         } else {
             return typeFromStructTypeContext(ctx.structType(), scope);
         }
+    }
+
+    public static FunctionSignature functionSignatureFromCtx(LangParser.FunctionSignatureContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        String id = ctx.IDENTIFIER().getText();
+        var returnType = ctx.VOID() != null ? null : typeFromTypeContext(ctx.type(), scope);
+        var functionSignature = new FunctionSignature(returnType, id);
+        var listCtx = ctx.functionParameterList();
+        if (listCtx.functionParameter() != null) {
+            for (int i = 0; i < listCtx.functionParameter().size(); i++) {
+                var parameterCtx = listCtx.functionParameter(i);
+
+                FunctionSignature.ParameterQualifier qualifier;
+                if (parameterCtx.CONST() != null) qualifier = FunctionSignature.ParameterQualifier.CONST_IN;
+                else if (parameterCtx.OUT() != null) qualifier = FunctionSignature.ParameterQualifier.OUT;
+                else if (parameterCtx.INOUT() != null) qualifier = FunctionSignature.ParameterQualifier.INOUT;
+                else qualifier = FunctionSignature.ParameterQualifier.IN;
+
+                var type = typeFromTypeContext(parameterCtx.type(), scope);
+                type = typeWithArraySuffix(type, parameterCtx.variableMaybeArray().specifiedArrayLength(), scope);
+
+                String varID = parameterCtx.variableMaybeArray().IDENTIFIER().getText();
+
+                functionSignature.addParameter(qualifier, type, varID);
+            }
+        }
+
+        if (!scope.canDefineFunction(functionSignature)) {
+            throw SyntaxErrorException.functionRedefinition(ctx.start, id);
+        }
+        return functionSignature;
     }
 }

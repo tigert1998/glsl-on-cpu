@@ -9,12 +9,12 @@ import ast.values.*;
 import java.util.*;
 
 public class ProgramListener extends LangBaseListener {
-    private Scope globalScope = new Scope();
+    private Scope scope = new Scope();
     private List<SyntaxErrorException> exceptionList = new ArrayList<>();
     private ProgramAST programAST = new ProgramAST();
 
-    public Scope getGlobalScope() {
-        return globalScope;
+    public Scope getScope() {
+        return scope;
     }
 
     public List<SyntaxErrorException> getExceptionList() {
@@ -29,7 +29,7 @@ public class ProgramListener extends LangBaseListener {
     public void exitConstDeclarationStmt(LangParser.ConstDeclarationStmtContext ctx) {
         Type type;
         try {
-            type = Utility.typeFromTypeContext(ctx.type(), globalScope);
+            type = Utility.typeFromTypeContext(ctx.type(), scope);
         } catch (SyntaxErrorException exception) {
             exceptionList.add(exception);
             return;
@@ -39,30 +39,30 @@ public class ProgramListener extends LangBaseListener {
         int length = declarationList.variableMaybeArray().size();
         for (int i = 0; i < length; i++) {
             var variableMaybeArray = declarationList.variableMaybeArray(i);
-            var constantVisitor = new ConstantVisitor(globalScope);
+            var constantVisitor = new ConstantVisitor(scope);
             Value value = declarationList.expr(i).accept(constantVisitor);
-            String name = variableMaybeArray.IDENTIFIER().getText();
+            String id = variableMaybeArray.IDENTIFIER().getText();
             if (value == null) {
                 exceptionList.add(constantVisitor.exception);
                 continue;
             }
             try {
-                Type shouldType = Utility.typeWithArraySuffix(type,
-                        variableMaybeArray.specifiedArrayLength(), globalScope);
-                if (!shouldType.equals(value.getType())) {
+                Type actualType = Utility.typeWithArraySuffix(type,
+                        variableMaybeArray.specifiedArrayLength(), scope);
+                if (!actualType.equals(value.getType())) {
                     exceptionList.add(SyntaxErrorException.cannotConvert(
-                            variableMaybeArray.start, value.getType(), shouldType));
+                            variableMaybeArray.start, value.getType(), actualType));
                     continue;
                 }
             } catch (SyntaxErrorException exception) {
                 exceptionList.add(exception);
                 continue;
             }
-            if (Utility.idDefinedBefore(name, globalScope)) {
-                exceptionList.add(SyntaxErrorException.redefinition(variableMaybeArray.start, name));
+            if (!scope.canDefineID(id)) {
+                exceptionList.add(SyntaxErrorException.redefinition(variableMaybeArray.start, id));
                 continue;
             }
-            globalScope.constants.put(name, value);
+            scope.constants.put(id, value);
         }
     }
 
@@ -70,7 +70,7 @@ public class ProgramListener extends LangBaseListener {
     public void exitNormalDeclarationStmt(LangParser.NormalDeclarationStmtContext ctx) {
         Type type;
         try {
-            type = Utility.typeFromTypeContext(ctx.type(), globalScope);
+            type = Utility.typeFromTypeContext(ctx.type(), scope);
         } catch (SyntaxErrorException exception) {
             exceptionList.add(exception);
             return;
@@ -80,13 +80,13 @@ public class ProgramListener extends LangBaseListener {
             Type actualType;
             var variableMaybeArray = item.variableMaybeArray();
             String id = variableMaybeArray.IDENTIFIER().getText();
-            if (Utility.idDefinedBefore(id, globalScope)) {
+            if (!scope.canDefineID(id)) {
                 exceptionList.add(SyntaxErrorException.redefinition(item.start, id));
                 return;
             }
             try {
                 actualType = Utility.typeWithArraySuffix(type,
-                        variableMaybeArray.specifiedArrayLength(), globalScope);
+                        variableMaybeArray.specifiedArrayLength(), scope);
             } catch (SyntaxErrorException exception) {
                 exceptionList.add(exception);
                 return;
@@ -99,7 +99,7 @@ public class ProgramListener extends LangBaseListener {
                 }
                 declarationStmt = new DeclarationStmt(actualType, id, new ConstExpr(actualType.getDefaultValue()));
             } else {
-                var visitor = new ASTVisitor(globalScope);
+                var visitor = new ASTVisitor(scope);
                 var expr = (Expr) item.expr().accept(visitor);
                 if (expr == null) {
                     exceptionList.add(visitor.exception);
@@ -112,8 +112,17 @@ public class ProgramListener extends LangBaseListener {
                 actualType = expr.getType();
                 declarationStmt = new DeclarationStmt(actualType, id, expr);
             }
-            globalScope.variables.put(id, declarationStmt);
+            scope.variables.put(id, declarationStmt);
             programAST.putDeclarationStmt(declarationStmt);
         });
+    }
+
+    @Override
+    public void exitFunctionSignature(LangParser.FunctionSignatureContext ctx) {
+        try {
+            System.out.println(Utility.functionSignatureFromCtx(ctx, scope));
+        } catch (SyntaxErrorException exception) {
+            System.out.println(exception.getMessage());
+        }
     }
 }

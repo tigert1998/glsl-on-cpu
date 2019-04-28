@@ -92,4 +92,8 @@ public class SyntaxErrorException extends Exception {
     public static SyntaxErrorException implicitSizedArray(Token token) {
         return new SyntaxErrorException(token, "implicit sized array need to be initialized");
     }
+
+    public static SyntaxErrorException functionRedefinition(Token token, String id) {
+        return new SyntaxErrorException(token, "'" + id + "': redefinition of a function");
+    }
 }

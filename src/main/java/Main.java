@@ -75,8 +75,8 @@ public class Main {
         ParseTree parseTree = langParser.program();
         ProgramListener programListener = new ProgramListener();
         ParseTreeWalker.DEFAULT.walk(programListener, parseTree);
-        programListener.getGlobalScope().LogConstants();
-        programListener.getGlobalScope().LogStructs();
+        programListener.getScope().LogConstants();
+        programListener.getScope().LogStructs();
 
         System.out.println("<<<<<<<");
         System.out.println(programListener.getProgramAST());

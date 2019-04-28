@@ -118,11 +118,16 @@ public class ProgramListener extends LangBaseListener {
     }
 
     @Override
-    public void exitFunctionSignature(LangParser.FunctionSignatureContext ctx) {
+    public void exitFunctionForwardDeclarationStmt(LangParser.FunctionForwardDeclarationStmtContext ctx) {
         try {
-            System.out.println(Utility.functionSignatureFromCtx(ctx, scope));
+            var sig = Utility.functionSignatureFromCtx(ctx.functionSignature(), scope);
+            if (!scope.canDeclareFunction(sig)) {
+                this.exceptionList.add(SyntaxErrorException.functionRedefinition(ctx.start, sig.id));
+                return;
+            }
+            scope.declareFunction(sig);
         } catch (SyntaxErrorException exception) {
-            System.out.println(exception.getMessage());
+            this.exceptionList.add(exception);
         }
     }
 }

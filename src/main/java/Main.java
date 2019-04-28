@@ -6,11 +6,6 @@ import org.bytedeco.llvm.LLVM.*;
 import static org.bytedeco.llvm.global.LLVM.*;
 
 public class Main {
-    public static void error(String message) {
-        System.err.println(message);
-        System.exit(0);
-    }
-
     private static void testLLVM() {
         var mod = LLVMModuleCreateWithName("fib");
         var builder = LLVMCreateBuilder();
@@ -75,8 +70,9 @@ public class Main {
         ParseTree parseTree = langParser.program();
         ProgramListener programListener = new ProgramListener();
         ParseTreeWalker.DEFAULT.walk(programListener, parseTree);
-        programListener.getScope().LogConstants();
-        programListener.getScope().LogStructs();
+        programListener.getScope().logConstants();
+        programListener.getScope().logStructs();
+        programListener.getScope().logFunctions();
 
         System.out.println("<<<<<<<");
         System.out.println(programListener.getProgramAST());

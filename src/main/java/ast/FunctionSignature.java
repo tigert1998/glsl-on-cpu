@@ -23,10 +23,10 @@ public class FunctionSignature {
     static public class ParameterInfo {
         Type type;
         String id;
-        ParameterQualifier qualifiers;
+        ParameterQualifier qualifier;
 
         ParameterInfo(ParameterQualifier qualifier, Type type, String id) {
-            this.qualifiers = qualifier;
+            this.qualifier = qualifier;
             this.type = type;
             this.id = id;
         }
@@ -38,9 +38,13 @@ public class FunctionSignature {
             return type.equals(info.type) && id.equals(info.id);
         }
 
+        public boolean equalWithQualifier(ParameterInfo info) {
+            return info.qualifier == qualifier && equals(info);
+        }
+
         @Override
         public String toString() {
-            return qualifiers.toString() + " " + type.toString() + " " + id;
+            return qualifier.toString() + " " + type.toString() + " " + id;
         }
     }
 
@@ -62,10 +66,22 @@ public class FunctionSignature {
         if (!(obj instanceof FunctionSignature)) return false;
         var sig = (FunctionSignature) obj;
         if (!id.equals(sig.id)) return false;
-        if (!returnType.equals(sig.returnType)) return false;
+        if (returnType == null) {
+            if (sig.returnType != null) return false;
+        } else {
+            if (!returnType.equals(sig.returnType)) return false;
+        }
         if (!(parameters.size() == sig.parameters.size())) return false;
         for (int i = 0; i < parameters.size(); i++)
             if (!parameters.get(i).equals(sig.parameters.get(i)))
+                return false;
+        return true;
+    }
+
+    public boolean equalWithQualifiers(FunctionSignature sig) {
+        if (!equals(sig)) return false;
+        for (int i = 0; i < parameters.size(); i++)
+            if (!parameters.get(i).equalWithQualifier(sig.parameters.get(i)))
                 return false;
         return true;
     }

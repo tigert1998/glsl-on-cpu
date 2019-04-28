@@ -154,9 +154,6 @@ public class Utility {
             }
         }
 
-        if (!scope.canDefineFunction(functionSignature)) {
-            throw SyntaxErrorException.functionRedefinition(ctx.start, id);
-        }
         return functionSignature;
     }
 }

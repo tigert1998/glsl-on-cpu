@@ -3,6 +3,7 @@ import ast.Scope;
 import ast.exceptions.*;
 import ast.expr.*;
 import ast.operators.*;
+import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;
@@ -67,12 +68,16 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     @Override
     public AST visitReferenceExpr(LangParser.ReferenceExprContext ctx) {
         String id = ctx.IDENTIFIER().getText();
-        if (scope.constants.containsKey(id))
-            return new ConstExpr(scope.constants.get(id));
-        else if (scope.variables.containsKey(id))
-            return new ReferenceExpr(scope.variables.get(id));
-        this.exception = SyntaxErrorException.undeclaredID(ctx.start, id);
-        return null;
+        var result = scope.lookupConstantOrVariable(id);
+        if (result == null) {
+            this.exception = SyntaxErrorException.undeclaredID(ctx.start, id);
+            return null;
+        }
+        if (result.value != null) {
+            return new ConstExpr(result.value);
+        } else {
+            return new ReferenceExpr(result.stmt);
+        }
     }
 
     @Override

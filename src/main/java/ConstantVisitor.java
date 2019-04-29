@@ -61,11 +61,12 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
 
     @Override
     public Value visitReferenceExpr(LangParser.ReferenceExprContext ctx) {
-        if (!scope.constants.containsKey(ctx.IDENTIFIER().getText())) {
+        var result = scope.lookupConstantOrVariable(ctx.IDENTIFIER().getText());
+        if (result.value == null) {
             this.exception = SyntaxErrorException.undeclaredID(ctx.start, ctx.IDENTIFIER().getText());
             return null;
         }
-        return scope.constants.get(ctx.IDENTIFIER().getText());
+        return result.value;
     }
 
     @Override

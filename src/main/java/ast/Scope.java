@@ -1,15 +1,21 @@
 package ast;
 
-import ast.stmt.DeclarationStmt;
+import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
 
 import java.util.*;
 
 public class Scope {
+    static public class LookupResult {
+        public DeclarationStmt stmt;
+        public Value value;
+    }
+
     static public class InnerScope {
         public Map<String, Value> constants = new TreeMap<>();
         public Map<String, DeclarationStmt> variables = new TreeMap<>();
+        public Map<String, StructType> structs = new TreeMap<>();
     }
 
     static public class FunctionInfo {
@@ -23,11 +29,40 @@ public class Scope {
     }
 
     public Map<String, List<FunctionInfo>> functions = new TreeMap<>();
-    public Map<String, Value> constants = new TreeMap<>();
-    public Map<String, DeclarationStmt> variables = new TreeMap<>();
-    public Map<String, StructType> structs = new TreeMap<>();
 
-    public Stack<InnerScope> innerScopes = new Stack<>();
+    public Stack<InnerScope> innerScopes;
+
+    public Scope() {
+        innerScopes = new Stack<>();
+        innerScopes.push(new InnerScope());
+    }
+
+    public LookupResult lookupConstantOrVariable(String id) {
+        LookupResult result = new LookupResult();
+        for (int i = innerScopes.size() - 1; i >= 0; i--) {
+            var scope = innerScopes.get(i);
+            if (scope.constants.containsKey(id)) {
+                result.value = scope.constants.get(id);
+                return result;
+            } else if (scope.variables.containsKey(id)) {
+                result.stmt = scope.variables.get(id);
+                return result;
+            }
+        }
+        return null;
+    }
+
+    public void defineConstant(String id, Value value) {
+        innerScopes.peek().constants.put(id, value);
+    }
+
+    public void defineVariable(DeclarationStmt stmt) {
+        innerScopes.peek().variables.put(stmt.id, stmt);
+    }
+
+    public void defineStructType(StructType type) {
+        innerScopes.peek().structs.put(type.id, type);
+    }
 
     public void declareFunction(FunctionSignature sig) {
         var list = functions.computeIfAbsent(sig.id, k -> new ArrayList<>());
@@ -38,15 +73,11 @@ public class Scope {
     }
 
     public boolean canDefineID(String id) {
-        boolean redefinition;
-        if (innerScopes.empty()) {
-            redefinition = constants.containsKey(id) ||
-                    variables.containsKey(id) ||
-                    structs.containsKey(id) ||
-                    functions.containsKey(id);
-        } else {
-            var scope = innerScopes.peek();
-            redefinition = scope.constants.containsKey(id) || scope.variables.containsKey(id);
+        var scope = innerScopes.peek();
+        boolean redefinition = scope.constants.containsKey(id) ||
+                scope.variables.containsKey(id) || scope.structs.containsKey(id);
+        if (innerScopes.size() == 1) {
+            redefinition |= functions.containsKey(id);
         }
         return !redefinition;
     }
@@ -67,12 +98,16 @@ public class Scope {
                 if (sig.equals(info.functionSignature)) return false;
             }
         }
-        return !(constants.containsKey(sig.id) || variables.containsKey(sig.id) || structs.containsKey(sig.id));
+        var scope = innerScopes.get(0);
+        return !(scope.constants.containsKey(sig.id) ||
+                scope.variables.containsKey(sig.id) || scope.structs.containsKey(sig.id));
     }
 
     public boolean canDeclareFunction(FunctionSignature sig) {
         if (!checkSkewedSignature(sig)) return false;
-        return !(constants.containsKey(sig.id) || variables.containsKey(sig.id) || structs.containsKey(sig.id));
+        var scope = innerScopes.get(0);
+        return !(scope.constants.containsKey(sig.id) ||
+                scope.variables.containsKey(sig.id) || scope.structs.containsKey(sig.id));
     }
 
     public void logFunctions() {
@@ -85,13 +120,13 @@ public class Scope {
     }
 
     public void logConstants() {
-        for (var kv : constants.entrySet()) {
+        for (var kv : innerScopes.get(0).constants.entrySet()) {
             System.out.println("[" + kv.getKey() + "] " + kv.getValue());
         }
     }
 
     public void logStructs() {
-        for (var kv : structs.entrySet()) {
+        for (var kv : innerScopes.get(0).structs.entrySet()) {
             System.out.println(kv.getValue().toDetailedString());
         }
     }

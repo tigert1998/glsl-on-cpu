@@ -1,8 +1,12 @@
 import ast.*;
 import ast.exceptions.*;
+import ast.expr.*;
+import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;
+
+import java.util.*;
 
 public class Utility {
     private static int parseIntLiteralText(String str) {
@@ -58,7 +62,7 @@ public class Utility {
             if (stmtCtx.type().structType() != null && stmtCtx.type().structType().structDefinition() != null)
                 throw SyntaxErrorException.embeddedStructDefinition(stmtCtx.type().start);
 
-            Type type = typeFromTypeContext(stmtCtx.type(), scope);
+            Type type = typeFromCtx(stmtCtx.type(), scope);
             for (int j = 0; j < stmtCtx.variableMaybeArray().size(); j++) {
                 var varCtx = stmtCtx.variableMaybeArray(j);
                 String varID = varCtx.IDENTIFIER().getText();
@@ -73,7 +77,7 @@ public class Utility {
             }
         }
 
-        scope.structs.put(id, result);
+        scope.defineStructType(result);
         return result;
     }
 
@@ -112,16 +116,24 @@ public class Utility {
         Type type;
         if (ctx.IDENTIFIER() != null) {
             String id = ctx.IDENTIFIER().getText();
-            if (!scope.structs.containsKey(id))
+            if (!scope.innerScopes.peek().structs.containsKey(id))
                 throw SyntaxErrorException.undeclaredID(ctx.start, id);
-            type = scope.structs.get(id);
+            type = scope.innerScopes.peek().structs.get(id);
         } else {
             type = typeFromStructDefinitionContext(ctx.structDefinition(), scope);
         }
         return typeWithArraySuffix(type, ctx.specifiedArrayLength(), scope);
     }
 
-    public static Type typeFromTypeContext(LangParser.TypeContext ctx, Scope scope) throws SyntaxErrorException {
+    /**
+     * looks up a type or add a new structure definition to scope
+     *
+     * @param ctx
+     * @param scope
+     * @return type
+     * @throws SyntaxErrorException
+     */
+    public static Type typeFromCtx(LangParser.TypeContext ctx, Scope scope) throws SyntaxErrorException {
         if (ctx.basicType() != null) {
             return typeFromBasicTypeContext(ctx.basicType(), scope);
         } else {
@@ -132,7 +144,7 @@ public class Utility {
     public static FunctionSignature functionSignatureFromCtx(LangParser.FunctionSignatureContext ctx, Scope scope)
             throws SyntaxErrorException {
         String id = ctx.IDENTIFIER().getText();
-        var returnType = ctx.VOID() != null ? null : typeFromTypeContext(ctx.type(), scope);
+        var returnType = ctx.VOID() != null ? null : typeFromCtx(ctx.type(), scope);
         var functionSignature = new FunctionSignature(returnType, id);
         var listCtx = ctx.functionParameterList();
         if (listCtx.functionParameter() != null) {
@@ -145,7 +157,7 @@ public class Utility {
                 else if (parameterCtx.INOUT() != null) qualifier = FunctionSignature.ParameterQualifier.INOUT;
                 else qualifier = FunctionSignature.ParameterQualifier.IN;
 
-                var type = typeFromTypeContext(parameterCtx.type(), scope);
+                var type = typeFromCtx(parameterCtx.type(), scope);
                 type = typeWithArraySuffix(type, parameterCtx.variableMaybeArray().specifiedArrayLength(), scope);
 
                 String varID = parameterCtx.variableMaybeArray().IDENTIFIER().getText();
@@ -155,5 +167,85 @@ public class Utility {
         }
 
         return functionSignature;
+    }
+
+    /**
+     * If the declaration contains a struct definition, it would add it to the scope.
+     * All constants or variables would be appended to the scope according to the level.
+     *
+     * @param ctx
+     * @param scope
+     * @return list of DeclarationStmt if no exception threw
+     * @throws SyntaxErrorException
+     */
+    public static List<DeclarationStmt> normalDeclarationStmtsFromCtx(LangParser.NormalDeclarationStmtContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        Type type = Utility.typeFromCtx(ctx.type(), scope);
+        var result = new ArrayList<DeclarationStmt>();
+
+        var list = ctx.declarationList();
+        for (int i = 0; i < list.declarationItem().size(); i++) {
+            var item = list.declarationItem(i);
+            Type actualType;
+            var variableMaybeArray = item.variableMaybeArray();
+            String id = variableMaybeArray.IDENTIFIER().getText();
+            if (!scope.canDefineID(id)) {
+                throw SyntaxErrorException.redefinition(item.start, id);
+            }
+            actualType = Utility.typeWithArraySuffix(type, variableMaybeArray.specifiedArrayLength(), scope);
+
+            DeclarationStmt declarationStmt;
+            if (item.expr() == null) {
+                if (actualType instanceof ArrayType && ((ArrayType) actualType).isLengthUnknown()) {
+                    throw SyntaxErrorException.implicitSizedArray(variableMaybeArray.start);
+                }
+                declarationStmt = new DeclarationStmt(actualType, id, new ConstExpr(actualType.getDefaultValue()));
+            } else {
+                var visitor = new ASTVisitor(scope);
+                var expr = (Expr) item.expr().accept(visitor);
+                if (expr == null)
+                    throw visitor.exception;
+                if (!expr.getType().equals(actualType)) {
+                    throw SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType);
+                }
+                actualType = expr.getType();
+                declarationStmt = new DeclarationStmt(actualType, id, expr);
+            }
+            scope.defineVariable(declarationStmt);
+            result.add(declarationStmt);
+        }
+
+        return result;
+    }
+
+    public static Map<String, Value> constantsFromCtx(LangParser.ConstDeclarationStmtContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        var result = new TreeMap<String, Value>();
+
+        Type type = typeFromCtx(ctx.type(), scope);
+
+        var declarationList = ctx.constDeclarationList();
+        int length = declarationList.variableMaybeArray().size();
+        for (int i = 0; i < length; i++) {
+            var variableMaybeArray = declarationList.variableMaybeArray(i);
+            var constantVisitor = new ConstantVisitor(scope);
+            Value value = declarationList.expr(i).accept(constantVisitor);
+            String id = variableMaybeArray.IDENTIFIER().getText();
+            if (value == null)
+                throw constantVisitor.exception;
+            Type actualType = Utility.typeWithArraySuffix(type,
+                    variableMaybeArray.specifiedArrayLength(), scope);
+            if (!actualType.equals(value.getType())) {
+                throw SyntaxErrorException.cannotConvert(
+                        variableMaybeArray.start, value.getType(), actualType);
+            }
+
+            if (!scope.canDefineID(id))
+                throw SyntaxErrorException.redefinition(variableMaybeArray.start, id);
+            scope.defineConstant(id, value);
+            result.put(id, value);
+        }
+
+        return result;
     }
 }

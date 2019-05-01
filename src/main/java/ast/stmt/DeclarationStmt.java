@@ -1,7 +1,9 @@
 package ast.stmt;
 
-import ast.expr.Expr;
-import ast.types.Type;
+import ast.*;
+import ast.expr.*;
+import ast.types.*;
+import org.json.JSONObject;
 
 public class DeclarationStmt extends Stmt {
     public Type type;
@@ -15,9 +17,11 @@ public class DeclarationStmt extends Stmt {
     }
 
     @Override
-    public String toString() {
-        String declaration = type + " " + id;
-        if (expr == null) return declaration + ";";
-        return declaration + " = " + expr + ";";
+    public JSONObject toJSON() {
+        var json = super.toJSON();
+        json.put("type", type.toString());
+        json.put("id", id);
+        json.put("expr", ((AST) expr).toJSON());
+        return json;
     }
 }

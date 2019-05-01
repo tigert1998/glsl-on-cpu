@@ -1,14 +1,18 @@
 package ast.stmt;
 
+import org.json.*;
+
 import java.util.*;
 
 public class CompoundStmt extends Stmt {
     public List<Stmt> stmts = new ArrayList<>();
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("{\n");
-        stmts.forEach(stmt -> sb.append(stmt).append("\n"));
-        return new String(sb.append("}\n"));
+    public JSONObject toJSON() {
+        var json = super.toJSON();
+        var array = new JSONArray();
+        for (var stmt : stmts) array.put(stmt.toJSON());
+        json.put("stmts", array);
+        return json;
     }
 }

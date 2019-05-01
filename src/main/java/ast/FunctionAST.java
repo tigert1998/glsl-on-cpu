@@ -1,6 +1,7 @@
 package ast;
 
 import ast.stmt.*;
+import org.json.JSONObject;
 
 public class FunctionAST extends AST {
     private FunctionSignature functionSignature;
@@ -12,7 +13,10 @@ public class FunctionAST extends AST {
     }
 
     @Override
-    public String toString() {
-        return functionSignature.toString() + " " + stmt.toString();
+    public JSONObject toJSON() {
+        var json = super.toJSON();
+        json.put("signature", functionSignature.toString());
+        json.put("compoundStmt", stmt.toJSON());
+        return json;
     }
 }

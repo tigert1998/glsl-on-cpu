@@ -18,7 +18,7 @@ public class ConstExpr extends Expr {
     }
 
     @Override
-    protected JSONObject toJSON() {
+    public JSONObject toJSON() {
         var json = super.toJSON();
         json.put("value", value.toString());
         return json;

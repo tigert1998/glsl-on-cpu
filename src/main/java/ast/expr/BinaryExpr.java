@@ -32,7 +32,7 @@ public class BinaryExpr extends Expr {
     }
 
     @Override
-    protected JSONObject toJSON() {
+    public JSONObject toJSON() {
         var json = super.toJSON();
         json.put("op", op.toString());
         var exprsJson = new JSONArray();

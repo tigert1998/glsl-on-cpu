@@ -13,7 +13,7 @@ public class ReferenceExpr extends Expr {
     }
 
     @Override
-    protected JSONObject toJSON() {
+    public JSONObject toJSON() {
         var json = super.toJSON();
         json.put("id", declarationStmt.id);
         return json;

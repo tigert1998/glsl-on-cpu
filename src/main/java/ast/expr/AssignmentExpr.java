@@ -17,7 +17,7 @@ public class AssignmentExpr extends Expr {
     }
 
     @Override
-    protected JSONObject toJSON() {
+    public JSONObject toJSON() {
         var json = super.toJSON();
         json.put("auxOp", auxOp);
         json.put("x", x.toJSON());

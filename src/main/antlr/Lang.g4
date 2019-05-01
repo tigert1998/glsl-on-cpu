@@ -34,9 +34,7 @@ loopStmt:
     | FOR '(' (exprStmt | declarationStmt) exprStmt expr ')' compoundStmt;
 
 selectionStmt: IF '(' expr ')' (
-    (stmt | compoundStmt) (
-        ELSE (stmt | compoundStmt)
-    )?
+    stmt (ELSE stmt)?
 );
 
 declarationStmt:

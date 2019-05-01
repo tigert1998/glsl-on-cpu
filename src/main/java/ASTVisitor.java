@@ -261,6 +261,41 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
 
     // == statements ==
 
+    private List<StmtsWrapper> extractStmtsWrappers(List<LangParser.StmtContext> stmtCtxList) {
+        var visitor = new ASTVisitor(scope);
+        var result = new ArrayList<StmtsWrapper>();
+        stmtCtxList.forEach(stmt -> {
+            var wrapper = (StmtsWrapper) stmt.accept(visitor);
+            if (wrapper == null) this.exceptionList.addAll(visitor.exceptionList);
+            else result.add(wrapper);
+        });
+        return this.exceptionList.isEmpty() ? result : null;
+    }
+
+    private StmtsWrapper extractStmtsWrapperWithNamespace(LangParser.StmtContext stmtCtx) {
+        var visitor = new ASTVisitor(scope);
+
+        if (stmtCtx.compoundStmt() == null) scope.screwIn();
+        StmtsWrapper wrapper = (StmtsWrapper) stmtCtx.accept(visitor);
+        if (stmtCtx.compoundStmt() == null) scope.screwOut();
+
+        if (wrapper == null) {
+            this.exceptionList.addAll(visitor.exceptionList);
+            return null;
+        }
+        return wrapper;
+    }
+
+    private List<StmtsWrapper> extractStmtsWrappersWithNamespaces(List<LangParser.StmtContext> stmtCtxList) {
+        var list = new ArrayList<StmtsWrapper>();
+        for (var stmtContext : stmtCtxList) {
+            var wrapper = extractStmtsWrapperWithNamespace(stmtContext);
+            if (wrapper == null) return null;
+            list.add(wrapper);
+        }
+        return list;
+    }
+
     @Override
     public StmtsWrapper visitDeclarationStmt(LangParser.DeclarationStmtContext ctx) {
         try {
@@ -282,15 +317,28 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     @Override
+    public StmtsWrapper visitSelectionStmt(LangParser.SelectionStmtContext ctx) {
+        var expr = extractExpr(ctx.expr());
+        if (expr == null) return null;
+
+        var stmts = extractStmtsWrappersWithNamespaces(ctx.stmt());
+        if (stmts == null) return null;
+
+        var result = new StmtsWrapper();
+        result.stmts.add(new IfStmt(expr, stmts.get(0).stmts.get(0),
+                stmts.size() <= 1 ? null : stmts.get(1).stmts.get(0)));
+        return result;
+    }
+
+    @Override
     public StmtsWrapper visitCompoundStmt(LangParser.CompoundStmtContext ctx) {
-        var visitor = new ASTVisitor(scope);
         var compoundStmt = new CompoundStmt();
         scope.screwIn();
-        ctx.stmt().forEach(stmt -> {
-            var wrapper = (StmtsWrapper) stmt.accept(visitor);
-            if (wrapper == null) this.exceptionList.addAll(visitor.exceptionList);
-            else
-                compoundStmt.stmts.addAll(wrapper.stmts);
+
+        var stmtsWrappers = extractStmtsWrappers(ctx.stmt());
+        if (stmtsWrappers == null) return null;
+        stmtsWrappers.forEach(stmtsWrapper -> {
+            compoundStmt.stmts.addAll(stmtsWrapper.stmts);
         });
         scope.screwOut();
         if (this.exceptionList.isEmpty()) {

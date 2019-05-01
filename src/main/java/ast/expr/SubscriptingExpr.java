@@ -28,7 +28,7 @@ public class SubscriptingExpr extends Expr {
     }
 
     @Override
-    protected JSONObject toJSON() {
+    public JSONObject toJSON() {
         var json = super.toJSON();
         json.put("x", x.toJSON());
         json.put("index", index.toJSON());

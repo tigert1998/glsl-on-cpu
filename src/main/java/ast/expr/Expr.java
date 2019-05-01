@@ -17,16 +17,10 @@ public abstract class Expr extends AST {
         return isLValue;
     }
 
-    protected JSONObject toJSON() {
-        var json = new JSONObject();
-        json.put("class", getClass().getSimpleName());
+    public JSONObject toJSON() {
+        var json = super.toJSON();
         json.put("type", getType().toString());
         json.put("isLValue", isLValue);
         return json;
-    }
-
-    @Override
-    public String toString() {
-        return toJSON().toString(4);
     }
 }

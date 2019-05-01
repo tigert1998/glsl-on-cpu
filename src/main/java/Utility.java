@@ -6,8 +6,6 @@ import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;
 
-import java.util.*;
-
 public class Utility {
     private static int parseIntLiteralText(String str) {
         if (str.startsWith("0x") || str.startsWith("0X"))
@@ -169,8 +167,10 @@ public class Utility {
         return functionSignature;
     }
 
+    // == statements ==
+
     /**
-     * If the declaration contains a struct definition, it would add it to the scope.
+     * If the declaration contains a structure definition, it would add it to the scope.
      * All constants or variables would be appended to the scope according to the level.
      *
      * @param ctx
@@ -178,10 +178,10 @@ public class Utility {
      * @return list of DeclarationStmt if no exception threw
      * @throws SyntaxErrorException
      */
-    public static List<DeclarationStmt> normalDeclarationStmtsFromCtx(LangParser.NormalDeclarationStmtContext ctx, Scope scope)
+    public static StmtsWrapper normalDeclarationStmtsFromCtx(LangParser.NormalDeclarationStmtContext ctx, Scope scope)
             throws SyntaxErrorException {
         Type type = Utility.typeFromCtx(ctx.type(), scope);
-        var result = new ArrayList<DeclarationStmt>();
+        var result = new StmtsWrapper();
 
         var list = ctx.declarationList();
         for (int i = 0; i < list.declarationItem().size(); i++) {
@@ -204,7 +204,7 @@ public class Utility {
                 var visitor = new ASTVisitor(scope);
                 var expr = (Expr) item.expr().accept(visitor);
                 if (expr == null)
-                    throw visitor.exception;
+                    throw visitor.exceptionList.get(0);
                 if (!expr.getType().equals(actualType)) {
                     throw SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType);
                 }
@@ -212,16 +212,15 @@ public class Utility {
                 declarationStmt = new DeclarationStmt(actualType, id, expr);
             }
             scope.defineVariable(declarationStmt);
-            result.add(declarationStmt);
+            result.stmts.add(declarationStmt);
         }
 
         return result;
     }
 
-    public static Map<String, Value> constantsFromCtx(LangParser.ConstDeclarationStmtContext ctx, Scope scope)
+    public static StmtsWrapper constDeclarationStmtFromCtx(
+            LangParser.ConstDeclarationStmtContext ctx, Scope scope)
             throws SyntaxErrorException {
-        var result = new TreeMap<String, Value>();
-
         Type type = typeFromCtx(ctx.type(), scope);
 
         var declarationList = ctx.constDeclarationList();
@@ -243,9 +242,27 @@ public class Utility {
             if (!scope.canDefineID(id))
                 throw SyntaxErrorException.redefinition(variableMaybeArray.start, id);
             scope.defineConstant(id, value);
-            result.put(id, value);
         }
 
+        return new StmtsWrapper();
+    }
+
+    public static StmtsWrapper declarationStmtFromCtx(LangParser.DeclarationStmtContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        if (ctx.constDeclarationStmt() != null) {
+            return constDeclarationStmtFromCtx(ctx.constDeclarationStmt(), scope);
+        } else {
+            return normalDeclarationStmtsFromCtx(ctx.normalDeclarationStmt(), scope);
+        }
+    }
+
+    public static StmtsWrapper exprStmtFromCtx(LangParser.ExprStmtContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        var visitor = new ASTVisitor(scope);
+        var expr = (Expr) ctx.expr().accept(visitor);
+        if (expr == null) throw visitor.exceptionList.get(0);
+        var result = new StmtsWrapper();
+        result.stmts.add(new ExprStmt(expr));
         return result;
     }
 }

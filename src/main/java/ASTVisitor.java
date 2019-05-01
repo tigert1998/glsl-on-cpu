@@ -8,11 +8,11 @@ import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;
 
-import java.util.List;
+import java.util.*;
 
 public class ASTVisitor extends LangBaseVisitor<AST> {
     private Scope scope;
-    public SyntaxErrorException exception;
+    public List<SyntaxErrorException> exceptionList = new ArrayList<>();
 
     public ASTVisitor(Scope scope) {
         this.scope = scope;
@@ -24,8 +24,8 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         var visitor = new ASTVisitor(scope);
         for (int i = 0; i < total; i++) {
             exprs[i] = (Expr) exprCtxList.get(i).accept(visitor);
-            if (visitor.exception != null) {
-                this.exception = visitor.exception;
+            if (exprs[i] == null) {
+                this.exceptionList.addAll(visitor.exceptionList);
                 return null;
             }
         }
@@ -35,8 +35,9 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     private Expr extractExpr(LangParser.ExprContext exprCtx) {
         var visitor = new ASTVisitor(scope);
         var expr = (Expr) exprCtx.accept(visitor);
-        if (visitor.exception != null)
-            this.exception = visitor.exception;
+        if (expr == null) {
+            this.exceptionList.addAll(visitor.exceptionList);
+        }
         return expr;
     }
 
@@ -48,29 +49,29 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             // check applicable
             op.apply(exprs[0].getType(), exprs[1].getType());
         } catch (OperatorCannotBeAppliedException exception) {
-            this.exception = new SyntaxErrorException(opToken, exception);
+            this.exceptionList.add(new SyntaxErrorException(opToken, exception));
             return null;
         }
         try {
             return BinaryExpr.factory(op, exprs);
         } catch (ArithmeticException exception) {
-            this.exception = new SyntaxErrorException(opToken, exception.getMessage());
+            this.exceptionList.add(new SyntaxErrorException(opToken, exception.getMessage()));
             return null;
         }
     }
 
     @Override
-    public AST visitLiteralExpr(LangParser.LiteralExprContext ctx) {
+    public ConstExpr visitLiteralExpr(LangParser.LiteralExprContext ctx) {
         var value = Utility.valueFromLiteralExprContext(ctx);
         return new ConstExpr(value);
     }
 
     @Override
-    public AST visitReferenceExpr(LangParser.ReferenceExprContext ctx) {
+    public Expr visitReferenceExpr(LangParser.ReferenceExprContext ctx) {
         String id = ctx.IDENTIFIER().getText();
         var result = scope.lookupConstantOrVariable(id);
         if (result == null) {
-            this.exception = SyntaxErrorException.undeclaredID(ctx.start, id);
+            this.exceptionList.add(SyntaxErrorException.undeclaredID(ctx.start, id));
             return null;
         }
         if (result.value != null) {
@@ -81,13 +82,13 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     @Override
-    public AST visitBasicTypeConstructorInvocationExpr(LangParser.BasicTypeConstructorInvocationExprContext ctx) {
+    public Expr visitBasicTypeConstructorInvocationExpr(LangParser.BasicTypeConstructorInvocationExprContext ctx) {
         var basicTypeConstructorInvocation = ctx.basicTypeConstructorInvocation();
         Type type;
         try {
             type = Utility.typeFromBasicTypeContext(basicTypeConstructorInvocation.basicType(), scope);
         } catch (SyntaxErrorException exception) {
-            this.exception = exception;
+            this.exceptionList.add(exception);
             return null;
         }
         var exprs = extractExprs(basicTypeConstructorInvocation.expr());
@@ -99,7 +100,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             // check syntax
             Value.constructor(type, values);
         } catch (ConstructionFailedException exception) {
-            this.exception = new SyntaxErrorException(ctx.start, exception);
+            this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
             return null;
         }
 
@@ -107,18 +108,18 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     @Override
-    public AST visitArraySubscriptingExpr(LangParser.ArraySubscriptingExprContext ctx) {
+    public Expr visitArraySubscriptingExpr(LangParser.ArraySubscriptingExprContext ctx) {
         var array = extractExpr(ctx.expr(0));
         if (array == null) return null;
         if (!(array.getType().getDefaultValue() instanceof Indexed)) {
-            this.exception = SyntaxErrorException.invalidSubscriptingType(ctx.start, ctx.expr(0).getText());
+            this.exceptionList.add(SyntaxErrorException.invalidSubscriptingType(ctx.start, ctx.expr(0).getText()));
             return null;
         }
 
         var idx = extractExpr(ctx.expr(1));
         if (idx == null) return null;
         if (!(idx.getType() instanceof IntType || idx.getType() instanceof UintType)) {
-            this.exception = SyntaxErrorException.notIntegerExpression(ctx.idx.start);
+            this.exceptionList.add(SyntaxErrorException.notIntegerExpression(ctx.idx.start));
             return null;
         }
 
@@ -128,7 +129,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 try {
                     ((Indexed) array.getType().getDefaultValue()).valueAt(i);
                 } catch (InvalidIndexException exception) {
-                    this.exception = new SyntaxErrorException(ctx.idx.start, exception);
+                    this.exceptionList.add(new SyntaxErrorException(ctx.idx.start, exception));
                     return null;
                 }
             } catch (SyntaxErrorException ignore) {
@@ -138,7 +139,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     @Override
-    public AST visitElementSelectionExpr(LangParser.ElementSelectionExprContext ctx) {
+    public Expr visitElementSelectionExpr(LangParser.ElementSelectionExprContext ctx) {
         var expr = extractExpr(ctx.expr());
         if (expr == null) return null;
         String selection = ctx.selection.getText();
@@ -147,7 +148,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             try {
                 indices = SwizzleUtility.swizzle(((SwizzleType) expr.getType()).getN(), selection);
             } catch (InvalidSelectionException exception) {
-                this.exception = new SyntaxErrorException(ctx.selection, exception);
+                this.exceptionList.add(new SyntaxErrorException(ctx.selection, exception));
                 return null;
             }
             return SwizzleExpr.factory(expr, indices);
@@ -155,96 +156,96 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             try {
                 return SelectionExpr.factory(expr, selection);
             } catch (InvalidSelectionException exception) {
-                this.exception = new SyntaxErrorException(ctx.selection, exception);
+                this.exceptionList.add(new SyntaxErrorException(ctx.selection, exception));
                 return null;
             }
         } else {
-            this.exception = SyntaxErrorException.invalidSelectionType(ctx.start, ctx.expr().getText());
+            this.exceptionList.add(SyntaxErrorException.invalidSelectionType(ctx.start, ctx.expr().getText()));
             return null;
         }
     }
 
     @Override
-    public AST visitMultDivModBinaryExpr(LangParser.MultDivModBinaryExprContext ctx) {
+    public Expr visitMultDivModBinaryExpr(LangParser.MultDivModBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitPlusMinusBinaryExpr(LangParser.PlusMinusBinaryExprContext ctx) {
+    public Expr visitPlusMinusBinaryExpr(LangParser.PlusMinusBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitShlShrBinaryExpr(LangParser.ShlShrBinaryExprContext ctx) {
+    public Expr visitShlShrBinaryExpr(LangParser.ShlShrBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitLessGreaterBinaryExpr(LangParser.LessGreaterBinaryExprContext ctx) {
+    public Expr visitLessGreaterBinaryExpr(LangParser.LessGreaterBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitEqNeqBinaryExpr(LangParser.EqNeqBinaryExprContext ctx) {
+    public Expr visitEqNeqBinaryExpr(LangParser.EqNeqBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitBitwiseAndBinaryExpr(LangParser.BitwiseAndBinaryExprContext ctx) {
+    public Expr visitBitwiseAndBinaryExpr(LangParser.BitwiseAndBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitBitwiseXorBinaryExpr(LangParser.BitwiseXorBinaryExprContext ctx) {
+    public Expr visitBitwiseXorBinaryExpr(LangParser.BitwiseXorBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitBitwiseOrBinaryExpr(LangParser.BitwiseOrBinaryExprContext ctx) {
+    public Expr visitBitwiseOrBinaryExpr(LangParser.BitwiseOrBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitLogicalAndBinaryExpr(LangParser.LogicalAndBinaryExprContext ctx) {
+    public Expr visitLogicalAndBinaryExpr(LangParser.LogicalAndBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitLogicalXorBinaryExpr(LangParser.LogicalXorBinaryExprContext ctx) {
+    public Expr visitLogicalXorBinaryExpr(LangParser.LogicalXorBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitLogicalOrBinaryExpr(LangParser.LogicalOrBinaryExprContext ctx) {
+    public Expr visitLogicalOrBinaryExpr(LangParser.LogicalOrBinaryExprContext ctx) {
         return extractBinaryExpr(ctx.op, ctx.expr());
     }
 
     @Override
-    public AST visitTernaryConditionalExpr(LangParser.TernaryConditionalExprContext ctx) {
+    public Expr visitTernaryConditionalExpr(LangParser.TernaryConditionalExprContext ctx) {
         var exprs = extractExprs(ctx.expr());
         if (exprs == null) return null;
         if (!(exprs[0].getType() instanceof BoolType)) {
-            this.exception = SyntaxErrorException.notBooleanExpression(ctx.expr(0).start);
+            this.exceptionList.add(SyntaxErrorException.notBooleanExpression(ctx.expr(0).start));
             return null;
         }
         if (!exprs[1].getType().equals(exprs[2].getType())) {
-            this.exception = SyntaxErrorException.cannotConvert(ctx.expr(1).start,
-                    exprs[2].getType(), exprs[1].getType());
+            this.exceptionList.add(SyntaxErrorException.cannotConvert(ctx.expr(1).start,
+                    exprs[2].getType(), exprs[1].getType()));
             return null;
         }
         return TernaryConditionalExpr.factory(exprs[0], exprs[1], exprs[2]);
     }
 
     @Override
-    public AST visitAssignExpr(LangParser.AssignExprContext ctx) {
+    public AssignmentExpr visitAssignExpr(LangParser.AssignExprContext ctx) {
         var exprs = extractExprs(ctx.expr());
         if (exprs == null) return null;
         if (!exprs[0].isLValue()) {
-            this.exception = SyntaxErrorException.lvalueRequired(ctx.start);
+            this.exceptionList.add(SyntaxErrorException.lvalueRequired(ctx.start));
             return null;
         }
         if (!exprs[0].getType().equals(exprs[1].getType())) {
-            this.exception = SyntaxErrorException.cannotConvert(ctx.start, exprs[1].getType(), exprs[0].getType());
+            this.exceptionList.add(SyntaxErrorException.cannotConvert(ctx.start, exprs[1].getType(), exprs[0].getType()));
             return null;
         }
         String opText = ctx.op.getText();
@@ -254,7 +255,49 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     @Override
-    public AST visitParameteredExpr(LangParser.ParameteredExprContext ctx) {
+    public Expr visitParameteredExpr(LangParser.ParameteredExprContext ctx) {
         return extractExpr(ctx.expr());
+    }
+
+    // == statements ==
+
+    @Override
+    public StmtsWrapper visitDeclarationStmt(LangParser.DeclarationStmtContext ctx) {
+        try {
+            return Utility.declarationStmtFromCtx(ctx, scope);
+        } catch (SyntaxErrorException exception) {
+            this.exceptionList.add(exception);
+            return null;
+        }
+    }
+
+    @Override
+    public StmtsWrapper visitExprStmt(LangParser.ExprStmtContext ctx) {
+        try {
+            return Utility.exprStmtFromCtx(ctx, scope);
+        } catch (SyntaxErrorException exception) {
+            this.exceptionList.add(exception);
+            return null;
+        }
+    }
+
+    @Override
+    public StmtsWrapper visitCompoundStmt(LangParser.CompoundStmtContext ctx) {
+        var visitor = new ASTVisitor(scope);
+        var compoundStmt = new CompoundStmt();
+        scope.screwIn();
+        ctx.stmt().forEach(stmt -> {
+            var wrapper = (StmtsWrapper) stmt.accept(visitor);
+            if (wrapper == null) this.exceptionList.addAll(visitor.exceptionList);
+            else
+                compoundStmt.stmts.addAll(wrapper.stmts);
+        });
+        scope.screwOut();
+        if (this.exceptionList.isEmpty()) {
+            var result = new StmtsWrapper();
+            result.stmts.add(compoundStmt);
+            return result;
+        }
+        return null;
     }
 }

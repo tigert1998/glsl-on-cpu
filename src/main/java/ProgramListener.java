@@ -1,7 +1,6 @@
 import ast.*;
 import ast.exceptions.*;
-import ast.types.*;
-import ast.values.*;
+import ast.stmt.*;
 
 import java.util.*;
 
@@ -9,6 +8,7 @@ public class ProgramListener extends LangBaseListener {
     private Scope scope = new Scope();
     private List<SyntaxErrorException> exceptionList = new ArrayList<>();
     private ProgramAST programAST = new ProgramAST();
+    private int depth = 0;
 
     public Scope getScope() {
         return scope;
@@ -23,50 +23,71 @@ public class ProgramListener extends LangBaseListener {
     }
 
     @Override
-    public void exitConstDeclarationStmt(LangParser.ConstDeclarationStmtContext ctx) {
+    public void enterDeclarationStmt(LangParser.DeclarationStmtContext ctx) {
+        depth++;
+        if (depth >= 2) return;
+
         try {
-            Utility.constantsFromCtx(ctx, scope);
+            var wrapper = Utility.declarationStmtFromCtx(ctx, scope);
+            wrapper.stmts.forEach(stmt -> {
+                programAST.putDeclarationStmt((DeclarationStmt) stmt);
+            });
         } catch (SyntaxErrorException exception) {
-            exceptionList.add(exception);
+            this.exceptionList.add(exception);
         }
     }
 
     @Override
-    public void exitNormalDeclarationStmt(LangParser.NormalDeclarationStmtContext ctx) {
+    public void exitDeclarationStmt(LangParser.DeclarationStmtContext ctx) {
+        depth--;
+    }
+
+    @Override
+    public void enterFunctionForwardDeclarationStmt(LangParser.FunctionForwardDeclarationStmtContext ctx) {
+        depth++;
+        if (depth >= 2) return;
+
         try {
-            var stmts = Utility.normalDeclarationStmtsFromCtx(ctx, scope);
-            stmts.forEach(stmt -> programAST.putDeclarationStmt(stmt));
+            var sig = Utility.functionSignatureFromCtx(ctx.functionSignature(), scope);
+            scope.declareFunction(sig);
         } catch (SyntaxErrorException exception) {
             this.exceptionList.add(exception);
+        } catch (ScopeException exception) {
+            this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
         }
     }
 
     @Override
     public void exitFunctionForwardDeclarationStmt(LangParser.FunctionForwardDeclarationStmtContext ctx) {
+        depth--;
+    }
+
+    @Override
+    public void enterFunctionDefinition(LangParser.FunctionDefinitionContext ctx) {
+        depth++;
+        if (depth >= 2) return;
+
         try {
-            var sig = Utility.functionSignatureFromCtx(ctx.functionSignature(), scope);
-            if (!scope.canDeclareFunction(sig)) {
-                this.exceptionList.add(SyntaxErrorException.functionRedefinition(ctx.start, sig.id));
+            var signature = Utility.functionSignatureFromCtx(ctx.functionSignature(), scope);
+            var visitor = new ASTVisitor(scope);
+            var result = (StmtsWrapper) ctx.compoundStmt().accept(visitor);
+            if (result == null) {
+                this.exceptionList.addAll(visitor.exceptionList);
                 return;
             }
-            scope.declareFunction(sig);
+
+            scope.defineFunction(signature);
+            var functionAST = new FunctionAST(signature, (CompoundStmt) result.stmts.get(0));
+            programAST.putFunctionAST(functionAST);
         } catch (SyntaxErrorException exception) {
             this.exceptionList.add(exception);
+        } catch (ScopeException exception) {
+            this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
         }
     }
 
     @Override
     public void exitFunctionDefinition(LangParser.FunctionDefinitionContext ctx) {
-        try {
-            var sig = Utility.functionSignatureFromCtx(ctx.functionSignature(), scope);
-            if (!scope.canDefineFunction(sig)) {
-                this.exceptionList.add(SyntaxErrorException.functionRedefinition(ctx.start, sig.id));
-                return;
-            }
-
-            var functionAST = new FunctionAST(sig);
-        } catch (SyntaxErrorException exception) {
-            this.exceptionList.add(exception);
-        }
+        depth--;
     }
 }

@@ -1,5 +1,6 @@
 package ast;
 
+import ast.exceptions.ScopeException;
 import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
@@ -37,6 +38,14 @@ public class Scope {
         innerScopes.push(new InnerScope());
     }
 
+    public void screwIn() {
+        innerScopes.push(new InnerScope());
+    }
+
+    public void screwOut() {
+        innerScopes.pop();
+    }
+
     public LookupResult lookupConstantOrVariable(String id) {
         LookupResult result = new LookupResult();
         for (int i = innerScopes.size() - 1; i >= 0; i--) {
@@ -64,12 +73,25 @@ public class Scope {
         innerScopes.peek().structs.put(type.id, type);
     }
 
-    public void declareFunction(FunctionSignature sig) {
+    public void declareFunction(FunctionSignature sig) throws ScopeException {
+        checkDeclareFunction(sig);
         var list = functions.computeIfAbsent(sig.id, k -> new ArrayList<>());
         for (var info : list) {
             if (info.functionSignature.equals(sig)) return;
         }
         list.add(new FunctionInfo(sig, false));
+    }
+
+    public void defineFunction(FunctionSignature sig) throws ScopeException {
+        checkDefineFunction(sig);
+        var list = functions.computeIfAbsent(sig.id, k -> new ArrayList<>());
+        for (var info : list) {
+            if (info.functionSignature.equals(sig)) {
+                info.defined = true;
+                return;
+            }
+        }
+        list.add(new FunctionInfo(sig, true));
     }
 
     public boolean canDefineID(String id) {
@@ -82,32 +104,38 @@ public class Scope {
         return !redefinition;
     }
 
-    private boolean checkSkewedSignature(FunctionSignature sig) {
-        if (!functions.containsKey(sig.id)) return true;
+    private void checkSkewedSignature(FunctionSignature sig) throws ScopeException {
+        if (!functions.containsKey(sig.id)) return;
         for (var info : functions.get(sig.id)) {
             if (sig.equals(info.functionSignature) && !sig.equalWithQualifiers(info.functionSignature))
-                return false;
+                throw ScopeException.sameQualifier();
         }
-        return true;
     }
 
-    public boolean canDefineFunction(FunctionSignature sig) {
-        if (!checkSkewedSignature(sig)) return false;
+    private void checkFunctionIDRedefinition(FunctionSignature sig) throws ScopeException {
+        if (!functions.containsKey(sig.id)) return;
+        var scope = innerScopes.get(0);
+        if (scope.constants.containsKey(sig.id) ||
+                scope.variables.containsKey(sig.id) || scope.structs.containsKey(sig.id)) {
+            throw ScopeException.functionRedefinition(sig.id);
+        }
+    }
+
+    private void checkDeclareFunction(FunctionSignature sig) throws ScopeException {
+        if (!functions.containsKey(sig.id)) return;
+        checkSkewedSignature(sig);
+        checkFunctionIDRedefinition(sig);
+    }
+
+    private void checkDefineFunction(FunctionSignature sig) throws ScopeException {
+        if (!functions.containsKey(sig.id)) return;
+        checkSkewedSignature(sig);
+        checkFunctionIDRedefinition(sig);
         for (var info : functions.get(sig.id)) {
-            if (info.defined) {
-                if (sig.equals(info.functionSignature)) return false;
+            if (info.defined && sig.equals(info.functionSignature)) {
+                throw ScopeException.alreadyBody(sig.id);
             }
         }
-        var scope = innerScopes.get(0);
-        return !(scope.constants.containsKey(sig.id) ||
-                scope.variables.containsKey(sig.id) || scope.structs.containsKey(sig.id));
-    }
-
-    public boolean canDeclareFunction(FunctionSignature sig) {
-        if (!checkSkewedSignature(sig)) return false;
-        var scope = innerScopes.get(0);
-        return !(scope.constants.containsKey(sig.id) ||
-                scope.variables.containsKey(sig.id) || scope.structs.containsKey(sig.id));
     }
 
     public void logFunctions() {

@@ -1,5 +1,6 @@
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+import org.antlr.v4.runtime.tree.pattern.ParseTreePatternMatcher;
 import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
 
@@ -67,9 +68,8 @@ public class Main {
         LangLexer langLexer = new LangLexer(CharStreams.fromFileName(filePath));
         LangParser langParser = new LangParser(new CommonTokenStream(langLexer));
 
-        ParseTree parseTree = langParser.program();
         ProgramListener programListener = new ProgramListener();
-        ParseTreeWalker.DEFAULT.walk(programListener, parseTree);
+        ParseTreeWalker.DEFAULT.walk(programListener, langParser.program());
         programListener.getScope().logConstants();
         programListener.getScope().logStructs();
         programListener.getScope().logFunctions();

@@ -11,6 +11,8 @@ public class ProgramAST extends AST {
         components.add(stmt);
     }
 
+    public void putFunctionAST(FunctionAST ast) { components.add(ast); }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

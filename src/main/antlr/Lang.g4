@@ -20,7 +20,7 @@ stmt:
     | compoundStmt
     | loopStmt
     | exprStmt
-    | RETURN expr ';'
+    | RETURN expr? ';'
     | BREAK ';'
     | CONTINUE ';'
     | ';' // permit empty statement

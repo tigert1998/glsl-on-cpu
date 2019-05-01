@@ -320,6 +320,10 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     public StmtsWrapper visitSelectionStmt(LangParser.SelectionStmtContext ctx) {
         var expr = extractExpr(ctx.expr());
         if (expr == null) return null;
+        if (!(expr.getType() instanceof BoolType)) {
+            this.exceptionList.add(SyntaxErrorException.notBooleanExpression(ctx.expr().start));
+            return null;
+        }
 
         var stmts = extractStmtsWrappersWithNamespaces(ctx.stmt());
         if (stmts == null) return null;

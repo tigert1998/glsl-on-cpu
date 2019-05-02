@@ -272,7 +272,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         return this.exceptionList.isEmpty() ? result : null;
     }
 
-    private StmtsWrapper extractStmtsWrapperWithNamespace(LangParser.StmtContext stmtCtx) {
+    public StmtsWrapper extractStmtsWrapperWithScope(LangParser.StmtContext stmtCtx) {
         var visitor = new ASTVisitor(scope);
 
         if (stmtCtx.compoundStmt() == null) scope.screwIn();
@@ -286,10 +286,10 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         return wrapper;
     }
 
-    private List<StmtsWrapper> extractStmtsWrappersWithNamespaces(List<LangParser.StmtContext> stmtCtxList) {
+    private List<StmtsWrapper> extractStmtsWrappersWithScopes(List<LangParser.StmtContext> stmtCtxList) {
         var list = new ArrayList<StmtsWrapper>();
         for (var stmtContext : stmtCtxList) {
-            var wrapper = extractStmtsWrapperWithNamespace(stmtContext);
+            var wrapper = extractStmtsWrapperWithScope(stmtContext);
             if (wrapper == null) return null;
             list.add(wrapper);
         }
@@ -325,7 +325,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             return null;
         }
 
-        var stmts = extractStmtsWrappersWithNamespaces(ctx.stmt());
+        var stmts = extractStmtsWrappersWithScopes(ctx.stmt());
         if (stmts == null) return null;
 
         var result = new StmtsWrapper();
@@ -351,5 +351,25 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             return result;
         }
         return null;
+    }
+
+    @Override
+    public StmtsWrapper visitWhileLoopStmt(LangParser.WhileLoopStmtContext ctx) {
+        try {
+            return Utility.whileStmtFromCtx(ctx, scope);
+        } catch (SyntaxErrorException exception) {
+            this.exceptionList.add(exception);
+            return null;
+        }
+    }
+
+    @Override
+    public StmtsWrapper visitDoWhileLoopStmt(LangParser.DoWhileLoopStmtContext ctx) {
+        try {
+            return Utility.doWhileStmtFromCtx(ctx, scope);
+        } catch (SyntaxErrorException exception) {
+            this.exceptionList.add(exception);
+            return null;
+        }
     }
 }

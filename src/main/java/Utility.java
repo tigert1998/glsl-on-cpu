@@ -169,6 +169,16 @@ public class Utility {
 
     // == statements ==
 
+    private static Expr extractExprAsBoolType(LangParser.ExprContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        var visitor = new ASTVisitor(scope);
+        var expr = (Expr) ctx.accept(visitor);
+        if (expr == null) throw visitor.exceptionList.get(0);
+        if (!(expr.getType() instanceof BoolType))
+            throw SyntaxErrorException.notBooleanExpression(ctx.start);
+        return expr;
+    }
+
     /**
      * If the declaration contains a structure definition, it would add it to the scope.
      * All constants or variables would be appended to the scope according to the level.
@@ -261,8 +271,24 @@ public class Utility {
         var visitor = new ASTVisitor(scope);
         var expr = (Expr) ctx.expr().accept(visitor);
         if (expr == null) throw visitor.exceptionList.get(0);
-        var result = new StmtsWrapper();
-        result.stmts.add(new ExprStmt(expr));
-        return result;
+        return StmtsWrapper.singleton(new ExprStmt(expr));
+    }
+
+    public static StmtsWrapper whileStmtFromCtx(LangParser.WhileLoopStmtContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        var expr = extractExprAsBoolType(ctx.expr(), scope);
+        var visitor = new ASTVisitor(scope);
+        var stmt = visitor.extractStmtsWrapperWithScope(ctx.stmt());
+        if (stmt == null) throw visitor.exceptionList.get(0);
+        return StmtsWrapper.singleton(new WhileStmt(expr, stmt.stmts.get(0)));
+    }
+
+    public static StmtsWrapper doWhileStmtFromCtx(LangParser.DoWhileLoopStmtContext ctx, Scope scope)
+            throws SyntaxErrorException {
+        var expr = extractExprAsBoolType(ctx.expr(), scope);
+        var visitor = new ASTVisitor(scope);
+        var stmt = visitor.extractStmtsWrapperWithScope(ctx.stmt());
+        if (stmt == null) throw visitor.exceptionList.get(0);
+        return StmtsWrapper.singleton(new DoWhileStmt(stmt.stmts.get(0), expr));
     }
 }

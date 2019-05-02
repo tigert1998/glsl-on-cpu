@@ -29,9 +29,10 @@ stmt:
 compoundStmt: '{' stmt* '}';
 
 loopStmt:
-    WHILE '(' expr ')' (compoundStmt | stmt)
-    | DO compoundStmt WHILE '(' expr ')' ';'
-    | FOR '(' (exprStmt | declarationStmt) exprStmt expr ')' compoundStmt;
+    WHILE '(' expr ')' stmt                                       # whileLoopStmt
+    | DO stmt WHILE '(' expr ')' ';'                              # doWhileLoopStmt
+    | FOR '(' (exprStmt | declarationStmt) exprStmt expr ')' stmt # forLoopStmt
+    ;
 
 selectionStmt: IF '(' expr ')' (
     stmt (ELSE stmt)?

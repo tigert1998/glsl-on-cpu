@@ -20,8 +20,7 @@ public class ForStmt extends Stmt {
     public JSONObject toJSON() {
         var json = super.toJSON();
         json.put("initialization", initialization.toJSON());
-        if (condition != null)
-            json.put("condition", condition.toJSON());
+        json.put("condition", condition.toJSON());
         json.put("step", step.toJSON());
         json.put("body", body.toJSON());
         return json;

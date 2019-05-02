@@ -335,9 +335,15 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         var wrappers = extractStmtsWrappersWithScopes(ctx.stmt());
         if (wrappers == null) return null;
 
+        if (expr instanceof ConstExpr) {
+            var choice = ((BoolValue) ((ConstExpr) expr).getValue()).value;
+            if (choice) return wrappers.get(0);
+            return wrappers.size() >= 2 ? wrappers.get(1) : new StmtsWrapper();
+        }
+
         var result = new StmtsWrapper();
         result.stmts.add(new IfStmt(expr, new CompoundStmt(wrappers.get(0)),
-                wrappers.size() <= 1 ? null : new CompoundStmt(wrappers.get(1))));
+                wrappers.size() <= 1 ? new CompoundStmt() : new CompoundStmt(wrappers.get(1))));
         return result;
     }
 
@@ -353,9 +359,8 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         });
         scope.screwOut();
         if (this.exceptionList.isEmpty()) {
-            var result = new StmtsWrapper();
-            result.stmts.add(compoundStmt);
-            return result;
+            if (compoundStmt.stmts.size() == 0) return new StmtsWrapper();
+            return StmtsWrapper.singleton(compoundStmt);
         }
         return null;
     }
@@ -408,6 +413,8 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         {
             if (ctx.forLoopCondition().expr() != null) {
                 condition = extractExpr(ctx.forLoopCondition().expr());
+            } else {
+                condition = new ConstExpr(new BoolValue(true));
             }
         }
         {
@@ -433,6 +440,8 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             }
         }
         scope.screwOut();
+        if (!(condition.getType() instanceof BoolType))
+            this.exceptionList.add(SyntaxErrorException.notBooleanExpression(ctx.forLoopCondition().start));
         if (this.exceptionList.isEmpty()) {
             return StmtsWrapper.singleton(new ForStmt(initialization, condition, step, body));
         } else {

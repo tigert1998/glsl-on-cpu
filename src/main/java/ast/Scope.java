@@ -11,12 +11,14 @@ public class Scope {
     static public class LookupResult {
         public DeclarationStmt stmt;
         public Value value;
+        public FunctionSignature.ParameterInfo parameter;
     }
 
     static public class InnerScope {
         public Map<String, Value> constants = new TreeMap<>();
         public Map<String, DeclarationStmt> variables = new TreeMap<>();
         public Map<String, StructType> structs = new TreeMap<>();
+        public Map<String, FunctionSignature.ParameterInfo> parameters = new TreeMap<>();
     }
 
     static public class FunctionInfo {
@@ -56,6 +58,9 @@ public class Scope {
             } else if (scope.variables.containsKey(id)) {
                 result.stmt = scope.variables.get(id);
                 return result;
+            } else if (scope.parameters.containsKey(id)) {
+                result.parameter = scope.parameters.get(id);
+                return result;
             }
         }
         return null;
@@ -94,10 +99,16 @@ public class Scope {
         list.add(new FunctionInfo(sig, true));
     }
 
+    public void defineParameters(FunctionSignature sig) {
+        sig.parameters.forEach(info -> innerScopes.peek().parameters.put(info.id, info));
+    }
+
     public boolean canDefineID(String id) {
         var scope = innerScopes.peek();
         boolean redefinition = scope.constants.containsKey(id) ||
-                scope.variables.containsKey(id) || scope.structs.containsKey(id);
+                scope.variables.containsKey(id) ||
+                scope.structs.containsKey(id) ||
+                scope.parameters.containsKey(id);
         if (innerScopes.size() == 1) {
             redefinition |= functions.containsKey(id);
         }

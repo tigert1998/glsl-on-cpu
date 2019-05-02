@@ -6,6 +6,9 @@ import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 public class Utility {
     private static int parseIntLiteralText(String str) {
         if (str.startsWith("0x") || str.startsWith("0X"))
@@ -141,6 +144,8 @@ public class Utility {
 
     public static FunctionSignature functionSignatureFromCtx(LangParser.FunctionSignatureContext ctx, Scope scope)
             throws SyntaxErrorException {
+        var idSet = new TreeSet<String>();
+
         String id = ctx.IDENTIFIER().getText();
         var returnType = ctx.VOID() != null ? null : typeFromCtx(ctx.type(), scope);
         var functionSignature = new FunctionSignature(returnType, id);
@@ -159,6 +164,8 @@ public class Utility {
                 type = typeWithArraySuffix(type, parameterCtx.variableMaybeArray().specifiedArrayLength(), scope);
 
                 String varID = parameterCtx.variableMaybeArray().IDENTIFIER().getText();
+                if (idSet.contains(varID)) throw SyntaxErrorException.redefinition(parameterCtx.start, varID);
+                idSet.add(varID);
 
                 functionSignature.addParameter(qualifier, type, varID);
             }

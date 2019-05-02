@@ -21,9 +21,9 @@ public class FunctionSignature {
     }
 
     static public class ParameterInfo {
-        Type type;
-        String id;
-        ParameterQualifier qualifier;
+        public Type type;
+        public String id;
+        public ParameterQualifier qualifier;
 
         ParameterInfo(ParameterQualifier qualifier, Type type, String id) {
             this.qualifier = qualifier;
@@ -49,7 +49,7 @@ public class FunctionSignature {
     }
 
     public Type returnType;
-    private List<ParameterInfo> parameters = new ArrayList<>();
+    public List<ParameterInfo> parameters = new ArrayList<>();
     public String id;
 
     public void addParameter(ParameterQualifier qualifier, Type type, String id) {

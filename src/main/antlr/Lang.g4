@@ -20,11 +20,19 @@ stmt:
     | compoundStmt
     | loopStmt
     | exprStmt
-    | RETURN expr? ';'
-    | BREAK ';'
-    | CONTINUE ';'
-    | ';' // permit empty statement
+    | returnStmt
+    | breakStmt
+    | continueStmt
+    | emptyStmt
     ;
+
+returnStmt: RETURN expr? ';';
+
+breakStmt: BREAK ';';
+
+continueStmt: CONTINUE ';';
+
+emptyStmt: ';';
 
 compoundStmt: '{' stmt* '}';
 

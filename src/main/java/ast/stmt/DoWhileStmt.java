@@ -4,10 +4,10 @@ import ast.expr.Expr;
 import org.json.JSONObject;
 
 public class DoWhileStmt extends Stmt {
-    public Stmt body;
+    public CompoundStmt body;
     public Expr condition;
 
-    public DoWhileStmt(Stmt body, Expr condition) {
+    public DoWhileStmt(CompoundStmt body, Expr condition) {
         this.body = body;
         this.condition = condition;
     }

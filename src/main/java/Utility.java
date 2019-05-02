@@ -278,17 +278,17 @@ public class Utility {
             throws SyntaxErrorException {
         var expr = extractExprAsBoolType(ctx.expr(), scope);
         var visitor = new ASTVisitor(scope);
-        var stmt = visitor.extractStmtsWrapperWithScope(ctx.stmt());
-        if (stmt == null) throw visitor.exceptionList.get(0);
-        return StmtsWrapper.singleton(new WhileStmt(expr, stmt.stmts.get(0)));
+        var wrapper = visitor.extractStmtsWrapperWithScope(ctx.stmt());
+        if (wrapper == null) throw visitor.exceptionList.get(0);
+        return StmtsWrapper.singleton(new WhileStmt(expr, new CompoundStmt(wrapper)));
     }
 
     public static StmtsWrapper doWhileStmtFromCtx(LangParser.DoWhileLoopStmtContext ctx, Scope scope)
             throws SyntaxErrorException {
         var expr = extractExprAsBoolType(ctx.expr(), scope);
         var visitor = new ASTVisitor(scope);
-        var stmt = visitor.extractStmtsWrapperWithScope(ctx.stmt());
-        if (stmt == null) throw visitor.exceptionList.get(0);
-        return StmtsWrapper.singleton(new DoWhileStmt(stmt.stmts.get(0), expr));
+        var wrapper = visitor.extractStmtsWrapperWithScope(ctx.stmt());
+        if (wrapper == null) throw visitor.exceptionList.get(0);
+        return StmtsWrapper.singleton(new DoWhileStmt(new CompoundStmt(wrapper), expr));
     }
 }

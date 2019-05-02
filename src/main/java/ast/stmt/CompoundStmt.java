@@ -13,6 +13,12 @@ public class CompoundStmt extends Stmt {
         stmts.addAll(wrapper.stmts);
     }
 
+    public static CompoundStmt singleton(Stmt stmt) {
+        var compoundStmt = new CompoundStmt();
+        compoundStmt.stmts.add(stmt);
+        return compoundStmt;
+    }
+
     @Override
     public JSONObject toJSON() {
         var json = super.toJSON();

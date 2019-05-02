@@ -332,12 +332,12 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             return null;
         }
 
-        var stmts = extractStmtsWrappersWithScopes(ctx.stmt());
-        if (stmts == null) return null;
+        var wrappers = extractStmtsWrappersWithScopes(ctx.stmt());
+        if (wrappers == null) return null;
 
         var result = new StmtsWrapper();
-        result.stmts.add(new IfStmt(expr, stmts.get(0).stmts.get(0),
-                stmts.size() <= 1 ? null : stmts.get(1).stmts.get(0)));
+        result.stmts.add(new IfStmt(expr, new CompoundStmt(wrappers.get(0)),
+                wrappers.size() <= 1 ? null : new CompoundStmt(wrappers.get(1))));
         return result;
     }
 
@@ -381,27 +381,28 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     @Override
+    public StmtsWrapper visitEmptyStmt(LangParser.EmptyStmtContext ctx) {
+        return new StmtsWrapper();
+    }
+
+    @Override
     public StmtsWrapper visitForLoopStmt(LangParser.ForLoopStmtContext ctx) {
-        Stmt initialization = null;
+        CompoundStmt initialization = null;
         Expr condition = null;
-        Stmt step = null, body = null;
+        CompoundStmt step = null, body = null;
         scope.screwIn();
         {
-            StmtsWrapper wrapper = null;
             var forLoopInitialization = ctx.forLoopInitialization();
             try {
                 if (forLoopInitialization.declarationStmt() != null) {
-                    wrapper = Utility.declarationStmtFromCtx(forLoopInitialization.declarationStmt(), scope);
+                    initialization = new CompoundStmt(Utility.declarationStmtFromCtx(forLoopInitialization.declarationStmt(), scope));
                 } else if (forLoopInitialization.exprStmt() != null) {
-                    wrapper = Utility.exprStmtFromCtx(forLoopInitialization.exprStmt(), scope);
+                    initialization = new CompoundStmt(Utility.exprStmtFromCtx(forLoopInitialization.exprStmt(), scope));
+                } else {
+                    initialization = new CompoundStmt();
                 }
             } catch (SyntaxErrorException exception) {
                 this.exceptionList.add(exception);
-            }
-            if (wrapper != null && wrapper.stmts.size() >= 1) {
-                if (wrapper.stmts.size() >= 2)
-                    initialization = new CompoundStmt(wrapper);
-                else initialization = wrapper.stmts.get(0);
             }
         }
         {
@@ -413,19 +414,21 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             if (ctx.forLoopStep().expr() != null) {
                 var expr = extractExpr(ctx.forLoopStep().expr());
                 if (expr != null) {
-                    step = new ExprStmt(expr);
+                    step = CompoundStmt.singleton(new ExprStmt(expr));
                 }
+            } else {
+                step = new CompoundStmt();
             }
         }
         {
             if (ctx.body.compoundStmt() == null) {
-                body = extractStmtsWrapper(ctx.body).stmts.get(0);
+                body = new CompoundStmt(extractStmtsWrapper(ctx.body));
             } else {
-                body = new CompoundStmt();
                 var stmtsWrappers = extractStmtsWrappers(ctx.body.compoundStmt().stmt());
                 if (stmtsWrappers != null) {
+                    body = new CompoundStmt();
                     for (var wrapper : stmtsWrappers)
-                        ((CompoundStmt) body).stmts.addAll(wrapper.stmts);
+                        body.stmts.addAll(wrapper.stmts);
                 }
             }
         }

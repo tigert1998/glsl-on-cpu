@@ -5,9 +5,9 @@ import org.json.JSONObject;
 
 public class IfStmt extends Stmt {
     public Expr condition;
-    public Stmt thenStmt, elseStmt;
+    public CompoundStmt thenStmt, elseStmt;
 
-    public IfStmt(Expr condition, Stmt thenStmt, Stmt elseStmt) {
+    public IfStmt(Expr condition, CompoundStmt thenStmt, CompoundStmt elseStmt) {
         this.condition = condition;
         this.thenStmt = thenStmt;
         this.elseStmt = elseStmt;

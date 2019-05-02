@@ -63,6 +63,15 @@ public class SwizzleUtility {
         return res;
     }
 
+    static public String indicesToString(int[] indices) {
+        StringBuilder sb = new StringBuilder();
+        for (int index : indices) {
+            if (index <= 2) sb.append((char) (index + 'x'));
+            else sb.append('w');
+        }
+        return new String(sb);
+    }
+
     static public boolean isDuplicate(int[] indices) {
         for (int i = 0; i < indices.length; i++) {
             for (int j = i + 1; j < indices.length; j++)

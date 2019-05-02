@@ -272,6 +272,13 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         return this.exceptionList.isEmpty() ? result : null;
     }
 
+    private StmtsWrapper extractStmtsWrapper(LangParser.StmtContext stmtCtx) {
+        var visitor = new ASTVisitor(scope);
+        var wrapper = (StmtsWrapper) stmtCtx.accept(visitor);
+        if (wrapper == null) this.exceptionList.addAll(visitor.exceptionList);
+        return wrapper;
+    }
+
     public StmtsWrapper extractStmtsWrapperWithScope(LangParser.StmtContext stmtCtx) {
         var visitor = new ASTVisitor(scope);
 
@@ -369,6 +376,63 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             return Utility.doWhileStmtFromCtx(ctx, scope);
         } catch (SyntaxErrorException exception) {
             this.exceptionList.add(exception);
+            return null;
+        }
+    }
+
+    @Override
+    public StmtsWrapper visitForLoopStmt(LangParser.ForLoopStmtContext ctx) {
+        Stmt initialization = null;
+        Expr condition = null;
+        Stmt step = null, body = null;
+        scope.screwIn();
+        {
+            StmtsWrapper wrapper = null;
+            var forLoopInitialization = ctx.forLoopInitialization();
+            try {
+                if (forLoopInitialization.declarationStmt() != null) {
+                    wrapper = Utility.declarationStmtFromCtx(forLoopInitialization.declarationStmt(), scope);
+                } else if (forLoopInitialization.exprStmt() != null) {
+                    wrapper = Utility.exprStmtFromCtx(forLoopInitialization.exprStmt(), scope);
+                }
+            } catch (SyntaxErrorException exception) {
+                this.exceptionList.add(exception);
+            }
+            if (wrapper != null && wrapper.stmts.size() >= 1) {
+                if (wrapper.stmts.size() >= 2)
+                    initialization = new CompoundStmt(wrapper);
+                else initialization = wrapper.stmts.get(0);
+            }
+        }
+        {
+            if (ctx.forLoopCondition().expr() != null) {
+                condition = extractExpr(ctx.forLoopCondition().expr());
+            }
+        }
+        {
+            if (ctx.forLoopStep().expr() != null) {
+                var expr = extractExpr(ctx.forLoopStep().expr());
+                if (expr != null) {
+                    step = new ExprStmt(expr);
+                }
+            }
+        }
+        {
+            if (ctx.body.compoundStmt() == null) {
+                body = extractStmtsWrapper(ctx.body).stmts.get(0);
+            } else {
+                body = new CompoundStmt();
+                var stmtsWrappers = extractStmtsWrappers(ctx.body.compoundStmt().stmt());
+                if (stmtsWrappers != null) {
+                    for (var wrapper : stmtsWrappers)
+                        ((CompoundStmt) body).stmts.addAll(wrapper.stmts);
+                }
+            }
+        }
+        scope.screwOut();
+        if (this.exceptionList.isEmpty()) {
+            return StmtsWrapper.singleton(new ForStmt(initialization, condition, step, body));
+        } else {
             return null;
         }
     }

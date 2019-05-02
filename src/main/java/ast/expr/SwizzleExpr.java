@@ -3,6 +3,7 @@ package ast.expr;
 import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
+import org.json.JSONObject;
 
 public class SwizzleExpr extends Expr {
     private Expr expr;
@@ -12,6 +13,7 @@ public class SwizzleExpr extends Expr {
         this.isLValue = expr.isLValue && !SwizzleUtility.isDuplicate(indices);
         this.expr = expr;
         this.indices = indices;
+        this.type = (Type) ((SwizzleType) expr.getType()).changeN(indices.length);
     }
 
     public static Expr factory(Expr expr, int[] indices) {
@@ -32,8 +34,23 @@ public class SwizzleExpr extends Expr {
             } catch (ConstructionFailedException ignore) {
                 return null;
             }
+        } else if (expr instanceof SwizzleExpr) {
+            int[] preIndices = ((SwizzleExpr) expr).indices;
+            int[] newIndices = new int[indices.length];
+            for (int i = 0; i < indices.length; i++) {
+                newIndices[i] = preIndices[indices[i]];
+            }
+            return new SwizzleExpr(((SwizzleExpr) expr).expr, newIndices);
         } else {
             return new SwizzleExpr(expr, indices);
         }
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        var json = super.toJSON();
+        json.put("expr", expr.toJSON());
+        json.put("swizzle", SwizzleUtility.indicesToString(indices));
+        return json;
     }
 }

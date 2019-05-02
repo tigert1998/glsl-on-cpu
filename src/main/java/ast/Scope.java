@@ -48,7 +48,30 @@ public class Scope {
         innerScopes.pop();
     }
 
-    public LookupResult lookupConstantOrVariable(String id) {
+    public FunctionSignature lookupFunction(String id, Type[] types) {
+        if (!functions.containsKey(id)) return null;
+        outer:
+        for (var fun : functions.get(id)) {
+            var sig = fun.functionSignature;
+            if (types.length != sig.parameters.size()) continue;
+            for (int i = 0; i < types.length; i++)
+                if (!types[i].equals(sig.parameters.get(i).type)) continue outer;
+            return sig;
+        }
+        return null;
+    }
+
+    public StructType lookupStructure(String id) {
+        for (int i = innerScopes.size() - 1; i >= 0; i--) {
+            var scope = innerScopes.get(i);
+            if (scope.structs.containsKey(id)) {
+                return scope.structs.get(id);
+            }
+        }
+        return null;
+    }
+
+    public LookupResult lookupValue(String id) {
         LookupResult result = new LookupResult();
         for (int i = innerScopes.size() - 1; i >= 0; i--) {
             var scope = innerScopes.get(i);

@@ -1,6 +1,7 @@
 package ast.values;
 
 import ast.exceptions.*;
+import ast.expr.*;
 import ast.types.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -240,5 +241,12 @@ public class Value {
             System.exit(0);
             return null;
         }
+    }
+
+    // for syntax check
+    static public void constructor(Type type, Expr[] exprs) throws ConstructionFailedException {
+        var defaultValues = new Value[exprs.length];
+        for (int i = 0; i < exprs.length; i++) defaultValues[i] = exprs[i].getType().getDefaultValue();
+        constructor(type, defaultValues);
     }
 }

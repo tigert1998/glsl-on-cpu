@@ -6,8 +6,7 @@ import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;
 
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class Utility {
     private static int parseIntLiteralText(String str) {
@@ -147,7 +146,7 @@ public class Utility {
         var idSet = new TreeSet<String>();
 
         String id = ctx.IDENTIFIER().getText();
-        var returnType = ctx.VOID() != null ? null : typeFromCtx(ctx.type(), scope);
+        var returnType = ctx.VOID() != null ? VoidType.TYPE : typeFromCtx(ctx.type(), scope);
         var functionSignature = new FunctionSignature(returnType, id);
         var listCtx = ctx.functionParameterList();
         if (listCtx.functionParameter() != null) {

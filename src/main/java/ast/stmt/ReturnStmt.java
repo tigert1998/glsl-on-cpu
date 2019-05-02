@@ -17,7 +17,7 @@ public class ReturnStmt extends Stmt {
     @Override
     public JSONObject toJSON() {
         var json = super.toJSON();
-        json.put("expr", expr.toJSON());
+        if (expr != null) json.put("expr", expr.toJSON());
         return json;
     }
 }

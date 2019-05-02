@@ -69,7 +69,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     @Override
     public Expr visitReferenceExpr(LangParser.ReferenceExprContext ctx) {
         String id = ctx.IDENTIFIER().getText();
-        var result = scope.lookupConstantOrVariable(id);
+        var result = scope.lookupValue(id);
         if (result == null) {
             this.exceptionList.add(SyntaxErrorException.undeclaredID(ctx.start, id));
             return null;
@@ -107,6 +107,42 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         }
 
         return ConstructionExpr.factory(type, exprs);
+    }
+
+    @Override
+    public Expr visitFunctionOrStructConstructorInvocationExpr(
+            LangParser.FunctionOrStructConstructorInvocationExprContext ctx) {
+        var invocationCtx = ctx.functionOrStructConstructorInvocation();
+        var exprs = extractExprs(invocationCtx.expr());
+        if (exprs == null) return null;
+
+        if (invocationCtx.structType().IDENTIFIER() == null) {
+            this.exceptionList.add(SyntaxErrorException.constructorStructureDefinition(ctx.start));
+            return null;
+        }
+        String id = invocationCtx.structType().IDENTIFIER().getText();
+        if (scope.lookupStructure(id) != null) {
+            try {
+                Type type = Utility.typeFromStructTypeContext(invocationCtx.structType(), scope);
+                Value.constructor(type, exprs);
+                return ConstructionExpr.factory(type, exprs);
+            } catch (SyntaxErrorException exception) {
+                this.exceptionList.add(SyntaxErrorException.lvalueRequired(ctx.start));
+                return null;
+            } catch (ConstructionFailedException exception) {
+                this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
+                return null;
+            }
+        } else {
+            var types = new Type[exprs.length];
+            for (int i = 0; i < exprs.length; i++) types[i] = exprs[i].getType();
+            var sig = scope.lookupFunction(id, types);
+            if (sig == null) {
+                this.exceptionList.add(SyntaxErrorException.notMatchFunction(ctx.start, id));
+                return null;
+            }
+            return new CallExpr(sig, exprs);
+        }
     }
 
     @Override
@@ -453,7 +489,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     @Override
     public StmtsWrapper visitReturnStmt(LangParser.ReturnStmtContext ctx) {
         var returnType = scope.innerScopes.get(1).functionSignature.returnType;
-        if (returnType == null) {
+        if (returnType instanceof VoidType) {
             if (ctx.expr() != null) {
                 this.exceptionList.add(SyntaxErrorException.voidCannotReturnValue(ctx.start));
                 return null;

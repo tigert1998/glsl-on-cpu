@@ -104,4 +104,12 @@ public class SyntaxErrorException extends Exception {
     public static SyntaxErrorException notReturnValue(Token token) {
         return new SyntaxErrorException(token, "'return': non-void function must return a value");
     }
+
+    public static SyntaxErrorException constructorStructureDefinition(Token token) {
+        return new SyntaxErrorException(token, "'structure': constructor cannot be a structure definition");
+    }
+
+    public static SyntaxErrorException notMatchFunction(Token token, String id) {
+        return new SyntaxErrorException(token, "'" + id + "': no matching overloaded function found");
+    }
 }

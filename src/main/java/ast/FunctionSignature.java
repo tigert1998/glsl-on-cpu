@@ -69,11 +69,7 @@ public class FunctionSignature {
         if (!(obj instanceof FunctionSignature)) return false;
         var sig = (FunctionSignature) obj;
         if (!id.equals(sig.id)) return false;
-        if (returnType == null) {
-            if (sig.returnType != null) return false;
-        } else {
-            if (!returnType.equals(sig.returnType)) return false;
-        }
+        if (!returnType.equals(sig.returnType)) return false;
         if (!(parameters.size() == sig.parameters.size())) return false;
         for (int i = 0; i < parameters.size(); i++)
             if (!parameters.get(i).equals(sig.parameters.get(i)))
@@ -92,7 +88,7 @@ public class FunctionSignature {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(returnType == null ? "void" : returnType.toString()).append(" ").append(id).append("(");
+        sb.append(returnType.toString()).append(" ").append(id).append("(");
         for (int i = 0; i < parameters.size(); i++) {
             sb.append(parameters.get(i).toString());
             if (i <= parameters.size() - 2) sb.append(", ");

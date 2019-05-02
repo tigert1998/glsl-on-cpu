@@ -25,21 +25,21 @@ public class FunctionSignature {
         public String id;
         public ParameterQualifier qualifier;
 
-        ParameterInfo(ParameterQualifier qualifier, Type type, String id) {
+        private ParameterInfo(ParameterQualifier qualifier, Type type, String id) {
             this.qualifier = qualifier;
             this.type = type;
             this.id = id;
+        }
+
+        public boolean match(ParameterInfo info) {
+            return info.type == this.type;
         }
 
         @Override
         public boolean equals(Object obj) {
             if (!(obj instanceof ParameterInfo)) return false;
             var info = (ParameterInfo) obj;
-            return type.equals(info.type) && id.equals(info.id);
-        }
-
-        public boolean equalWithQualifier(ParameterInfo info) {
-            return info.qualifier == qualifier && equals(info);
+            return info.qualifier == qualifier && match(info);
         }
 
         @Override
@@ -64,23 +64,23 @@ public class FunctionSignature {
         this.id = id;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof FunctionSignature)) return false;
-        var sig = (FunctionSignature) obj;
+    public boolean match(FunctionSignature sig) {
         if (!id.equals(sig.id)) return false;
-        if (!returnType.equals(sig.returnType)) return false;
         if (!(parameters.size() == sig.parameters.size())) return false;
         for (int i = 0; i < parameters.size(); i++)
-            if (!parameters.get(i).equals(sig.parameters.get(i)))
+            if (!parameters.get(i).match(sig.parameters.get(i)))
                 return false;
         return true;
     }
 
-    public boolean equalWithQualifiers(FunctionSignature sig) {
-        if (!equals(sig)) return false;
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof FunctionSignature)) return false;
+        var sig = (FunctionSignature) obj;
+        if (!match(sig)) return false;
+        if (!returnType.equals(sig.returnType)) return false;
         for (int i = 0; i < parameters.size(); i++)
-            if (!parameters.get(i).equalWithQualifier(sig.parameters.get(i)))
+            if (!parameters.get(i).equals(sig.parameters.get(i)))
                 return false;
         return true;
     }

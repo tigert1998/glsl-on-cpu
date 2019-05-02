@@ -6,7 +6,8 @@ public class ScopeException extends UnlocatedSyntaxErrorException {
     }
 
     public static ScopeException sameQualifier() {
-        return new ScopeException("function must have the same parameter qualifier in all its declarations");
+        return new ScopeException("function must have the same parameter qualifier " +
+                "and the same return type in all its declarations");
     }
 
     public static ScopeException alreadyBody(String id) {

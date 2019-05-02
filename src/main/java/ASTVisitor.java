@@ -134,6 +134,10 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 return null;
             }
         } else {
+            if (invocationCtx.structType().specifiedArrayLength() != null) {
+                this.exceptionList.add(SyntaxErrorException.undeclaredID(ctx.start, id));
+                return null;
+            }
             var types = new Type[exprs.length];
             for (int i = 0; i < exprs.length; i++) types[i] = exprs[i].getType();
             var sig = scope.lookupFunction(id, types);

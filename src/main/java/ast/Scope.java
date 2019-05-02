@@ -137,7 +137,7 @@ public class Scope {
     private void checkSkewedSignature(FunctionSignature sig) throws ScopeException {
         if (!functions.containsKey(sig.id)) return;
         for (var info : functions.get(sig.id)) {
-            if (sig.equals(info.functionSignature) && !sig.equalWithQualifiers(info.functionSignature))
+            if (sig.match(info.functionSignature) && !sig.equals(info.functionSignature))
                 throw ScopeException.sameQualifier();
         }
     }

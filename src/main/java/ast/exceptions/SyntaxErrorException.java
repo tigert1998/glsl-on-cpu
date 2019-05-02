@@ -92,4 +92,16 @@ public class SyntaxErrorException extends Exception {
     public static SyntaxErrorException implicitSizedArray(Token token) {
         return new SyntaxErrorException(token, "implicit sized array need to be initialized");
     }
+
+    public static SyntaxErrorException voidCannotReturnValue(Token token) {
+        return new SyntaxErrorException(token, "'return': void function cannot return a value");
+    }
+
+    public static SyntaxErrorException returnNotMatch(Token token) {
+        return new SyntaxErrorException(token, "'return': function return is not matching type");
+    }
+
+    public static SyntaxErrorException notReturnValue(Token token) {
+        return new SyntaxErrorException(token, "'return': non-void function must return a value");
+    }
 }

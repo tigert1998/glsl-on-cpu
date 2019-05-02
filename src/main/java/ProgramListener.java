@@ -71,7 +71,7 @@ public class ProgramListener extends LangBaseListener {
             var signature = Utility.functionSignatureFromCtx(ctx.functionSignature(), scope);
             var visitor = new ASTVisitor(scope);
             scope.screwIn();
-            scope.defineParameters(signature);
+            scope.innerScopes.peek().functionSignature = signature;
             var result = (StmtsWrapper) ctx.compoundStmt().accept(visitor);
             scope.screwOut();
             if (result == null) {

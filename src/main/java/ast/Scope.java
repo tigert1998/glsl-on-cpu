@@ -18,7 +18,7 @@ public class Scope {
         public Map<String, Value> constants = new TreeMap<>();
         public Map<String, DeclarationStmt> variables = new TreeMap<>();
         public Map<String, StructType> structs = new TreeMap<>();
-        public Map<String, FunctionSignature.ParameterInfo> parameters = new TreeMap<>();
+        public FunctionSignature functionSignature = null;
     }
 
     static public class FunctionInfo {
@@ -58,8 +58,8 @@ public class Scope {
             } else if (scope.variables.containsKey(id)) {
                 result.stmt = scope.variables.get(id);
                 return result;
-            } else if (scope.parameters.containsKey(id)) {
-                result.parameter = scope.parameters.get(id);
+            } else if (scope.functionSignature != null && scope.functionSignature.parametersMap.containsKey(id)) {
+                result.parameter = scope.functionSignature.parametersMap.get(id);
                 return result;
             }
         }
@@ -99,16 +99,12 @@ public class Scope {
         list.add(new FunctionInfo(sig, true));
     }
 
-    public void defineParameters(FunctionSignature sig) {
-        sig.parameters.forEach(info -> innerScopes.peek().parameters.put(info.id, info));
-    }
-
     public boolean canDefineID(String id) {
         var scope = innerScopes.peek();
         boolean redefinition = scope.constants.containsKey(id) ||
                 scope.variables.containsKey(id) ||
                 scope.structs.containsKey(id) ||
-                scope.parameters.containsKey(id);
+                (scope.functionSignature != null && scope.functionSignature.parametersMap.containsKey(id));
         if (innerScopes.size() == 1) {
             redefinition |= functions.containsKey(id);
         }

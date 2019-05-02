@@ -50,10 +50,13 @@ public class FunctionSignature {
 
     public Type returnType;
     public List<ParameterInfo> parameters = new ArrayList<>();
+    public Map<String, ParameterInfo> parametersMap = new TreeMap<>();
     public String id;
 
     public void addParameter(ParameterQualifier qualifier, Type type, String id) {
-        parameters.add(new ParameterInfo(qualifier, type, id));
+        var info = new ParameterInfo(qualifier, type, id);
+        parameters.add(info);
+        parametersMap.put(id, info);
     }
 
     public FunctionSignature(Type returnType, String id) {

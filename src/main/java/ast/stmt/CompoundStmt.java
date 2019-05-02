@@ -10,7 +10,11 @@ public class CompoundStmt extends Stmt {
     public CompoundStmt() {}
 
     public CompoundStmt(StmtsWrapper wrapper) {
-        stmts.addAll(wrapper.stmts);
+        if (wrapper.stmts.size() == 1 && wrapper.stmts.get(0) instanceof CompoundStmt) {
+            this.stmts = ((CompoundStmt) wrapper.stmts.get(0)).stmts;
+        } else {
+            stmts.addAll(wrapper.stmts);
+        }
     }
 
     public static CompoundStmt singleton(Stmt stmt) {

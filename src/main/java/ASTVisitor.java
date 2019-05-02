@@ -449,4 +449,28 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             return null;
         }
     }
+
+    @Override
+    public StmtsWrapper visitReturnStmt(LangParser.ReturnStmtContext ctx) {
+        var returnType = scope.innerScopes.get(1).functionSignature.returnType;
+        if (returnType == null) {
+            if (ctx.expr() != null) {
+                this.exceptionList.add(SyntaxErrorException.voidCannotReturnValue(ctx.start));
+                return null;
+            }
+            return StmtsWrapper.singleton(new ReturnStmt());
+        } else {
+            if (ctx.expr() == null) {
+                this.exceptionList.add(SyntaxErrorException.notReturnValue(ctx.start));
+                return null;
+            }
+            var expr = extractExpr(ctx.expr());
+            if (expr == null) return null;
+            if (!expr.getType().equals(returnType)) {
+                this.exceptionList.add(SyntaxErrorException.returnNotMatch(ctx.expr().start));
+                return null;
+            }
+            return StmtsWrapper.singleton(new ReturnStmt(expr));
+        }
+    }
 }

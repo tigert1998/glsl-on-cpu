@@ -1,4 +1,5 @@
 import ast.AST;
+import ast.FunctionSignature;
 import ast.Scope;
 import ast.exceptions.*;
 import ast.expr.*;
@@ -144,6 +145,14 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             if (sig == null) {
                 this.exceptionList.add(SyntaxErrorException.notMatchFunction(ctx.start, id));
                 return null;
+            }
+            for (int i = 0; i < exprs.length; i++) {
+                var qualifier = sig.parameters.get(i).qualifier;
+                if ((qualifier == FunctionSignature.ParameterQualifier.OUT
+                        || qualifier == FunctionSignature.ParameterQualifier.INOUT) && !exprs[i].isLValue()) {
+                    this.exceptionList.add(SyntaxErrorException.lvalueRequired(invocationCtx.expr(i).start));
+                    return null;
+                }
             }
             return new CallExpr(sig, exprs);
         }

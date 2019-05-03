@@ -117,18 +117,15 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         var exprs = extractExprs(invocationCtx.expr());
         if (exprs == null) return null;
 
-        if (invocationCtx.structType().IDENTIFIER() == null) {
-            this.exceptionList.add(SyntaxErrorException.constructorStructureDefinition(ctx.start));
-            return null;
-        }
-        String id = invocationCtx.structType().IDENTIFIER().getText();
-        if (scope.lookupStructure(id) != null) {
+        String id = invocationCtx.structType().IDENTIFIER() == null ? null :
+                invocationCtx.structType().IDENTIFIER().getText();
+        if (id == null || scope.lookupStructure(id) != null) {
             try {
                 Type type = Utility.typeFromStructTypeContext(invocationCtx.structType(), scope);
                 Value.constructor(type, exprs);
                 return ConstructionExpr.factory(type, exprs);
             } catch (SyntaxErrorException exception) {
-                this.exceptionList.add(SyntaxErrorException.lvalueRequired(ctx.start));
+                this.exceptionList.add(exception);
                 return null;
             } catch (ConstructionFailedException exception) {
                 this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));

@@ -116,9 +116,9 @@ public class Utility {
         Type type;
         if (ctx.IDENTIFIER() != null) {
             String id = ctx.IDENTIFIER().getText();
-            if (!scope.innerScopes.peek().structs.containsKey(id))
+            type = scope.lookupStructure(id);
+            if (type == null)
                 throw SyntaxErrorException.undeclaredID(ctx.start, id);
-            type = scope.innerScopes.peek().structs.get(id);
         } else {
             type = typeFromStructDefinitionContext(ctx.structDefinition(), scope);
         }
@@ -221,6 +221,7 @@ public class Utility {
                 var expr = (Expr) item.expr().accept(visitor);
                 if (expr == null)
                     throw visitor.exceptionList.get(0);
+                System.out.println(expr);
                 if (!expr.getType().equals(actualType)) {
                     throw SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType);
                 }

@@ -6,13 +6,14 @@ import java.util.*;
 
 public class StructType extends Type {
     static public class FieldInfo {
-        public String id = null;
-        public Type type = null;
+        public String id;
+        public Type type;
+
         public FieldInfo(String id, Type type) {
             this.id = id;
             this.type = type;
         }
-    };
+    }
 
     public String id;
     private List<FieldInfo> fieldInfoList = new ArrayList<>();
@@ -39,6 +40,12 @@ public class StructType extends Type {
 
     public FieldInfo getFieldInfo(int i) {
         return fieldInfoList.get(i);
+    }
+
+    public FieldInfo getFieldInfo(String name) {
+        var idx = fieldInfoMap.get(name);
+        if (idx == null) return null;
+        return getFieldInfo(idx);
     }
 
     public Integer getFieldInfoIndex(String name) {

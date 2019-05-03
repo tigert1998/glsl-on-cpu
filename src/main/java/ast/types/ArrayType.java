@@ -1,5 +1,6 @@
 package ast.types;
 
+import ast.exceptions.*;
 import ast.values.*;
 
 public class ArrayType extends Type implements IndexedType {
@@ -63,5 +64,19 @@ public class ArrayType extends Type implements IndexedType {
     @Override
     public ArrayValue getDefaultValue() {
         return new ArrayValue(this, type.getDefaultValue());
+    }
+
+    @Override
+    public ArrayValue construct(Value[] values) throws ConstructionFailedException {
+        if (!isLengthUnknown() && getN() != values.length)
+            throw ConstructionFailedException.arraySizeUnmatched();
+        if (values.length == 0)
+            throw ConstructionFailedException.arraySizeNotPositive();
+        for (var value : values) {
+            if (!value.getType().equals(getType()))
+                throw ConstructionFailedException.arrayIncorrectType();
+        }
+        setLength(values.length);
+        return new ArrayValue(this, values);
     }
 }

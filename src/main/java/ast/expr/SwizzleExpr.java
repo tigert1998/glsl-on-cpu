@@ -27,13 +27,12 @@ public class SwizzleExpr extends Expr {
         if (expr instanceof ConstExpr) {
             var values = ((Vectorized) ((ConstExpr) expr).getValue()).retrieve();
             if (indices.length == 1) {
-                return new ConstExpr(Value.constructor(type.elementType(),
-                        new Value[]{values[indices[0]]}));
+                return new ConstExpr(type.elementType().construct(new Value[]{values[indices[0]]}));
             }
             var newValues = new Value[indices.length];
             for (int i = 0; i < indices.length; i++) newValues[i] = values[indices[i]];
             return new ConstExpr(
-                    Value.constructor((Type) type.changeN(indices.length), newValues));
+                    ((Type) type.changeN(indices.length)).construct(newValues));
 
         } else if (expr instanceof SwizzleExpr) {
             int[] preIndices = ((SwizzleExpr) expr).indices;

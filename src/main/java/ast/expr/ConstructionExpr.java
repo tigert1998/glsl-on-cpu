@@ -16,7 +16,7 @@ public class ConstructionExpr extends Expr {
 
     public static Expr factory(Type type, Expr[] exprs) throws ConstructionFailedException {
         // check syntax
-        Value.constructor(type, exprs);
+        type.construct(exprs);
 
         var values = new Value[exprs.length];
         for (int i = 0; i < exprs.length; i++) {
@@ -24,7 +24,7 @@ public class ConstructionExpr extends Expr {
             if (!(expr instanceof ConstExpr)) return new ConstructionExpr(type, exprs);
             values[i] = ((ConstExpr) expr).getValue();
         }
-        return new ConstExpr(Value.constructor(type, values));
+        return new ConstExpr(type.construct(values));
     }
 
     @Override

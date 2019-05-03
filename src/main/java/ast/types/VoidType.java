@@ -1,5 +1,6 @@
 package ast.types;
 
+import ast.exceptions.ConstructionFailedException;
 import ast.values.Value;
 
 public class VoidType extends Type {
@@ -18,5 +19,10 @@ public class VoidType extends Type {
     @Override
     public String toString() {
         return "void";
+    }
+
+    @Override
+    public Value construct(Value[] values) throws ConstructionFailedException {
+        throw ConstructionFailedException.constructVoid();
     }
 }

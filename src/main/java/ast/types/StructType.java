@@ -1,5 +1,6 @@
 package ast.types;
 
+import ast.exceptions.ConstructionFailedException;
 import ast.values.*;
 
 import java.util.*;
@@ -75,6 +76,19 @@ public class StructType extends Type {
         Value[] values = new Value[totalFields()];
         for (int i = 0; i < values.length; i++)
             values[i] = fieldInfoList.get(i).type.getDefaultValue();
+        return new StructValue(this, values);
+    }
+
+    @Override
+    public Value construct(Value[] values) throws ConstructionFailedException {
+        if (values.length == 0) throw ConstructionFailedException.noArgument();
+        if (values.length != this.totalFields()) throw ConstructionFailedException.fieldNumberNotMatch();
+        for (int i = 0; i < values.length; i++) {
+            var value = values[i];
+            var field = this.getFieldInfo(i);
+            if (!value.getType().equals(field.type))
+                throw ConstructionFailedException.fieldTypeNotMatch();
+        }
         return new StructValue(this, values);
     }
 }

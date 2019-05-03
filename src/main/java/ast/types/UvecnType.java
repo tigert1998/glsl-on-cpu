@@ -1,6 +1,9 @@
 package ast.types;
 
+import ast.exceptions.*;
 import ast.values.*;
+
+import java.util.*;
 
 public class UvecnType extends Type implements SwizzledType {
     private int n;
@@ -35,7 +38,9 @@ public class UvecnType extends Type implements SwizzledType {
         return fromN(n);
     }
 
-    private UvecnType(int n) { this.n = n; }
+    private UvecnType(int n) {
+        this.n = n;
+    }
 
     static public UvecnType fromText(String text) {
         int digit = text.charAt(text.length() - 1) - '0';
@@ -56,5 +61,26 @@ public class UvecnType extends Type implements SwizzledType {
     @Override
     public UvecnValue getDefaultValue() {
         return defaultValues[n - 2];
+    }
+
+    @Override
+    public UvecnValue construct(Value[] values) throws ConstructionFailedException {
+        if (values.length == 0) throw ConstructionFailedException.noArgument();
+        if (values.length == 1 && !(values[0] instanceof Vectorized)) {
+            return new UvecnValue(this, UintType.TYPE.construct(values));
+        }
+        List<UintValue> valueList = new ArrayList<>();
+        for (var value : values) {
+            if (value instanceof Vectorized) {
+                Value[] newValues = ((Vectorized) value).retrieve();
+                for (var newValue : newValues)
+                    valueList.add(UintType.TYPE.construct(new Value[]{newValue}));
+            } else {
+                valueList.add(UintType.TYPE.construct(new Value[]{value}));
+            }
+        }
+        if (valueList.size() < this.getN())
+            throw ConstructionFailedException.notEnoughData();
+        return new UvecnValue(this, valueList);
     }
 }

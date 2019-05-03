@@ -113,7 +113,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         if (id == null || scope.lookupStructure(id) != null) {
             try {
                 Type type = Utility.typeFromStructTypeContext(invocationCtx.structType(), scope);
-                Value.constructor(type, exprs);
+                type.construct(exprs);
                 return ConstructionExpr.factory(type, exprs);
             } catch (SyntaxErrorException exception) {
                 this.exceptionList.add(exception);
@@ -201,7 +201,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         String opText = ctx.op.getText();
         try {
             if (opText.equals("++") || opText.equals("--")) {
-                var one = new ConstExpr(Value.constructor(type, new Value[]{new IntValue(1)}));
+                var one = new ConstExpr(type.construct(new Value[]{new IntValue(1)}));
                 if (opText.equals("++"))
                     return new AssignmentExpr(Plus.OP, exprs, one);
                 else

@@ -1,6 +1,9 @@
 package ast.types;
 
+import ast.exceptions.*;
 import ast.values.*;
+
+import java.util.*;
 
 public class BvecnType extends Type implements SwizzledType {
     private int n;
@@ -59,5 +62,26 @@ public class BvecnType extends Type implements SwizzledType {
     @Override
     public BvecnValue getDefaultValue() {
         return defaultValues[n - 2];
+    }
+
+    @Override
+    public BvecnValue construct(Value[] values) throws ConstructionFailedException {
+        if (values.length == 0) throw ConstructionFailedException.noArgument();
+        if (values.length == 1 && !(values[0] instanceof Vectorized)) {
+            return new BvecnValue(this, BoolType.TYPE.construct(values));
+        }
+        List<BoolValue> valueList = new ArrayList<>();
+        for (var value : values) {
+            if (value instanceof Vectorized) {
+                Value[] newValues = ((Vectorized) value).retrieve();
+                for (var newValue : newValues)
+                    valueList.add(BoolType.TYPE.construct(new Value[]{newValue}));
+            } else {
+                valueList.add(BoolType.TYPE.construct(new Value[]{value}));
+            }
+        }
+        if (valueList.size() < this.getN())
+            throw ConstructionFailedException.notEnoughData();
+        return new BvecnValue(this, valueList);
     }
 }

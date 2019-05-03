@@ -1,6 +1,9 @@
 package ast.types;
 
+import ast.exceptions.*;
 import ast.values.*;
+
+import java.util.*;
 
 public class IvecnType extends Type implements SwizzledType {
     private int n;
@@ -59,5 +62,26 @@ public class IvecnType extends Type implements SwizzledType {
     @Override
     public IvecnValue getDefaultValue() {
         return defaultValues[n - 2];
+    }
+
+    @Override
+    public IvecnValue construct(Value[] values) throws ConstructionFailedException {
+        if (values.length == 0) throw ConstructionFailedException.noArgument();
+        if (values.length == 1 && !(values[0] instanceof Vectorized)) {
+            return new IvecnValue(this, IntType.TYPE.construct(values));
+        }
+        List<IntValue> valueList = new ArrayList<>();
+        for (var value : values) {
+            if (value instanceof Vectorized) {
+                Value[] newValues = ((Vectorized) value).retrieve();
+                for (var newValue : newValues)
+                    valueList.add(IntType.TYPE.construct(new Value[]{newValue}));
+            } else {
+                valueList.add(IntType.TYPE.construct(new Value[]{value}));
+            }
+        }
+        if (valueList.size() < this.getN())
+            throw ConstructionFailedException.notEnoughData();
+        return new IvecnValue(this, valueList);
     }
 }

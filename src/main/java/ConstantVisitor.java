@@ -82,7 +82,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
             return null;
         }
         try {
-            return Value.constructor(type, values);
+            return type.construct(values);
         } catch (ConstructionFailedException exception) {
             this.exception = new SyntaxErrorException(ctx.start, exception);
             return null;
@@ -104,7 +104,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
             return null;
         }
         try {
-            return Value.constructor(type, values);
+            return type.construct(values);
         } catch (ConstructionFailedException exception) {
             this.exception = new SyntaxErrorException(ctx.start, exception);
             return null;

@@ -93,7 +93,7 @@ expr:
     | basicTypeConstructorInvocation                          # basicTypeConstructorInvocationExpr
     | functionOrStructConstructorInvocation                   # functionOrStructConstructorInvocationExpr
     | expr ('[' idx=expr ']')                                 # arraySubscriptingExpr
-    | expr '.' method=functionOrStructConstructorInvocation   # memberFunctionInvocationExpr
+    | expr '.' method=functionInvocation                      # memberFunctionInvocationExpr
     | expr '.' selection=IDENTIFIER                           # elementSelectionExpr
 //    | expr op=(INCREMENT | DECREMENT)                         # postfixUnaryExpr
 //    do not support postfix increment/decrement temporarily
@@ -147,6 +147,10 @@ basicTypeConstructorInvocation:
 functionOrStructConstructorInvocation:
     structType '(' ')'
     | structType '(' expr (',' expr)* ')';
+
+functionInvocation:
+    IDENTIFIER '(' ')'
+    | IDENTIFIER '(' expr (',' expr)* ')';
 
 // keywords
 IN: 'in';

@@ -139,12 +139,9 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     public Value visitMemberFunctionInvocationExpr(LangParser.MemberFunctionInvocationExprContext ctx) {
         // only length
         var method = ctx.method;
-        if (method.expr().size() >= 1 ||
-                method.structType().IDENTIFIER() == null ||
-                method.structType().specifiedArrayLength() != null ||
-                !method.structType().IDENTIFIER().getText().equals("length")) {
+        if (method.expr().size() >= 1 || !method.IDENTIFIER().getText().equals("length")) {
             this.exception = SyntaxErrorException.invalidMethod(
-                    ctx.method.start, method.structType().IDENTIFIER().getText());
+                    ctx.method.start, method.IDENTIFIER().getText());
             return null;
         }
         var value = extractValue(ctx.expr());

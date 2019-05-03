@@ -163,6 +163,24 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     @Override
+    public ConstExpr visitMemberFunctionInvocationExpr(LangParser.MemberFunctionInvocationExprContext ctx) {
+        var method = ctx.method;
+        if (method.expr().size() >= 1 || !method.IDENTIFIER().getText().equals("length")) {
+            this.exceptionList.add(SyntaxErrorException.invalidMethod(
+                    ctx.method.start, method.IDENTIFIER().getText()));
+            return null;
+        }
+        var expr = extractExpr(ctx.expr());
+        if (expr == null) return null;
+        if (!(expr.getType() instanceof ArrayType)) {
+            this.exceptionList.add(SyntaxErrorException.lengthOnlyArrays(ctx.start));
+            return null;
+        } else {
+            return new ConstExpr(new IntValue(((ArrayType) expr.getType()).getN()));
+        }
+    }
+
+    @Override
     public Expr visitElementSelectionExpr(LangParser.ElementSelectionExprContext ctx) {
         var expr = extractExpr(ctx.expr());
         if (expr == null) return null;

@@ -7,17 +7,23 @@ import java.util.*;
 import java.util.function.*;
 
 public class MatnxmValue extends Value implements Vectorized, Indexed {
-    public float[][] values = null;
+    public float[][] values;
 
     public MatnxmValue(int n, int m) {
         this.type = MatnxmType.fromNM(n, m);
         values = new float[n][m];
     }
 
-    public MatnxmValue(MatnxmType type, FloatValue v) {
+    public MatnxmValue(MatnxmType type, FloatValue v, boolean diagonal) {
         this(type.getN(), type.getM());
-        for (int i = 0; i < Math.min(getN(), getM()); i++)
-            values[i][i] = v.value;
+        if (diagonal) {
+            for (int i = 0; i < Math.min(getN(), getM()); i++)
+                values[i][i] = v.value;
+        } else {
+            for (int i = 0; i < getN(); i++)
+                for (int j = 0; j < getM(); j++)
+                    values[i][j] = v.value;
+        }
     }
 
     public MatnxmValue(MatnxmType type, MatnxmValue v) {
@@ -115,8 +121,9 @@ public class MatnxmValue extends Value implements Vectorized, Indexed {
         if (!(obj instanceof MatnxmValue)) return false;
         var matnxm = (MatnxmValue) obj;
         if (!matnxm.getType().equals(this.getType())) return false;
-        for (int i = 0; i < getN(); i++) for (int j = 0; j < getM(); j++)
-            if (values[i][j] != matnxm.values[i][j]) return false;
+        for (int i = 0; i < getN(); i++)
+            for (int j = 0; j < getM(); j++)
+                if (values[i][j] != matnxm.values[i][j]) return false;
         return true;
     }
 }

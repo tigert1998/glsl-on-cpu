@@ -3,10 +3,11 @@ package ast.types;
 import ast.exceptions.ConstructionFailedException;
 import ast.values.*;
 
-public class IntType extends Type {
+public class IntType extends Type implements IncreasableType {
     public static IntType TYPE = new IntType();
 
-    private static IntValue defaultValue = new IntValue(0);
+    private static IntValue zero = new IntValue(0);
+    private static IntValue one = new IntValue(1);
 
     @Override
     public boolean equals(Object obj) {
@@ -19,8 +20,13 @@ public class IntType extends Type {
     }
 
     @Override
-    public IntValue getDefaultValue() {
-        return defaultValue;
+    public IntValue zero() {
+        return zero;
+    }
+
+    @Override
+    public IntValue one() {
+        return one;
     }
 
     @Override
@@ -37,6 +43,5 @@ public class IntType extends Type {
         } else if (value instanceof Vectorized) {
             return IntType.TYPE.construct(new Value[]{((Vectorized) value).retrieve()[0]});
         } else throw ConstructionFailedException.invalidConversion(value.getType(), IntType.TYPE);
-
     }
 }

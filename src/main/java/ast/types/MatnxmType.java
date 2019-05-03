@@ -5,19 +5,22 @@ import ast.values.*;
 
 import java.util.*;
 
-public class MatnxmType extends Type implements IndexedType {
+public class MatnxmType extends Type implements IndexedType, IncreasableType {
     private int n, m;
 
     // prevent multiple new
     private static MatnxmType[][] predefinedTypes = new MatnxmType[3][3];
-    private static MatnxmValue[][] defaultValues = new MatnxmValue[3][3];
+    private static MatnxmValue[][] zeros = new MatnxmValue[3][3];
+    private static MatnxmValue[][] ones = new MatnxmValue[3][3];
 
     static {
-        FloatValue zeroValue = FloatType.TYPE.getDefaultValue();
         for (int i = 2; i <= 4; i++)
             for (int j = 2; j <= 4; j++) {
                 predefinedTypes[i - 2][j - 2] = new MatnxmType(i, j);
-                defaultValues[i - 2][j - 2] = new MatnxmValue(predefinedTypes[i - 2][j - 2], zeroValue);
+                zeros[i - 2][j - 2] = new MatnxmValue(predefinedTypes[i - 2][j - 2],
+                        FloatType.TYPE.zero(), false);
+                ones[i - 2][j - 2] = new MatnxmValue(predefinedTypes[i - 2][j - 2],
+                        FloatType.TYPE.one(), false);
             }
     }
 
@@ -46,6 +49,7 @@ public class MatnxmType extends Type implements IndexedType {
         }
     }
 
+    @Override
     public int getN() {
         return n;
     }
@@ -68,8 +72,13 @@ public class MatnxmType extends Type implements IndexedType {
     }
 
     @Override
-    public MatnxmValue getDefaultValue() {
-        return defaultValues[n - 2][m - 2];
+    public MatnxmValue zero() {
+        return zeros[n - 2][m - 2];
+    }
+
+    @Override
+    public MatnxmValue one() {
+        return ones[n - 2][m - 2];
     }
 
     @Override
@@ -81,7 +90,7 @@ public class MatnxmType extends Type implements IndexedType {
             throw ConstructionFailedException.matrixFromMatrix();
         if (hasMat) return new MatnxmValue(this, (MatnxmValue) values[0]);
         if (values.length == 1 && !(values[0] instanceof Vectorized)) {
-            return new MatnxmValue(this, FloatType.TYPE.construct(values));
+            return new MatnxmValue(this, FloatType.TYPE.construct(values), true);
         }
         List<FloatValue> valueList = flattenThenConvertToFloatValue(values);
         if (valueList.size() < this.getN() * this.getM())

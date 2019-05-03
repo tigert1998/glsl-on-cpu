@@ -201,11 +201,17 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         String opText = ctx.op.getText();
         try {
             if (opText.equals("++") || opText.equals("--")) {
-                var one = new ConstExpr(type.construct(new Value[]{new IntValue(1)}));
-                if (opText.equals("++"))
-                    return new AssignmentExpr(Plus.OP, exprs, one);
-                else
-                    return new AssignmentExpr(Minus.OP, exprs, one);
+                if (type instanceof IncreasableType) {
+                    var one = new ConstExpr(((IncreasableType) type).one());
+                    if (opText.equals("++"))
+                        return new AssignmentExpr(Plus.OP, exprs, one);
+                    else
+                        return new AssignmentExpr(Minus.OP, exprs, one);
+                } else {
+                    this.exceptionList.add(
+                            new SyntaxErrorException(ctx.op, new OperatorCannotBeAppliedException(opText, type)));
+                    return null;
+                }
             } else {
                 UnaryOperator op = (UnaryOperator) Operator.fromText(ctx.op.getText());
                 return UnaryExpr.factory(op, exprs);

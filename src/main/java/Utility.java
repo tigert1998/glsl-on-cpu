@@ -70,7 +70,7 @@ public class Utility {
                 String varID = varCtx.IDENTIFIER().getText();
 
                 Type actualType = typeWithArraySuffix(type, varCtx.specifiedArrayLength(), scope);
-                if (actualType instanceof ArrayType && ((ArrayType) actualType).isLengthUnknown())
+                if (actualType instanceof ArrayType && ((ArrayType) actualType).isUnknownN())
                     throw SyntaxErrorException.structArrayMemberUnknownSize(varCtx.start, varID);
 
                 if (result.fieldIDExists(varID))
@@ -214,10 +214,10 @@ public class Utility {
 
             DeclarationStmt declarationStmt;
             if (item.expr() == null) {
-                if (actualType instanceof ArrayType && ((ArrayType) actualType).isLengthUnknown()) {
+                if (actualType instanceof ArrayType && ((ArrayType) actualType).isUnknownN()) {
                     throw SyntaxErrorException.implicitSizedArray(variableMaybeArray.start);
                 }
-                declarationStmt = new DeclarationStmt(actualType, id, new ConstExpr(actualType.getDefaultValue()));
+                declarationStmt = new DeclarationStmt(actualType, id, new ConstExpr(actualType.zero()));
             } else {
                 var visitor = new ASTVisitor(scope);
                 var expr = (Expr) item.expr().accept(visitor);

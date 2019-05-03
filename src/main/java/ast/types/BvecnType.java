@@ -10,13 +10,12 @@ public class BvecnType extends Type implements SwizzledType {
 
     // prevent multiple new
     private static BvecnType[] predefinedTypes = new BvecnType[3];
-    private static BvecnValue[] defaultValues = new BvecnValue[3];
+    private static BvecnValue[] zeros = new BvecnValue[3];
 
     static {
-        BoolValue falseValue = BoolType.TYPE.getDefaultValue();
         for (int i = 2; i <= 4; i++) {
             predefinedTypes[i - 2] = new BvecnType(i);
-            defaultValues[i - 2] = new BvecnValue(predefinedTypes[i - 2], falseValue);
+            zeros[i - 2] = new BvecnValue(predefinedTypes[i - 2], BoolType.TYPE.zero());
         }
     }
 
@@ -60,8 +59,8 @@ public class BvecnType extends Type implements SwizzledType {
     }
 
     @Override
-    public BvecnValue getDefaultValue() {
-        return defaultValues[n - 2];
+    public BvecnValue zero() {
+        return zeros[n - 2];
     }
 
     @Override

@@ -7,14 +7,14 @@ import ast.values.*;
 import java.util.*;
 
 public abstract class Type {
-    abstract public Value getDefaultValue();
+    abstract public Value zero();
 
     abstract public Value construct(Value[] values) throws ConstructionFailedException;
 
     // for syntax checking
     public void construct(Expr[] exprs) throws ConstructionFailedException {
         var defaultValues = new Value[exprs.length];
-        for (int i = 0; i < exprs.length; i++) defaultValues[i] = exprs[i].getType().getDefaultValue();
+        for (int i = 0; i < exprs.length; i++) defaultValues[i] = exprs[i].getType().zero();
         construct(defaultValues);
     }
 

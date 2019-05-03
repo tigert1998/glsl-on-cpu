@@ -72,10 +72,10 @@ public class StructType extends Type {
     }
 
     @Override
-    public StructValue getDefaultValue() {
+    public StructValue zero() {
         Value[] values = new Value[totalFields()];
         for (int i = 0; i < values.length; i++)
-            values[i] = fieldInfoList.get(i).type.getDefaultValue();
+            values[i] = fieldInfoList.get(i).type.zero();
         return new StructValue(this, values);
     }
 

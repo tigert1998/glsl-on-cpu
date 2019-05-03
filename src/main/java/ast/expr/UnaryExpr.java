@@ -8,7 +8,6 @@ public class UnaryExpr extends Expr {
     public UnaryOperator op;
     public Expr expr;
 
-    // UnaryOperator can only be BitwiseNot and LogicalNot
     private UnaryExpr(UnaryOperator op, Expr expr) throws OperatorCannotBeAppliedException {
         this.op = op;
         this.expr = expr;

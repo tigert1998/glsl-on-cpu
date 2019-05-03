@@ -1,12 +1,13 @@
 package ast.types;
 
-import ast.exceptions.ConstructionFailedException;
+import ast.exceptions.*;
 import ast.values.*;
 
-public class FloatType extends Type {
+public class FloatType extends Type implements IncreasableType {
     public static FloatType TYPE = new FloatType();
 
-    private static FloatValue defaultValue = new FloatValue(0);
+    private static FloatValue zero = new FloatValue(0);
+    private static FloatValue one = new FloatValue(1);
 
     @Override
     public boolean equals(Object obj) {
@@ -19,8 +20,8 @@ public class FloatType extends Type {
     }
 
     @Override
-    public FloatValue getDefaultValue() {
-        return defaultValue;
+    public FloatValue zero() {
+        return zero;
     }
 
     @Override
@@ -37,6 +38,10 @@ public class FloatType extends Type {
         } else if (value instanceof Vectorized) {
             return FloatType.TYPE.construct(new Value[]{((Vectorized) value).retrieve()[0]});
         } else throw ConstructionFailedException.invalidConversion(value.getType(), FloatType.TYPE);
+    }
 
+    @Override
+    public FloatValue one() {
+        return one;
     }
 }

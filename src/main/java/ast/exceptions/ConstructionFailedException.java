@@ -48,8 +48,4 @@ public class ConstructionFailedException extends UnlocatedSyntaxErrorException {
         return new ConstructionFailedException(
                 "structure constructor arguments do not match structure fields");
     }
-
-    public static ConstructionFailedException constructVoid() {
-        return new ConstructionFailedException("'void' is not constructable");
-    }
 }

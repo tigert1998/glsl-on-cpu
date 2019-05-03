@@ -1,21 +1,22 @@
 package ast.types;
 
-import ast.exceptions.ConstructionFailedException;
+import ast.exceptions.*;
 import ast.values.*;
 
 import java.util.*;
 
-public class VecnType extends Type implements SwizzledType {
+public class VecnType extends Type implements SwizzledType, IncreasableType {
     private int n;
 
     private static VecnType[] predefinedTypes = new VecnType[3];
-    private static VecnValue[] defaultValues = new VecnValue[3];
+    private static VecnValue[] zeros = new VecnValue[3];
+    private static VecnValue[] ones = new VecnValue[3];
 
     static {
-        FloatValue zeroValue = FloatType.TYPE.getDefaultValue();
         for (int i = 2; i <= 4; i++) {
             predefinedTypes[i - 2] = new VecnType(i);
-            defaultValues[i - 2] = new VecnValue(predefinedTypes[i - 2], zeroValue);
+            zeros[i - 2] = new VecnValue(predefinedTypes[i - 2], FloatType.TYPE.zero());
+            ones[i - 2] = new VecnValue(predefinedTypes[i - 2], FloatType.TYPE.one());
         }
     }
 
@@ -59,8 +60,13 @@ public class VecnType extends Type implements SwizzledType {
     }
 
     @Override
-    public VecnValue getDefaultValue() {
-        return defaultValues[n - 2];
+    public VecnValue zero() {
+        return zeros[n - 2];
+    }
+
+    @Override
+    public Value one() {
+        return ones[n - 2];
     }
 
     @Override

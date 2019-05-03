@@ -5,18 +5,19 @@ import ast.values.*;
 
 import java.util.*;
 
-public class IvecnType extends Type implements SwizzledType {
+public class IvecnType extends Type implements SwizzledType, IncreasableType {
     private int n;
 
     // prevent multiple new
     private static IvecnType[] predefinedTypes = new IvecnType[3];
-    private static IvecnValue[] defaultValues = new IvecnValue[3];
+    private static IvecnValue[] zeros = new IvecnValue[3];
+    private static IvecnValue[] ones = new IvecnValue[3];
 
     static {
-        IntValue zeroValue = IntType.TYPE.getDefaultValue();
         for (int i = 2; i <= 4; i++) {
             predefinedTypes[i - 2] = new IvecnType(i);
-            defaultValues[i - 2] = new IvecnValue(predefinedTypes[i - 2], zeroValue);
+            zeros[i - 2] = new IvecnValue(predefinedTypes[i - 2], IntType.TYPE.zero());
+            ones[i - 2] = new IvecnValue(predefinedTypes[i - 2], IntType.TYPE.one());
         }
     }
 
@@ -60,8 +61,13 @@ public class IvecnType extends Type implements SwizzledType {
     }
 
     @Override
-    public IvecnValue getDefaultValue() {
-        return defaultValues[n - 2];
+    public IvecnValue zero() {
+        return zeros[n - 2];
+    }
+
+    @Override
+    public Value one() {
+        return ones[n - 2];
     }
 
     @Override

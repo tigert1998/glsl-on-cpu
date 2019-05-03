@@ -6,7 +6,7 @@ import ast.values.*;
 public class BoolType extends Type {
     public static BoolType TYPE = new BoolType();
 
-    private static BoolValue defaultValue = new BoolValue(false);
+    private static BoolValue zero = new BoolValue(false);
 
     @Override
     public boolean equals(Object obj) {
@@ -19,8 +19,8 @@ public class BoolType extends Type {
     }
 
     @Override
-    public BoolValue getDefaultValue() {
-        return defaultValue;
+    public BoolValue zero() {
+        return zero;
     }
 
     @Override

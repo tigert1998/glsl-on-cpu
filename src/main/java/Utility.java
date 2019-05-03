@@ -30,9 +30,11 @@ public class Utility {
     }
 
     public static int evalValueAsIntegral(Value value, Token token) throws SyntaxErrorException {
-        Integer res = Value.evalAsIntegral(value);
-        if (res == null) throw SyntaxErrorException.notIntegerExpression(token);
-        return res;
+        try {
+            return Value.evalAsIntegral(value);
+        } catch (UnlocatedSyntaxErrorException exception) {
+            throw new SyntaxErrorException(token, exception);
+        }
     }
 
     public static int evalExprAsIntegral(LangParser.ExprContext exprCtx, Scope scope) throws SyntaxErrorException {
@@ -221,7 +223,6 @@ public class Utility {
                 var expr = (Expr) item.expr().accept(visitor);
                 if (expr == null)
                     throw visitor.exceptionList.get(0);
-                System.out.println(expr);
                 if (!expr.getType().equals(actualType)) {
                     throw SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType);
                 }

@@ -1,5 +1,7 @@
 package ast.expr;
 
+import ast.exceptions.*;
+import ast.types.*;
 import ast.values.*;
 import org.json.JSONObject;
 
@@ -15,7 +17,11 @@ public class TernaryConditionalExpr extends Expr {
         this.y = y;
     }
 
-    static public Expr factory(Expr judgement, Expr x, Expr y) {
+    static public Expr factory(Expr judgement, Expr x, Expr y) throws UnlocatedSyntaxErrorException {
+        if (!(judgement.getType() instanceof BoolType))
+            throw UnlocatedSyntaxErrorException.notBooleanExpression();
+        if (!x.getType().equals(y.getType()))
+            throw UnlocatedSyntaxErrorException.cannotConvert(y.getType(), x.getType());
         if (judgement instanceof ConstExpr) {
             return ((BoolValue) ((ConstExpr) judgement).getValue()).value ? x : y;
         }

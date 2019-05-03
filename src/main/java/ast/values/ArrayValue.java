@@ -8,7 +8,7 @@ public class ArrayValue extends Value implements Indexed {
 
     public ArrayValue(ArrayType type, Value value) {
         this.type = type;
-        this.values = new Value[type.getLength()];
+        this.values = new Value[type.getN()];
         for (int i = 0; i < values.length; i++) values[i] = value;
     }
 

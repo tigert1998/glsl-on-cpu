@@ -47,16 +47,12 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         if (exprs == null) return null;
         BinaryOperator op = (BinaryOperator) Operator.fromText(opToken.getText());
         try {
-            // check applicable
-            op.apply(exprs[0].getType(), exprs[1].getType());
-        } catch (OperatorCannotBeAppliedException exception) {
-            this.exceptionList.add(new SyntaxErrorException(opToken, exception));
-            return null;
-        }
-        try {
             return BinaryExpr.factory(op, exprs);
         } catch (ArithmeticException exception) {
             this.exceptionList.add(new SyntaxErrorException(opToken, exception.getMessage()));
+            return null;
+        } catch (OperatorCannotBeAppliedException exception) {
+            this.exceptionList.add(new SyntaxErrorException(opToken, exception));
             return null;
         }
     }
@@ -96,18 +92,13 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         }
         var exprs = extractExprs(basicTypeConstructorInvocation.expr());
         if (exprs == null) return null;
-        var values = new Value[exprs.length];
-        for (int i = 0; i < exprs.length; i++)
-            values[i] = exprs[i].getType().getDefaultValue();
+
         try {
-            // check syntax
-            Value.constructor(type, values);
+            return ConstructionExpr.factory(type, exprs);
         } catch (ConstructionFailedException exception) {
             this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
             return null;
         }
-
-        return ConstructionExpr.factory(type, exprs);
     }
 
     @Override
@@ -159,31 +150,16 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     public Expr visitArraySubscriptingExpr(LangParser.ArraySubscriptingExprContext ctx) {
         var array = extractExpr(ctx.expr(0));
         if (array == null) return null;
-        if (!(array.getType().getDefaultValue() instanceof Indexed)) {
-            this.exceptionList.add(SyntaxErrorException.invalidSubscriptingType(ctx.start, ctx.expr(0).getText()));
-            return null;
-        }
 
         var idx = extractExpr(ctx.expr(1));
         if (idx == null) return null;
-        if (!(idx.getType() instanceof IntType || idx.getType() instanceof UintType)) {
-            this.exceptionList.add(SyntaxErrorException.notIntegerExpression(ctx.idx.start));
+
+        try {
+            return SubscriptingExpr.factory(array, idx);
+        } catch (UnlocatedSyntaxErrorException exception) {
+            this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
             return null;
         }
-
-        if (idx instanceof ConstExpr) {
-            try {
-                int i = Utility.evalValueAsIntegral(((ConstExpr) idx).getValue(), ctx.idx.start);
-                try {
-                    ((Indexed) array.getType().getDefaultValue()).valueAt(i);
-                } catch (InvalidIndexException exception) {
-                    this.exceptionList.add(new SyntaxErrorException(ctx.idx.start, exception));
-                    return null;
-                }
-            } catch (SyntaxErrorException ignore) {
-            }
-        }
-        return SubscriptingExpr.factory(array, idx);
     }
 
     @Override
@@ -191,15 +167,18 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         var expr = extractExpr(ctx.expr());
         if (expr == null) return null;
         String selection = ctx.selection.getText();
-        if (expr.getType() instanceof SwizzleType) {
+        if (expr.getType() instanceof SwizzledType) {
             int[] indices;
             try {
-                indices = SwizzleUtility.swizzle(((SwizzleType) expr.getType()).getN(), selection);
+                indices = SwizzleUtility.swizzle(((SwizzledType) expr.getType()).getN(), selection);
+                return SwizzleExpr.factory(expr, indices);
             } catch (InvalidSelectionException exception) {
                 this.exceptionList.add(new SyntaxErrorException(ctx.selection, exception));
                 return null;
+            } catch (ConstructionFailedException exception) {
+                this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
+                return null;
             }
-            return SwizzleExpr.factory(expr, indices);
         } else if (expr.getType() instanceof StructType) {
             try {
                 return SelectionExpr.factory(expr, selection);
@@ -208,7 +187,31 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 return null;
             }
         } else {
-            this.exceptionList.add(SyntaxErrorException.invalidSelectionType(ctx.start, ctx.expr().getText()));
+            this.exceptionList.add(SyntaxErrorException.invalidSelectionType(ctx.start, expr.getType()));
+            return null;
+        }
+    }
+
+    @Override
+    public Expr visitPrefixUnaryExpr(LangParser.PrefixUnaryExprContext ctx) {
+        var exprs = extractExpr(ctx.expr());
+        if (exprs == null) return null;
+        var type = exprs.getType();
+
+        String opText = ctx.op.getText();
+        try {
+            if (opText.equals("++") || opText.equals("--")) {
+                var one = new ConstExpr(Value.constructor(type, new Value[]{new IntValue(1)}));
+                if (opText.equals("++"))
+                    return new AssignmentExpr(Plus.OP, exprs, one);
+                else
+                    return new AssignmentExpr(Minus.OP, exprs, one);
+            } else {
+                UnaryOperator op = (UnaryOperator) Operator.fromText(ctx.op.getText());
+                return UnaryExpr.factory(op, exprs);
+            }
+        } catch (UnlocatedSyntaxErrorException exception) {
+            this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
             return null;
         }
     }
@@ -272,34 +275,27 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     public Expr visitTernaryConditionalExpr(LangParser.TernaryConditionalExprContext ctx) {
         var exprs = extractExprs(ctx.expr());
         if (exprs == null) return null;
-        if (!(exprs[0].getType() instanceof BoolType)) {
-            this.exceptionList.add(SyntaxErrorException.notBooleanExpression(ctx.expr(0).start));
+        try {
+            return TernaryConditionalExpr.factory(exprs[0], exprs[1], exprs[2]);
+        } catch (UnlocatedSyntaxErrorException exception) {
+            this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
             return null;
         }
-        if (!exprs[1].getType().equals(exprs[2].getType())) {
-            this.exceptionList.add(SyntaxErrorException.cannotConvert(ctx.expr(1).start,
-                    exprs[2].getType(), exprs[1].getType()));
-            return null;
-        }
-        return TernaryConditionalExpr.factory(exprs[0], exprs[1], exprs[2]);
     }
 
     @Override
     public AssignmentExpr visitAssignExpr(LangParser.AssignExprContext ctx) {
         var exprs = extractExprs(ctx.expr());
         if (exprs == null) return null;
-        if (!exprs[0].isLValue()) {
-            this.exceptionList.add(SyntaxErrorException.lvalueRequired(ctx.start));
-            return null;
-        }
-        if (!exprs[0].getType().equals(exprs[1].getType())) {
-            this.exceptionList.add(SyntaxErrorException.cannotConvert(ctx.start, exprs[1].getType(), exprs[0].getType()));
-            return null;
-        }
         String opText = ctx.op.getText();
         BinaryOperator op = opText.equals("=") ? null :
                 (BinaryOperator) Operator.fromText(opText.substring(0, opText.length() - 1));
-        return new AssignmentExpr(op, exprs[0], exprs[1]);
+        try {
+            return new AssignmentExpr(op, exprs[0], exprs[1]);
+        } catch (UnlocatedSyntaxErrorException exception) {
+            this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
+            return null;
+        }
     }
 
     @Override

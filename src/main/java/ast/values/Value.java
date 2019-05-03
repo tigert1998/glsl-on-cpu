@@ -14,8 +14,9 @@ public class Value {
         return type;
     }
 
-    static public Integer evalAsIntegral(Value value) {
-        if (!(value.getType() instanceof IntType || value.getType() instanceof UintType)) return null;
+    static public int evalAsIntegral(Value value) throws UnlocatedSyntaxErrorException {
+        if (!(value.getType() instanceof IntType || value.getType() instanceof UintType))
+            throw UnlocatedSyntaxErrorException.notIntegerExpression();
         int res;
         if (value instanceof IntValue) res = ((IntValue) value).value;
         else res = (int) (long) ((UintValue) value).value;
@@ -51,12 +52,12 @@ public class Value {
 
     // type[]()
     static private ArrayValue constructor(ArrayType type, Value[] values) throws ConstructionFailedException {
-        if (!type.isLengthUnknown() && type.getLength() != values.length)
+        if (!type.isLengthUnknown() && type.getN() != values.length)
             throw ConstructionFailedException.arraySizeUnmatched();
         if (values.length == 0)
             throw ConstructionFailedException.arraySizeNotPositive();
         for (var value : values) {
-            if (!value.getType().equals(type.collapse()))
+            if (!value.getType().equals(type.getType()))
                 throw ConstructionFailedException.arrayIncorrectType();
         }
         type.setLength(values.length);

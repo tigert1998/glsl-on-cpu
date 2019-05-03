@@ -16,7 +16,7 @@ public class ConstructionFailedException extends UnlocatedSyntaxErrorException {
     }
 
     public static ConstructionFailedException arraySizeNotPositive() {
-        return new ConstructionFailedException("array size must be greater than zero");
+        return new ConstructionFailedException("array getN must be greater than zero");
     }
 
     public static ConstructionFailedException noArgument() {

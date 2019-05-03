@@ -95,7 +95,8 @@ expr:
     | expr ('[' idx=expr ']')                                 # arraySubscriptingExpr
     | expr '.' method=functionOrStructConstructorInvocation   # memberFunctionInvocationExpr
     | expr '.' selection=IDENTIFIER                           # elementSelectionExpr
-    | expr op=(INCREMENT | DECREMENT)                         # postfixUnaryExpr
+//    | expr op=(INCREMENT | DECREMENT)                         # postfixUnaryExpr
+//    do not support postfix increment/decrement temporarily
     | op=(
         INCREMENT
         | DECREMENT
@@ -134,7 +135,8 @@ expr:
         | XOR_ASSIGN
         | OR_ASSIGN
     ) expr                                             # assignExpr
-    // | expr (',' expr)+ // do not support comma expresion temporarily
+//    | expr (',' expr)+
+//    do not support comma expresion temporarily
     | '(' expr ')'                                     # parameteredExpr
     ;
 

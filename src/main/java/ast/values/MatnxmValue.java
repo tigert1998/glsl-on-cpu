@@ -97,7 +97,7 @@ public class MatnxmValue extends Value implements Vectorized, Indexed {
             }
             if (i < getM() - 1) sb.append("; ");
         }
-        sb.append("]: ").append(getType());
+        sb.append("]");
         return new String(sb);
     }
 

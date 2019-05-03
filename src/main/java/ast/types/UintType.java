@@ -18,11 +18,6 @@ public class UintType extends Type {
     }
 
     @Override
-    public Type collapse() {
-        return TYPE;
-    }
-
-    @Override
     public UintValue getDefaultValue() {
         return defaultValue;
     }

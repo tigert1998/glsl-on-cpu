@@ -1,10 +1,8 @@
 package ast.types;
 
-import ast.values.IntValue;
-import ast.values.IvecnValue;
-import ast.values.Value;
+import ast.values.*;
 
-public class IvecnType extends Type implements SwizzleType {
+public class IvecnType extends Type implements SwizzledType {
     private int n;
 
     // prevent multiple new
@@ -17,6 +15,11 @@ public class IvecnType extends Type implements SwizzleType {
             predefinedTypes[i - 2] = new IvecnType(i);
             defaultValues[i - 2] = new IvecnValue(predefinedTypes[i - 2], zeroValue);
         }
+    }
+
+    @Override
+    public Type elementType() {
+        return IntType.TYPE;
     }
 
     private IvecnType(int n) {
@@ -33,7 +36,7 @@ public class IvecnType extends Type implements SwizzleType {
     }
 
     @Override
-    public SwizzleType changeN(int n) {
+    public SwizzledType changeN(int n) {
         return fromN(n);
     }
 
@@ -51,11 +54,6 @@ public class IvecnType extends Type implements SwizzleType {
     @Override
     public String toString() {
         return "ivec" + n;
-    }
-
-    @Override
-    public Type collapse() {
-        return IntType.TYPE;
     }
 
     @Override

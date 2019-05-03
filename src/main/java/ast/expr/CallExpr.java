@@ -7,6 +7,8 @@ public class CallExpr extends Expr {
     public FunctionSignature functionSignature;
     public Expr[] exprs;
 
+    // types will always match because every time function signatures are searched to match it
+    // therefore no need for throw exception
     public CallExpr(FunctionSignature functionSignature, Expr[] exprs) {
         this.functionSignature = functionSignature;
         this.exprs = exprs;

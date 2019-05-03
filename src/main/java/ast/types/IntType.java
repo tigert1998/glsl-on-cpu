@@ -18,11 +18,6 @@ public class IntType extends Type {
     }
 
     @Override
-    public Type collapse() {
-        return TYPE;
-    }
-
-    @Override
     public IntValue getDefaultValue() {
         return defaultValue;
     }

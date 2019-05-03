@@ -13,27 +13,28 @@ public class SwizzleExpr extends Expr {
         this.isLValue = expr.isLValue && !SwizzleUtility.isDuplicate(indices);
         this.expr = expr;
         this.indices = indices;
-        this.type = (Type) ((SwizzleType) expr.getType()).changeN(indices.length);
+        var originType = (SwizzledType) expr.getType();
+        if (indices.length == 1) this.type = originType.elementType();
+        else this.type = (Type) originType.changeN(indices.length);
     }
 
-    public static Expr factory(Expr expr, int[] indices) {
+    public static Expr factory(Expr expr, int[] indices)
+            throws ConstructionFailedException, InvalidSelectionException {
+        if (!(expr.getType() instanceof SwizzledType))
+            throw InvalidSelectionException.invalidSwizzleType(expr.getType());
+        var type = (SwizzledType) expr.getType();
+
         if (expr instanceof ConstExpr) {
             var values = ((Vectorized) ((ConstExpr) expr).getValue()).retrieve();
             if (indices.length == 1) {
-                try {
-                    return new ConstExpr(Value.constructor(expr.getType().collapse(), new Value[]{values[indices[0]]}));
-                } catch (ConstructionFailedException ignore) {
-                    return null;
-                }
+                return new ConstExpr(Value.constructor(type.elementType(),
+                        new Value[]{values[indices[0]]}));
             }
             var newValues = new Value[indices.length];
             for (int i = 0; i < indices.length; i++) newValues[i] = values[indices[i]];
-            try {
-                return new ConstExpr(
-                        Value.constructor((Type) ((SwizzleType) expr.getType()).changeN(indices.length), newValues));
-            } catch (ConstructionFailedException ignore) {
-                return null;
-            }
+            return new ConstExpr(
+                    Value.constructor((Type) type.changeN(indices.length), newValues));
+
         } else if (expr instanceof SwizzleExpr) {
             int[] preIndices = ((SwizzleExpr) expr).indices;
             int[] newIndices = new int[indices.length];

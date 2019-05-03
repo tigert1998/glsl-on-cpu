@@ -3,6 +3,7 @@ package ast.expr;
 import ast.types.*;
 import ast.values.*;
 import ast.exceptions.*;
+import org.json.*;
 
 public class ConstructionExpr extends Expr {
     private Expr[] exprs;
@@ -13,29 +14,25 @@ public class ConstructionExpr extends Expr {
         this.isLValue = false;
     }
 
-    public static Expr factory(Type type, Expr[] exprs) {
+    public static Expr factory(Type type, Expr[] exprs) throws ConstructionFailedException {
+        // check syntax
+        Value.constructor(type, exprs);
+
         var values = new Value[exprs.length];
         for (int i = 0; i < exprs.length; i++) {
             var expr = exprs[i];
             if (!(expr instanceof ConstExpr)) return new ConstructionExpr(type, exprs);
             values[i] = ((ConstExpr) expr).getValue();
         }
-        try {
-            return new ConstExpr(Value.constructor(type, values));
-        } catch (ConstructionFailedException ignore) {
-            return null;
-        }
+        return new ConstExpr(Value.constructor(type, values));
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(type.toString());
-        sb.append("(");
-        for (int i = 0; i < exprs.length; i++) {
-            sb.append(exprs[i]);
-            if (i <= exprs.length - 2) sb.append(", ");
-        }
-        sb.append(")");
-        return new String(sb);
+    public JSONObject toJSON() {
+        var json = super.toJSON();
+        var array = new JSONArray();
+        for (var expr : exprs) array.put(expr.toJSON());
+        json.put("exprs", array);
+        return json;
     }
 }

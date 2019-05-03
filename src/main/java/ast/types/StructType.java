@@ -71,11 +71,6 @@ public class StructType extends Type {
     }
 
     @Override
-    public Type collapse() {
-        return null;
-    }
-
-    @Override
     public StructValue getDefaultValue() {
         Value[] values = new Value[totalFields()];
         for (int i = 0; i < values.length; i++)

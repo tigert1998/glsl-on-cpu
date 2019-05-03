@@ -1,6 +1,7 @@
 package ast.expr;
 
-import ast.operators.BinaryOperator;
+import ast.exceptions.*;
+import ast.operators.*;
 import org.json.JSONObject;
 
 public class AssignmentExpr extends Expr {
@@ -8,9 +9,17 @@ public class AssignmentExpr extends Expr {
     BinaryOperator auxOp;
 
     // lvalue op y
-    public AssignmentExpr(BinaryOperator auxOp, Expr x, Expr y) {
+    public AssignmentExpr(BinaryOperator auxOp, Expr x, Expr y) throws UnlocatedSyntaxErrorException {
+        if (!x.isLValue())
+            throw UnlocatedSyntaxErrorException.lvalueRequired();
         this.isLValue = true;
-        this.type = x.getType();
+        if (auxOp != null) {
+            this.type = auxOp.apply(x.getType(), y.getType());
+        } else {
+            if (x.getType() != y.getType())
+                throw UnlocatedSyntaxErrorException.cannotConvert(y.getType(), x.getType());
+            this.type = x.getType();
+        }
         this.x = x;
         this.auxOp = auxOp;
         this.y = y;

@@ -17,10 +17,6 @@ public class BoolType extends Type {
         return "bool";
     }
 
-    public Type collapse() {
-        return TYPE;
-    }
-
     @Override
     public BoolValue getDefaultValue() {
         return defaultValue;

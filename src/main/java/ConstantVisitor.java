@@ -130,7 +130,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
                 return null;
             }
         } else {
-            this.exception = SyntaxErrorException.invalidSubscriptingType(ctx.start, ctx.expr(0).getText());
+            this.exception = SyntaxErrorException.invalidSubscriptingType(ctx.start, x.getType());
             return null;
         }
     }
@@ -169,15 +169,9 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
                 return null;
             }
         } else {
-            this.exception = SyntaxErrorException.invalidSelectionType(ctx.start, ctx.expr().getText());
+            this.exception = SyntaxErrorException.invalidSelectionType(ctx.start, x.getType());
             return null;
         }
-    }
-
-    @Override
-    public Value visitPostfixUnaryExpr(LangParser.PostfixUnaryExprContext ctx) {
-        exception = SyntaxErrorException.lvalueRequired(ctx.stop);
-        return null;
     }
 
     @Override

@@ -17,10 +17,6 @@ public class FloatType extends Type {
         return "float";
     }
 
-    public Type collapse() {
-        return TYPE;
-    }
-
     @Override
     public FloatValue getDefaultValue() {
         return defaultValue;

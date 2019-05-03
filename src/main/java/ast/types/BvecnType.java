@@ -2,7 +2,7 @@ package ast.types;
 
 import ast.values.*;
 
-public class BvecnType extends Type implements SwizzleType {
+public class BvecnType extends Type implements SwizzledType {
     private int n;
 
     // prevent multiple new
@@ -17,6 +17,11 @@ public class BvecnType extends Type implements SwizzleType {
         }
     }
 
+    @Override
+    public Type elementType() {
+        return BoolType.TYPE;
+    }
+
     static public BvecnType fromN(int n) {
         return predefinedTypes[n - 2];
     }
@@ -27,7 +32,7 @@ public class BvecnType extends Type implements SwizzleType {
     }
 
     @Override
-    public SwizzleType changeN(int n) {
+    public SwizzledType changeN(int n) {
         return fromN(n);
     }
 
@@ -49,10 +54,6 @@ public class BvecnType extends Type implements SwizzleType {
     @Override
     public String toString() {
         return "bvec" + n;
-    }
-
-    public Type collapse() {
-        return BoolType.TYPE;
     }
 
     @Override

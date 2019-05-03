@@ -9,23 +9,17 @@ public class BinaryExpr extends Expr {
     private BinaryOperator op;
     private Expr[] exprs;
 
-    private BinaryExpr(BinaryOperator op, Expr[] exprs) {
-        try {
-            this.type = op.apply(exprs[0].getType(), exprs[1].getType());
-        } catch (OperatorCannotBeAppliedException ignore) {
-        }
+    private BinaryExpr(BinaryOperator op, Expr[] exprs) throws OperatorCannotBeAppliedException {
+        this.type = op.apply(exprs[0].getType(), exprs[1].getType());
         this.op = op;
         this.exprs = exprs;
         this.isLValue = false;
     }
 
-    public static Expr factory(BinaryOperator op, Expr[] exprs) throws ArithmeticException {
+    public static Expr factory(BinaryOperator op, Expr[] exprs)
+            throws ArithmeticException, OperatorCannotBeAppliedException {
         if (exprs[0] instanceof ConstExpr && exprs[1] instanceof ConstExpr) {
-            try {
-                return new ConstExpr(op.apply(((ConstExpr) exprs[0]).getValue(), ((ConstExpr) exprs[1]).getValue()));
-            } catch (OperatorCannotBeAppliedException ignore) {
-                return null;
-            }
+            return new ConstExpr(op.apply(((ConstExpr) exprs[0]).getValue(), ((ConstExpr) exprs[1]).getValue()));
         } else {
             return new BinaryExpr(op, exprs);
         }

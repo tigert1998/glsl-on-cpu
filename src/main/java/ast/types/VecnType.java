@@ -2,7 +2,7 @@ package ast.types;
 
 import ast.values.*;
 
-public class VecnType extends Type implements SwizzleType {
+public class VecnType extends Type implements SwizzledType {
     private int n;
 
     private static VecnType[] predefinedTypes = new VecnType[3];
@@ -21,12 +21,17 @@ public class VecnType extends Type implements SwizzleType {
     }
 
     @Override
+    public Type elementType() {
+        return FloatType.TYPE;
+    }
+
+    @Override
     public int getN() {
         return n;
     }
 
     @Override
-    public SwizzleType changeN(int n) {
+    public SwizzledType changeN(int n) {
         return fromN(n);
     }
 
@@ -48,11 +53,6 @@ public class VecnType extends Type implements SwizzleType {
     @Override
     public String toString() {
         return "vec" + n;
-    }
-
-    @Override
-    public Type collapse() {
-        return FloatType.TYPE;
     }
 
     @Override

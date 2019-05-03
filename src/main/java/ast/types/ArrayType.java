@@ -2,10 +2,15 @@ package ast.types;
 
 import ast.values.*;
 
-public class ArrayType extends Type {
+public class ArrayType extends Type implements IndexedType {
     private Type type;
     private int length;
     private boolean lengthUnknown;
+
+    @Override
+    public Type elementType() {
+        return type;
+    }
 
     public ArrayType(Type type, int length) {
         this.type = type;
@@ -20,6 +25,11 @@ public class ArrayType extends Type {
 
     public Type getType() {
         return type;
+    }
+
+    @Override
+    public int getN() {
+        return length;
     }
 
     public int getLength() {
@@ -48,10 +58,6 @@ public class ArrayType extends Type {
     public String toString() {
         if (lengthUnknown) return type + "[]";
         return type + "[" + length + "]";
-    }
-
-    public Type collapse() {
-        return type;
     }
 
     @Override

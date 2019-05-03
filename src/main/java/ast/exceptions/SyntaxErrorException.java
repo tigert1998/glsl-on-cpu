@@ -27,13 +27,11 @@ public class SyntaxErrorException extends Exception {
     }
 
     public static SyntaxErrorException notIntegerExpression(Token token) {
-        return new SyntaxErrorException(token,
-                "integer expression required");
+        return new SyntaxErrorException(token, Messages.notIntegerExpression);
     }
 
     public static SyntaxErrorException notBooleanExpression(Token token) {
-        return new SyntaxErrorException(token,
-                "boolean expression required");
+        return new SyntaxErrorException(token, Messages.notBooleanExpression);
     }
 
     public static SyntaxErrorException arrayOfArrays(Token token) {
@@ -43,12 +41,11 @@ public class SyntaxErrorException extends Exception {
 
     public static SyntaxErrorException structArrayMemberUnknownSize(Token token, String id) {
         return new SyntaxErrorException(token,
-                "'" + id + "': array members of structs must specify a size");
+                "'" + id + "': array members of structs must specify a getN");
     }
 
     public static SyntaxErrorException lvalueRequired(Token token) {
-        return new SyntaxErrorException(token,
-                "l-values required (cannot modify a const)");
+        return new SyntaxErrorException(token, Messages.lvalueRequired);
     }
 
     public static SyntaxErrorException embeddedStructDefinition(Token token) {
@@ -63,22 +60,19 @@ public class SyntaxErrorException extends Exception {
 
     public static SyntaxErrorException arraySizeNotPositive(Token token) {
         return new SyntaxErrorException(token,
-                "array size must be greater than zero");
+                "array getN must be greater than zero");
     }
 
-    public static SyntaxErrorException invalidSubscriptingType(Token token, String name) {
-        return new SyntaxErrorException(token,
-                "'" + name + "': left of '[' is not of type array, matrix or vector");
+    public static SyntaxErrorException invalidSubscriptingType(Token token, Type type) {
+        return new SyntaxErrorException(token, Messages.invalidSubscriptingType(type));
     }
 
-    public static SyntaxErrorException invalidSelectionType(Token token, String name) {
-        return new SyntaxErrorException(token,
-                "'" + name + "': field selection requires structure, vector, or interface block on left hand side");
+    public static SyntaxErrorException invalidSelectionType(Token token, Type type) {
+        return new SyntaxErrorException(token, Messages.invalidSelectionType(type));
     }
 
     public static SyntaxErrorException cannotConvert(Token token, Type from, Type to) {
-        return new SyntaxErrorException(token,
-                "cannot convert from '" + from + "' to '" + to + "'");
+        return new SyntaxErrorException(token, Messages.cannotConvert(from, to));
     }
 
     public static SyntaxErrorException invalidMethod(Token token, String name) {

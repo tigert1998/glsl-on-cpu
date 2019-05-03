@@ -6,11 +6,6 @@ public class VoidType extends Type {
     public static Type TYPE = new VoidType();
 
     @Override
-    public Type collapse() {
-        return this;
-    }
-
-    @Override
     public Value getDefaultValue() {
         return null;
     }

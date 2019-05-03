@@ -2,7 +2,7 @@ package ast.types;
 
 import ast.values.*;
 
-public class MatnxmType extends Type {
+public class MatnxmType extends Type implements IndexedType {
     private int n, m;
 
     // prevent multiple new
@@ -16,6 +16,11 @@ public class MatnxmType extends Type {
                 predefinedTypes[i - 2][j - 2] = new MatnxmType(i, j);
                 defaultValues[i - 2][j - 2] = new MatnxmValue(predefinedTypes[i - 2][j - 2], zeroValue);
             }
+    }
+
+    @Override
+    public Type elementType() {
+        return VecnType.fromN(m);
     }
 
     private MatnxmType(int n, int m) {
@@ -57,11 +62,6 @@ public class MatnxmType extends Type {
     public String toString() {
         if (n == m) return "mat" + n;
         return "mat" + n + "x" + m;
-    }
-
-    @Override
-    public Type collapse() {
-        return FloatType.TYPE;
     }
 
     @Override

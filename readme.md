@@ -1,8 +1,7 @@
-# GLSL on CPU
+# OpenGL Shader on CPU
 
 ## todo
 
-### parser
-
 - comma expression
 - macro
+- postfix increment/decrement

@@ -7,7 +7,8 @@ import ast.values.*;
 public class Equal extends Operator implements BinaryOperator {
     public static Equal OP = new Equal();
 
-    public Value apply(Value x, Value y) {
+    public Value apply(Value x, Value y) throws OperatorCannotBeAppliedException {
+        apply(x.getType(), y.getType());
         return new BoolValue(x.equals(y));
     }
 

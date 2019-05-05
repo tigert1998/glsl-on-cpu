@@ -7,7 +7,8 @@ import ast.values.*;
 public class NotEqual extends Operator implements BinaryOperator {
     public static NotEqual OP = new NotEqual();
 
-    public BoolValue apply(Value x, Value y) {
+    public BoolValue apply(Value x, Value y) throws OperatorCannotBeAppliedException {
+        apply(x.getType(), y.getType());
         return new BoolValue(!x.equals(y));
     }
 

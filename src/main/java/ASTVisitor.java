@@ -212,9 +212,9 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
 
     @Override
     public Expr visitPrefixUnaryExpr(LangParser.PrefixUnaryExprContext ctx) {
-        var exprs = extractExpr(ctx.expr());
-        if (exprs == null) return null;
-        var type = exprs.getType();
+        var expr = extractExpr(ctx.expr());
+        if (expr == null) return null;
+        var type = expr.getType();
 
         String opText = ctx.op.getText();
         try {
@@ -222,9 +222,9 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 if (type instanceof IncreasableType) {
                     var one = new ConstExpr(((IncreasableType) type).one());
                     if (opText.equals("++"))
-                        return new AssignmentExpr(Plus.OP, exprs, one);
+                        return new AssignmentExpr(Plus.OP, expr, one);
                     else
-                        return new AssignmentExpr(Minus.OP, exprs, one);
+                        return new AssignmentExpr(Minus.OP, expr, one);
                 } else {
                     this.exceptionList.add(
                             new SyntaxErrorException(ctx.op, new OperatorCannotBeAppliedException(opText, type)));
@@ -232,7 +232,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 }
             } else {
                 UnaryOperator op = (UnaryOperator) Operator.fromText(ctx.op.getText());
-                return UnaryExpr.factory(op, exprs);
+                return UnaryExpr.factory(op, expr);
             }
         } catch (UnlocatedSyntaxErrorException exception) {
             this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));

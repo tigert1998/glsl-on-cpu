@@ -18,6 +18,9 @@ public class BinaryExpr extends Expr {
 
     public static Expr factory(BinaryOperator op, Expr[] exprs)
             throws ArithmeticException, OperatorCannotBeAppliedException {
+        if (op instanceof NotEqual) {
+            return UnaryExpr.factory(LogicalNot.OP, factory(Equal.OP, exprs));
+        }
         if (exprs[0] instanceof ConstExpr && exprs[1] instanceof ConstExpr) {
             return new ConstExpr(op.apply(((ConstExpr) exprs[0]).getValue(), ((ConstExpr) exprs[1]).getValue()));
         } else {

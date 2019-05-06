@@ -417,15 +417,12 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
 
     @Override
     public StmtsWrapper visitCompoundStmt(LangParser.CompoundStmtContext ctx) {
-        var compoundStmt = new CompoundStmt();
         var stmtsWrappers = extractStmtsWrappers(ctx.stmt());
         if (stmtsWrappers == null) return null;
-        stmtsWrappers.forEach(stmtsWrapper -> {
-            compoundStmt.stmts.addAll(stmtsWrapper.stmts);
-        });
+        var stmtsWrapper = new StmtsWrapper();
+        stmtsWrappers.forEach(wrapper -> stmtsWrapper.stmts.addAll(wrapper.stmts));
         if (this.exceptionList.isEmpty()) {
-            if (compoundStmt.stmts.size() == 0) return new StmtsWrapper();
-            return StmtsWrapper.singleton(compoundStmt);
+            return stmtsWrapper;
         }
         return null;
     }
@@ -498,12 +495,9 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 var wrapper = extractStmtsWrapper(ctx.body);
                 if (wrapper != null) body = new CompoundStmt(wrapper);
             } else {
-                var stmtsWrappers = extractStmtsWrappers(ctx.body.compoundStmt().stmt());
-                if (stmtsWrappers != null) {
-                    body = new CompoundStmt();
-                    for (var wrapper : stmtsWrappers)
-                        body.stmts.addAll(wrapper.stmts);
-                }
+                var wrapper = (StmtsWrapper) ctx.body.compoundStmt().accept(this);
+                if (wrapper == null) return null;
+                body = new CompoundStmt(wrapper);
             }
         }
         scope.screwOut();

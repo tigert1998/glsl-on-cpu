@@ -2,6 +2,7 @@ package ast.values;
 
 import ast.exceptions.*;
 import ast.types.*;
+import org.bytedeco.llvm.LLVM.LLVMValueRef;
 
 import java.util.*;
 import java.util.function.*;
@@ -94,5 +95,10 @@ public class VecnValue extends Value implements Vectorized, Indexed, Selected {
         if (!vecn.getType().equals(this.getType())) return false;
         for (int i = 0; i < getN(); i++) if (values[i] != vecn.values[i]) return false;
         return true;
+    }
+
+    @Override
+    public LLVMValueRef inLLVM() {
+        return Vectorized.inLLVM(this);
     }
 }

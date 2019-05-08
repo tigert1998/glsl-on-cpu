@@ -2,7 +2,8 @@ package ast.types;
 
 import ast.exceptions.*;
 import ast.values.*;
-
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 import java.util.*;
 
 public class VecnType extends Type implements SwizzledType, IncreasableType {
@@ -26,6 +27,11 @@ public class VecnType extends Type implements SwizzledType, IncreasableType {
 
     @Override
     public Type elementType() {
+        return FloatType.TYPE;
+    }
+
+    @Override
+    public Type primitiveType() {
         return FloatType.TYPE;
     }
 
@@ -79,5 +85,10 @@ public class VecnType extends Type implements SwizzledType, IncreasableType {
         if (valueList.size() < this.getN())
             throw ConstructionFailedException.notEnoughData();
         return new VecnValue(this, valueList);
+    }
+
+    @Override
+    public LLVMTypeRef inLLVM() {
+        return LLVMArrayType(elementType().inLLVM(), getN());
     }
 }

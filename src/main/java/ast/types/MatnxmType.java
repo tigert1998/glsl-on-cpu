@@ -2,10 +2,11 @@ package ast.types;
 
 import ast.exceptions.ConstructionFailedException;
 import ast.values.*;
-
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 import java.util.*;
 
-public class MatnxmType extends Type implements IndexedType, IncreasableType {
+public class MatnxmType extends Type implements IndexedType, IncreasableType, VectorizedType {
     private int n, m;
 
     // prevent multiple new
@@ -27,6 +28,11 @@ public class MatnxmType extends Type implements IndexedType, IncreasableType {
     @Override
     public Type elementType() {
         return VecnType.fromN(m);
+    }
+
+    @Override
+    public Type primitiveType() {
+        return FloatType.TYPE;
     }
 
     private MatnxmType(int n, int m) {
@@ -96,5 +102,10 @@ public class MatnxmType extends Type implements IndexedType, IncreasableType {
         if (valueList.size() < this.getN() * this.getM())
             throw ConstructionFailedException.notEnoughData();
         return new MatnxmValue(this, valueList);
+    }
+
+    @Override
+    public LLVMTypeRef inLLVM() {
+        return LLVMArrayType(FloatType.TYPE.inLLVM(), getN() * getM());
     }
 }

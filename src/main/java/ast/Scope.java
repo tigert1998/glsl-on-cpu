@@ -4,8 +4,8 @@ import ast.exceptions.ScopeException;
 import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
-
 import java.util.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class Scope {
     static public class LookupResult {
@@ -179,7 +179,8 @@ public class Scope {
 
     public void logConstants() {
         for (var kv : innerScopes.get(0).constants.entrySet()) {
-            System.out.println("[" + kv.getKey() + "] " + kv.getValue());
+            var valuePtr = LLVMPrintValueToString(kv.getValue().inLLVM());
+            System.out.println(kv.getKey() + " = " + valuePtr.getString());
         }
     }
 

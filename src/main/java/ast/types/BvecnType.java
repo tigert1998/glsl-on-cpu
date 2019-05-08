@@ -2,6 +2,8 @@ package ast.types;
 
 import ast.exceptions.*;
 import ast.values.*;
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 import java.util.*;
 
@@ -21,6 +23,11 @@ public class BvecnType extends Type implements SwizzledType {
 
     @Override
     public Type elementType() {
+        return BoolType.TYPE;
+    }
+
+    @Override
+    public Type primitiveType() {
         return BoolType.TYPE;
     }
 
@@ -82,5 +89,10 @@ public class BvecnType extends Type implements SwizzledType {
         if (valueList.size() < this.getN())
             throw ConstructionFailedException.notEnoughData();
         return new BvecnValue(this, valueList);
+    }
+
+    @Override
+    public LLVMTypeRef inLLVM() {
+        return LLVMArrayType(elementType().inLLVM(), getN());
     }
 }

@@ -2,8 +2,9 @@ package ast.values;
 
 import ast.exceptions.*;
 import ast.types.*;
+import org.bytedeco.llvm.LLVM.*;
 
-public class Value {
+public abstract class Value {
     protected Type type = null;
 
     public Type getType() {
@@ -18,4 +19,6 @@ public class Value {
         else res = (int) (long) ((UintValue) value).value;
         return res;
     }
+
+    abstract public LLVMValueRef inLLVM();
 }

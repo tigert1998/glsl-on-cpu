@@ -1,6 +1,8 @@
 package ast.values;
 
 import ast.types.*;
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class IntValue extends Value {
     public int value;
@@ -20,5 +22,10 @@ public class IntValue extends Value {
         if (!(obj instanceof IntValue)) return false;
         var bool = (IntValue) obj;
         return bool.value == this.value;
+    }
+
+    @Override
+    public LLVMValueRef inLLVM() {
+        return LLVMConstInt(type.inLLVM(), value, 1);
     }
 }

@@ -2,9 +2,13 @@ package ast.values;
 
 import ast.exceptions.InvalidIndexException;
 import ast.types.*;
+import org.bytedeco.llvm.LLVM.LLVMValueRef;
+import org.bytedeco.javacpp.PointerPointer;
+
+import static org.bytedeco.llvm.global.LLVM.LLVMConstArray;
 
 public class ArrayValue extends Value implements Indexed {
-    public Value[] values = null;
+    public Value[] values;
 
     public ArrayValue(ArrayType type, Value value) {
         this.type = type;
@@ -44,5 +48,13 @@ public class ArrayValue extends Value implements Indexed {
             if (!arr.values[i].equals(values[i])) return false;
         }
         return true;
+    }
+
+    @Override
+    public LLVMValueRef inLLVM() {
+        var llvmValues = new LLVMValueRef[values.length];
+        for (int i = 0; i < values.length; i++) llvmValues[i] = values[i].inLLVM();
+        return LLVMConstArray(((ArrayType) type).elementType().inLLVM(),
+                new PointerPointer<>(llvmValues), llvmValues.length);
     }
 }

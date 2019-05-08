@@ -2,6 +2,7 @@ package ast.values;
 
 import ast.exceptions.*;
 import ast.types.*;
+import org.bytedeco.llvm.LLVM.LLVMValueRef;
 
 import java.util.*;
 import java.util.function.*;
@@ -125,5 +126,10 @@ public class MatnxmValue extends Value implements Vectorized, Indexed {
             for (int j = 0; j < getM(); j++)
                 if (values[i][j] != matnxm.values[i][j]) return false;
         return true;
+    }
+
+    @Override
+    public LLVMValueRef inLLVM() {
+        return Vectorized.inLLVM(this);
     }
 }

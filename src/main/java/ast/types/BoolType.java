@@ -2,6 +2,8 @@ package ast.types;
 
 import ast.exceptions.ConstructionFailedException;
 import ast.values.*;
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class BoolType extends Type {
     public static BoolType TYPE = new BoolType();
@@ -37,6 +39,10 @@ public class BoolType extends Type {
         } else if (value instanceof Vectorized) {
             return BoolType.TYPE.construct(new Value[]{((Vectorized) value).retrieve()[0]});
         } else throw ConstructionFailedException.invalidConversion(value.getType(), BoolType.TYPE);
+    }
 
+    @Override
+    public LLVMTypeRef inLLVM() {
+        return LLVMInt8Type();
     }
 }

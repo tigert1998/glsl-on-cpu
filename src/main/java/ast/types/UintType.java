@@ -2,6 +2,8 @@ package ast.types;
 
 import ast.exceptions.*;
 import ast.values.*;
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class UintType extends Type implements IncreasableType {
     public static UintType TYPE = new UintType();
@@ -43,5 +45,10 @@ public class UintType extends Type implements IncreasableType {
         } else if (value instanceof Vectorized) {
             return UintType.TYPE.construct(new Value[]{((Vectorized) value).retrieve()[0]});
         } else throw ConstructionFailedException.invalidConversion(value.getType(), UintType.TYPE);
+    }
+
+    @Override
+    public LLVMTypeRef inLLVM() {
+        return LLVMInt32Type();
     }
 }

@@ -3,6 +3,7 @@ package ast.types;
 import ast.exceptions.*;
 import ast.expr.*;
 import ast.values.*;
+import org.bytedeco.llvm.LLVM.LLVMTypeRef;
 
 import java.util.*;
 
@@ -45,4 +46,5 @@ public abstract class Type {
         return valueList;
     }
 
+    public abstract LLVMTypeRef inLLVM();
 }

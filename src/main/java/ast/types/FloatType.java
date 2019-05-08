@@ -2,6 +2,8 @@ package ast.types;
 
 import ast.exceptions.*;
 import ast.values.*;
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class FloatType extends Type implements IncreasableType {
     public static FloatType TYPE = new FloatType();
@@ -43,5 +45,10 @@ public class FloatType extends Type implements IncreasableType {
     @Override
     public FloatValue one() {
         return one;
+    }
+
+    @Override
+    public LLVMTypeRef inLLVM() {
+        return LLVMFloatType();
     }
 }

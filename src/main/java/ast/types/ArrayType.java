@@ -2,6 +2,8 @@ package ast.types;
 
 import ast.exceptions.*;
 import ast.values.*;
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class ArrayType extends Type implements IndexedType {
     private Type type;
@@ -74,5 +76,10 @@ public class ArrayType extends Type implements IndexedType {
         }
         setN(values.length);
         return new ArrayValue(this, values);
+    }
+
+    @Override
+    public LLVMTypeRef inLLVM() {
+        return LLVMArrayType(elementType().inLLVM(), getN());
     }
 }

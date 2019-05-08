@@ -1,6 +1,8 @@
 package ast.types;
 
 import ast.values.Value;
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class VoidType extends Type {
     public static Type TYPE = new VoidType();
@@ -23,5 +25,10 @@ public class VoidType extends Type {
     @Override
     public Value construct(Value[] values) {
         return null;
+    }
+
+    @Override
+    public LLVMTypeRef inLLVM() {
+        return LLVMVoidType();
     }
 }

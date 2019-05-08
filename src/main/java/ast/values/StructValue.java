@@ -2,6 +2,9 @@ package ast.values;
 
 import ast.exceptions.*;
 import ast.types.*;
+import org.bytedeco.javacpp.PointerPointer;
+import org.bytedeco.llvm.LLVM.LLVMValueRef;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class StructValue extends Value implements Selected {
     public Value[] values;
@@ -40,5 +43,12 @@ public class StructValue extends Value implements Selected {
             if (!struct.values[i].equals(values[i])) return false;
         }
         return true;
+    }
+
+    @Override
+    public LLVMValueRef inLLVM() {
+        var llvmValues = new LLVMValueRef[this.values.length];
+        for (int i = 0; i < this.values.length; i++) llvmValues[i] = values[i].inLLVM();
+        return LLVMConstStruct(new PointerPointer<>(llvmValues), llvmValues.length, 0);
     }
 }

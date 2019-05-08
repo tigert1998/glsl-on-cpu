@@ -2,11 +2,12 @@ package ast.values;
 
 import ast.exceptions.*;
 import ast.types.*;
+import org.bytedeco.llvm.LLVM.LLVMValueRef;
 
 import java.util.*;
 
 public class BvecnValue extends Value implements Vectorized, Indexed, Selected {
-    public boolean[] values = null;
+    public boolean[] values;
 
     public int getN() {
         return values.length;
@@ -65,5 +66,10 @@ public class BvecnValue extends Value implements Vectorized, Indexed, Selected {
         if (!bvecn.getType().equals(this.getType())) return false;
         for (int i = 0; i < getN(); i++) if (values[i] != bvecn.values[i]) return false;
         return true;
+    }
+
+    @Override
+    public LLVMValueRef inLLVM() {
+        return Vectorized.inLLVM(this);
     }
 }

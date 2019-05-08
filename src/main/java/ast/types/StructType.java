@@ -2,7 +2,9 @@ package ast.types;
 
 import ast.exceptions.ConstructionFailedException;
 import ast.values.*;
-
+import org.bytedeco.javacpp.PointerPointer;
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 import java.util.*;
 
 public class StructType extends Type {
@@ -90,5 +92,13 @@ public class StructType extends Type {
                 throw ConstructionFailedException.fieldTypeNotMatch();
         }
         return new StructValue(this, values);
+    }
+
+    @Override
+    public LLVMTypeRef inLLVM() {
+        var types = new LLVMTypeRef[totalFields()];
+        for (int i = 0; i < types.length; i++)
+            types[i] = fieldInfoList.get(i).type.inLLVM();
+        return LLVMStructType(new PointerPointer<>(types), types.length, 0);
     }
 }

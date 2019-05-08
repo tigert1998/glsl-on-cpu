@@ -10,7 +10,11 @@ public class Main {
         var mod = LLVMModuleCreateWithName("fib");
         var builder = LLVMCreateBuilder();
 
-        LLVMStructType(LLVMArrayType(LLVMFloatType(), 9), 1, 1);
+//        var atype = LLVMStructType(LLVMArrayType(LLVMFloatType(), 9), 1, 0);
+//        var atype = LLVMConstNamedStruct(LLVMStructType(LLVMArrayType(LLVMFloatType(), 9), 1, 0));
+//        var fucka = LLVMAddGlobal(mod, LLVMInt32Type(), "fucka");
+//        LLVMSetInitializer(fucka, LLVMConstInt(LLVMInt32Type(), 3, 1));
+//        LLVMConst
 
         var printd = LLVMAddFunction(mod,"printd",
                 LLVMFunctionType(LLVMVoidType(), LLVMInt32Type(), 1, 0));

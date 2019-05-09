@@ -2,7 +2,6 @@ package codegen;
 
 import ast.Scope;
 
-import ast.types.IvecnType;
 import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
 
@@ -21,6 +20,7 @@ public class CodeGenerator {
             var stmt = kv.getValue();
             var value = LLVMAddGlobal(module, stmt.type.inLLVM(), kv.getKey());
             LLVMSetInitializer(value, stmt.type.zero().inLLVM());
+            stmt.setLLVMValue(value);
         }
         buildGlobalVarInit();
     }
@@ -37,7 +37,11 @@ public class CodeGenerator {
                 LLVMFunctionType(LLVMVoidType(), LLVMVoidType(), 0, 0));
         var init = LLVMAppendBasicBlock(func, "init");
         var entry = LLVMAppendBasicBlock(func, "entry");
-        IvecnType.fromN(3).zero().ptrInLLVM(func);
+
+        for (var kv : scope.innerScopes.peek().variables.entrySet()) {
+            var llvmValue = kv.getValue().expr.evaluate(func, scope);
+            kv.getValue().storeLLVMValue(func, llvmValue);
+        }
 
         var builder = LLVMCreateBuilder();
         LLVMPositionBuilderAtEnd(builder, init);

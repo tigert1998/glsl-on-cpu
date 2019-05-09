@@ -65,6 +65,11 @@ public class MatnxmType extends Type implements IndexedType, IncreasableType, Ve
     }
 
     @Override
+    public int vectorizedLength() {
+        return n * m;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (MatnxmType.class != obj.getClass()) return false;
         MatnxmType matObj = (MatnxmType) obj;
@@ -107,5 +112,10 @@ public class MatnxmType extends Type implements IndexedType, IncreasableType, Ve
     @Override
     public LLVMTypeRef inLLVM() {
         return LLVMArrayType(FloatType.TYPE.inLLVM(), getN() * getM());
+    }
+
+    @Override
+    public LLVMTypeRef withInnerPtrInLLVM() {
+        return VectorizedType.withInnerPtrInLLVM(this);
     }
 }

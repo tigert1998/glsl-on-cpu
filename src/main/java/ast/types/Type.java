@@ -46,5 +46,13 @@ public abstract class Type {
         return valueList;
     }
 
+    // i32, float, i8
+    // [n x i32] [n x float] [n x i8]
     public abstract LLVMTypeRef inLLVM();
+
+    // i32, float, i8
+    // [n x i32*] [n x float*] [n x i8*]
+    public LLVMTypeRef withInnerPtrInLLVM() {
+        return inLLVM();
+    }
 }

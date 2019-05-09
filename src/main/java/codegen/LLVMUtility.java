@@ -1,6 +1,8 @@
 package codegen;
 
+import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.llvm.LLVM.*;
+
 import java.util.function.*;
 
 import static org.bytedeco.llvm.global.LLVM.*;
@@ -15,7 +17,6 @@ public class LLVMUtility {
                                                   BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
         // [l, r)
         var builder = LLVMCreateBuilder();
-        var firstBlock = LLVMGetFirstBasicBlock(fn);
         var lastBlock = LLVMGetLastBasicBlock(fn);
 
         var forCond = LLVMAppendBasicBlock(fn, name + ".for.cond");
@@ -23,8 +24,7 @@ public class LLVMUtility {
         var forStep = LLVMAppendBasicBlock(fn, name + ".for.step");
         var forEnd = LLVMAppendBasicBlock(fn, name + ".for.end");
 
-        LLVMPositionBuilderAtEnd(builder, firstBlock);
-        var ip = LLVMBuildAlloca(builder, LLVMInt32Type(), name + ".for.ip");
+        var ip = buildAllocaInFirstBlock(fn, LLVMInt32Type(), name + ".for.ip");
 
         LLVMPositionBuilderAtEnd(builder, lastBlock);
         LLVMBuildStore(builder, l, ip);
@@ -46,5 +46,45 @@ public class LLVMUtility {
         LLVMBuildBr(builder, forCond);
 
         return forEnd;
+    }
+
+    public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, int[] indices,
+                                                  BiFunction<LLVMBuilderRef, Integer, Void> bodyAppender) {
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(fn));
+        for (int i = 0; i < indices.length; i++) {
+            bodyAppender.apply(builder, i);
+        }
+        return LLVMGetLastBasicBlock(fn);
+    }
+
+    public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, int l, int r, String name,
+                                                  BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
+        return appendForLoop(fn, constant(l), constant(r), name, bodyAppender);
+    }
+
+    public static LLVMValueRef buildGEP(LLVMBuilderRef builder, LLVMValueRef pointer, LLVMValueRef[] indices, String name) {
+        return LLVMBuildGEP(builder, pointer, new PointerPointer<>(indices), indices.length, name);
+    }
+
+    public static LLVMValueRef buildGEP(LLVMBuilderRef builder, LLVMValueRef pointer, String name, LLVMValueRef... indices) {
+        return buildGEP(builder, pointer, indices, name);
+    }
+
+    public static LLVMValueRef buildGEP(LLVMBuilderRef builder, LLVMValueRef pointer, int[] indices, String name) {
+        var newIndices = new LLVMValueRef[indices.length];
+        for (int i = 0; i < indices.length; i++) newIndices[i] = constant(indices[i]);
+        return buildGEP(builder, pointer, newIndices, name);
+    }
+
+    public static LLVMValueRef buildAllocaInFirstBlock(LLVMValueRef function, LLVMTypeRef type, String name) {
+        var block = LLVMGetFirstBasicBlock(function);
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, block);
+        return LLVMBuildAlloca(builder, type, name);
+    }
+
+    public static void log(LLVMValueRef value) {
+        System.out.println(LLVMPrintValueToString(value).getString());
     }
 }

@@ -1,13 +1,32 @@
 package ast.expr;
 
+import ast.*;
 import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
 import org.json.JSONObject;
+import org.bytedeco.llvm.LLVM.*;
+
+import java.util.*;
+
+import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
+
 
 public class SwizzleExpr extends Expr {
     private Expr expr;
     private int[] indices;
+
+    static private Map<String, FunctionSignature> swizzleFuncSigs = new TreeMap<>();
+
+    static {
+        String[] typeNames = SwizzledType.typeNames();
+        for (var name : typeNames) {
+            String id = ".swizzle." + name.toLowerCase().substring(0, name.length() - 4);
+            var sig = new FunctionSignature(VoidType.TYPE, id);
+            swizzleFuncSigs.put(name, sig);
+        }
+    }
 
     private SwizzleExpr(Expr expr, int[] indices) {
         this.isLValue = expr.isLValue && !SwizzleUtility.isDuplicate(indices);
@@ -43,6 +62,27 @@ public class SwizzleExpr extends Expr {
             return new SwizzleExpr(((SwizzleExpr) expr).expr, newIndices);
         } else {
             return new SwizzleExpr(expr, indices);
+        }
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
+        var value = expr.evaluate(function, scope);
+        var builder = LLVMCreateBuilder();
+        var block = LLVMGetLastBasicBlock(function);
+        LLVMPositionBuilderAtEnd(builder, block);
+        if (indices.length == 1) {
+            return LLVMBuildLoad(builder, buildGEP(builder, value, new int[]{0, indices[0]}, ""), "");
+        } else {
+            var result = buildAllocaInFirstBlock(function, type.withInnerPtrInLLVM(), "");
+            appendForLoop(function, indices, (bodyBuilder, i) -> {
+                var from = LLVMBuildLoad(bodyBuilder,
+                        buildGEP(bodyBuilder, value,"", constant(0), constant(indices[i])), "");
+                var to = buildGEP(bodyBuilder, result, "", constant(0), constant(i));
+                LLVMBuildStore(bodyBuilder, from, to);
+                return null;
+            });
+            return result;
         }
     }
 

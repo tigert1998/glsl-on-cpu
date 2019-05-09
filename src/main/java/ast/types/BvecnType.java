@@ -41,6 +41,11 @@ public class BvecnType extends Type implements SwizzledType {
     }
 
     @Override
+    public int vectorizedLength() {
+        return n;
+    }
+
+    @Override
     public SwizzledType changeN(int n) {
         return fromN(n);
     }
@@ -94,5 +99,10 @@ public class BvecnType extends Type implements SwizzledType {
     @Override
     public LLVMTypeRef inLLVM() {
         return LLVMArrayType(elementType().inLLVM(), getN());
+    }
+
+    @Override
+    public LLVMTypeRef withInnerPtrInLLVM() {
+        return VectorizedType.withInnerPtrInLLVM(this);
     }
 }

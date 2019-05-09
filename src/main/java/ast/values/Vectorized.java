@@ -1,7 +1,6 @@
 package ast.values;
 
-import ast.types.Type;
-import ast.types.VectorizedType;
+import ast.types.*;
 import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
 
@@ -19,30 +18,26 @@ public interface Vectorized {
                 new PointerPointer<>(llvmValues), llvmValues.length);
     }
 
-    // [n x i32*]*
+    // [n x elementType*]*
     static LLVMValueRef ptrInLLVM(Vectorized value, LLVMValueRef function) {
-        var values = value.retrieve();
-        var type = (VectorizedType) ((Value) value).getType();
-        var ptrArrType = LLVMArrayType(LLVMPointerType(type.primitiveType().inLLVM(), 0), values.length);
+        var type = ((Value) value).getType();
+        var vectorizedType = (VectorizedType) type;
 
-        var firstBlock = LLVMGetFirstBasicBlock(function);
-        var lastBlock = LLVMGetLastBasicBlock(function);
+        var arrPtr = buildAllocaInFirstBlock(function, type.inLLVM(), "");
+        var ptrArrPtr = buildAllocaInFirstBlock(function, type.withInnerPtrInLLVM(), "");
+
         var builder = LLVMCreateBuilder();
-
-        LLVMPositionBuilderAtEnd(builder, firstBlock);
-        var arrPtr = LLVMBuildAlloca(builder, ((Type) type).inLLVM(), "");
-        var ptrArrPtr = LLVMBuildAlloca(builder, ptrArrType, "");
-
-        LLVMPositionBuilderAtEnd(builder, lastBlock);
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
         LLVMBuildStore(builder, inLLVM(value), arrPtr);
 
-        appendForLoop(function, constant(0), constant(values.length), "", (bodyBuilder, i) -> {
-            var indices = new LLVMValueRef[]{constant(0), i};
-            var ptrPtr = LLVMBuildGEP(bodyBuilder, ptrArrPtr, new PointerPointer<>(indices), indices.length, "");
-            var ptr = LLVMBuildGEP(bodyBuilder, arrPtr, new PointerPointer<>(indices), indices.length, "");
-            LLVMBuildStore(bodyBuilder, ptr, ptrPtr);
-            return null;
-        });
+        appendForLoop(function, constant(0), constant(vectorizedType.vectorizedLength()), "ptr_arr_ptr",
+                (bodyBuilder, i) -> {
+                    var indices = new LLVMValueRef[]{constant(0), i};
+                    var ptrPtr = buildGEP(bodyBuilder, ptrArrPtr, indices, "");
+                    var ptr = buildGEP(bodyBuilder, arrPtr, indices, "");
+                    LLVMBuildStore(bodyBuilder, ptr, ptrPtr);
+                    return null;
+                });
 
         return ptrArrPtr;
     }

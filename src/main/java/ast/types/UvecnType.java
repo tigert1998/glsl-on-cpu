@@ -41,6 +41,11 @@ public class UvecnType extends Type implements SwizzledType, IncreasableType {
     }
 
     @Override
+    public int vectorizedLength() {
+        return n;
+    }
+
+    @Override
     public SwizzledType changeN(int n) {
         return fromN(n);
     }
@@ -99,5 +104,10 @@ public class UvecnType extends Type implements SwizzledType, IncreasableType {
     @Override
     public LLVMTypeRef inLLVM() {
         return LLVMArrayType(elementType().inLLVM(), getN());
+    }
+
+    @Override
+    public LLVMTypeRef withInnerPtrInLLVM() {
+        return VectorizedType.withInnerPtrInLLVM(this);
     }
 }

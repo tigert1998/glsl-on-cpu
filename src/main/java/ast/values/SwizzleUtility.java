@@ -45,7 +45,7 @@ public class SwizzleUtility {
     }
 
     static public int[] swizzle(int n, String name) throws InvalidSelectionException {
-        if (name.length() > n) throw InvalidSelectionException.illegalVectorFieldSelection(name);
+        if (name.length() >= 5) throw InvalidSelectionException.illegalVectorFieldSelection(name);
         int[] res = new int[name.length()];
         for (int i = 0; i < name.length(); i++) {
             try {

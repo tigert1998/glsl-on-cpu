@@ -1,7 +1,9 @@
 package ast.expr;
 
+import ast.Scope;
 import ast.values.*;
 
+import org.bytedeco.llvm.LLVM.LLVMValueRef;
 import org.json.*;
 
 public class ConstExpr extends Expr {
@@ -15,6 +17,11 @@ public class ConstExpr extends Expr {
 
     public Value getValue() {
         return value;
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
+        return value.ptrInLLVM(function);
     }
 
     @Override

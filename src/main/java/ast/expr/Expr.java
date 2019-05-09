@@ -1,8 +1,10 @@
 package ast.expr;
 
 import ast.AST;
+import ast.Scope;
 import ast.types.Type;
 
+import org.bytedeco.llvm.LLVM.LLVMValueRef;
 import org.json.*;
 
 public abstract class Expr extends AST {
@@ -15,6 +17,10 @@ public abstract class Expr extends AST {
 
     public boolean isLValue() {
         return isLValue;
+    }
+
+    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
+        return null;
     }
 
     public JSONObject toJSON() {

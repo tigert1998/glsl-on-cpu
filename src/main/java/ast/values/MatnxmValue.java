@@ -132,4 +132,9 @@ public class MatnxmValue extends Value implements Vectorized, Indexed {
     public LLVMValueRef inLLVM() {
         return Vectorized.inLLVM(this);
     }
+
+    @Override
+    public LLVMValueRef ptrInLLVM(LLVMValueRef function) {
+        return Vectorized.ptrInLLVM(this, function);
+    }
 }

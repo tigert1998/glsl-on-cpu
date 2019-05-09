@@ -11,6 +11,6 @@ public abstract class AST {
 
     @Override
     public String toString() {
-        return toJSON().toString(4);
+        return toJSON().toString(2);
     }
 }

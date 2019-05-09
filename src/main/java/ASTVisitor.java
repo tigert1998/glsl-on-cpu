@@ -222,9 +222,9 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 if (type instanceof IncreasableType) {
                     var one = new ConstExpr(((IncreasableType) type).one());
                     if (opText.equals("++"))
-                        return new AssignmentExpr(Plus.OP, expr, one);
+                        return new AssignmentExpr(expr, BinaryExpr.factory(Plus.OP, new Expr[]{expr, one}));
                     else
-                        return new AssignmentExpr(Minus.OP, expr, one);
+                        return new AssignmentExpr(expr, BinaryExpr.factory(Minus.OP, new Expr[]{expr, one}));
                 } else {
                     this.exceptionList.add(
                             new SyntaxErrorException(ctx.op, new OperatorCannotBeAppliedException(opText, type)));
@@ -315,7 +315,8 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         BinaryOperator op = opText.equals("=") ? null :
                 (BinaryOperator) Operator.fromText(opText.substring(0, opText.length() - 1));
         try {
-            return new AssignmentExpr(op, exprs[0], exprs[1]);
+            if (op == null) return new AssignmentExpr(exprs[0], exprs[1]);
+            return new AssignmentExpr(exprs[0], BinaryExpr.factory(op, exprs));
         } catch (UnlocatedSyntaxErrorException exception) {
             this.exceptionList.add(new SyntaxErrorException(ctx.start, exception));
             return null;
@@ -496,8 +497,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 if (wrapper != null) body = new CompoundStmt(wrapper);
             } else {
                 var wrapper = (StmtsWrapper) ctx.body.compoundStmt().accept(this);
-                if (wrapper == null) return null;
-                body = new CompoundStmt(wrapper);
+                if (wrapper != null) body = new CompoundStmt(wrapper);
             }
         }
         scope.screwOut();

@@ -1,7 +1,11 @@
+import codegen.CodeGenerator;
+import codegen.LLVMUtility;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
+
+import java.io.*;
 
 import static org.bytedeco.llvm.global.LLVM.*;
 
@@ -10,13 +14,7 @@ public class Main {
         var mod = LLVMModuleCreateWithName("fib");
         var builder = LLVMCreateBuilder();
 
-//        var atype = LLVMStructType(LLVMArrayType(LLVMFloatType(), 9), 1, 0);
-//        var atype = LLVMConstNamedStruct(LLVMStructType(LLVMArrayType(LLVMFloatType(), 9), 1, 0));
-//        var fucka = LLVMAddGlobal(mod, LLVMInt32Type(), "fucka");
-//        LLVMSetInitializer(fucka, LLVMConstInt(LLVMInt32Type(), 3, 1));
-//        LLVMConst
-
-        var printd = LLVMAddFunction(mod,"printd",
+        var printd = LLVMAddFunction(mod, "printd",
                 LLVMFunctionType(LLVMVoidType(), LLVMInt32Type(), 1, 0));
         LLVMSetLinkage(printd, LLVMExternalLinkage);
 
@@ -31,14 +29,14 @@ public class Main {
         LLVMBuildStore(builder, LLVMUtility.constant(1), bp);
 
         var end = LLVMUtility.appendForLoop(fib, LLVMUtility.constant(1), LLVMGetParam(fib, 0), "for",
-                (bodyBuilder -> {
+                (bodyBuilder, i) -> {
                     var a = LLVMBuildLoad(bodyBuilder, ap, "a");
                     var b = LLVMBuildLoad(bodyBuilder, bp, "b");
                     var c = LLVMBuildAdd(bodyBuilder, a, b, "c");
                     LLVMBuildStore(bodyBuilder, b, ap);
                     LLVMBuildStore(bodyBuilder, c, bp);
                     return null;
-        }));
+                });
 
         LLVMPositionBuilderAtEnd(builder, end);
         var a = LLVMBuildLoad(builder, ap, "a");
@@ -77,14 +75,15 @@ public class Main {
         programListener.getScope().logStructs();
         programListener.getScope().logFunctions();
 
-        System.out.println("<<<<<<<");
-        System.out.println(programListener.getProgramAST());
-        System.out.println(">>>>>>>");
+        var writer = new FileWriter("/Users/tigertang/CodeSandBox/ast.json");
+        programListener.getProgramAST().toJSON().write(writer, 2, 0);
+        writer.close();
 
         for (var exception : programListener.getExceptionList()) {
             System.out.println(exception.getMessage());
         }
 
-        testLLVM();
+        var generator = new CodeGenerator("fuck", programListener.getScope());
+        generator.dump("/Users/tigertang/CodeSandBox/fuck.bc");
     }
 }

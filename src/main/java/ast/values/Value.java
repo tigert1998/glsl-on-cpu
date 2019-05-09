@@ -3,6 +3,7 @@ package ast.values;
 import ast.exceptions.*;
 import ast.types.*;
 import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public abstract class Value {
     protected Type type = null;
@@ -21,4 +22,17 @@ public abstract class Value {
     }
 
     abstract public LLVMValueRef inLLVM();
+
+    public LLVMValueRef ptrInLLVM(LLVMValueRef function) {
+        var firstBlock = LLVMGetFirstBasicBlock(function);
+        var lastBlock = LLVMGetLastBasicBlock(function);
+        var builder = LLVMCreateBuilder();
+
+        LLVMPositionBuilderAtEnd(builder, firstBlock);
+        var ptr = LLVMBuildAlloca(builder, type.inLLVM(), "");
+
+        LLVMPositionBuilderAtEnd(builder, lastBlock);
+        LLVMBuildStore(builder, inLLVM(), ptr);
+        return ptr;
+    }
 }

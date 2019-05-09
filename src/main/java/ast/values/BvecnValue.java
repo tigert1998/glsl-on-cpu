@@ -2,7 +2,7 @@ package ast.values;
 
 import ast.exceptions.*;
 import ast.types.*;
-import org.bytedeco.llvm.LLVM.LLVMValueRef;
+import org.bytedeco.llvm.LLVM.*;
 
 import java.util.*;
 
@@ -71,5 +71,10 @@ public class BvecnValue extends Value implements Vectorized, Indexed, Selected {
     @Override
     public LLVMValueRef inLLVM() {
         return Vectorized.inLLVM(this);
+    }
+
+    @Override
+    public LLVMValueRef ptrInLLVM(LLVMValueRef function) {
+        return Vectorized.ptrInLLVM(this, function);
     }
 }

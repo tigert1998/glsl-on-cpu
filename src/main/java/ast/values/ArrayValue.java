@@ -2,8 +2,8 @@ package ast.values;
 
 import ast.exceptions.InvalidIndexException;
 import ast.types.*;
-import org.bytedeco.llvm.LLVM.LLVMValueRef;
-import org.bytedeco.javacpp.PointerPointer;
+import org.bytedeco.llvm.LLVM.*;
+import org.bytedeco.javacpp.*;
 
 import static org.bytedeco.llvm.global.LLVM.LLVMConstArray;
 

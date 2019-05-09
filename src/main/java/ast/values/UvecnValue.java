@@ -116,4 +116,9 @@ public class UvecnValue extends Value implements Vectorized, Indexed, Selected {
     public LLVMValueRef inLLVM() {
         return Vectorized.inLLVM(this);
     }
+
+    @Override
+    public LLVMValueRef ptrInLLVM(LLVMValueRef function) {
+        return Vectorized.ptrInLLVM(this, function);
+    }
 }

@@ -3,6 +3,7 @@ package ast.stmt;
 import ast.*;
 import ast.expr.*;
 import ast.types.*;
+import codegen.LLVMUtility;
 import org.bytedeco.llvm.LLVM.*;
 
 import static org.bytedeco.llvm.global.LLVM.*;
@@ -55,19 +56,7 @@ public class DeclarationStmt extends Stmt {
     // load e* from e*
     // load [n x e*]* from [n x e]*
     public LLVMValueRef loadLLVMValue(LLVMValueRef function) {
-        if (type instanceof VectorizedType) {
-            var result = buildAllocaInFirstBlock(function, type.withInnerPtrInLLVM(), "");
-            appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "decl_load",
-                    (bodyBuilder, i) -> {
-                        var from = buildGEP(bodyBuilder, this.llvmValue, "", constant(0), i);
-                        var to = buildGEP(bodyBuilder, result, "", constant(0), i);
-                        LLVMBuildStore(bodyBuilder, from, to);
-                        return null;
-                    });
-            return result;
-        } else {
-            return llvmValue;
-        }
+        return LLVMUtility.preloadPtrValue(this.type, function, this.llvmValue);
     }
 
     @Override

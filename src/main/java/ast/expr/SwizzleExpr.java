@@ -60,9 +60,9 @@ public class SwizzleExpr extends Expr {
             return LLVMBuildLoad(builder, buildGEP(builder, value, new int[]{0, indices[0]}, ""), "");
         } else {
             var result = buildAllocaInFirstBlock(function, type.withInnerPtrInLLVM(), "");
-            appendForLoop(function, indices, (bodyBuilder, i) -> {
+            appendForLoop(function, indices, (bodyBuilder, i, index) -> {
                 var from = LLVMBuildLoad(bodyBuilder,
-                        buildGEP(bodyBuilder, value,"", constant(0), constant(indices[i])), "");
+                        buildGEP(bodyBuilder, value,"", constant(0), index), "");
                 var to = buildGEP(bodyBuilder, result, "", constant(0), constant(i));
                 LLVMBuildStore(bodyBuilder, from, to);
                 return null;

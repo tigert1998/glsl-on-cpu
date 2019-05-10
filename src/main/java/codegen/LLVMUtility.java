@@ -1,7 +1,9 @@
 package codegen;
 
+import ast.types.*;
 import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.llvm.LLVM.*;
+import util.*;
 
 import java.util.function.*;
 
@@ -12,8 +14,7 @@ public class LLVMUtility {
         return LLVMConstInt(LLVMInt32Type(), x, 1);
     }
 
-    public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn,
-                                                  LLVMValueRef l, LLVMValueRef r, String name,
+    public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, LLVMValueRef l, LLVMValueRef r, String name,
                                                   BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
         // [l, r)
         var builder = LLVMCreateBuilder();
@@ -49,11 +50,11 @@ public class LLVMUtility {
     }
 
     public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, int[] indices,
-                                                  BiFunction<LLVMBuilderRef, Integer, Void> bodyAppender) {
+                                                  TriFunction<LLVMBuilderRef, Integer, LLVMValueRef, Void> bodyAppender) {
         var builder = LLVMCreateBuilder();
         LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(fn));
         for (int i = 0; i < indices.length; i++) {
-            bodyAppender.apply(builder, i);
+            bodyAppender.apply(builder, i, constant(indices[i]));
         }
         return LLVMGetLastBasicBlock(fn);
     }
@@ -82,6 +83,24 @@ public class LLVMUtility {
         var builder = LLVMCreateBuilder();
         LLVMPositionBuilderAtEnd(builder, block);
         return LLVMBuildAlloca(builder, type, name);
+    }
+
+    // load e* from e*, type: e
+    // load [n x e*]* from [n x e]*, type: Vectorized
+    public static LLVMValueRef preloadPtrValue(Type type, LLVMValueRef function, LLVMValueRef value) {
+        if (type instanceof VectorizedType) {
+            var result = buildAllocaInFirstBlock(function, type.withInnerPtrInLLVM(), "");
+            appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "decl_load",
+                    (bodyBuilder, i) -> {
+                        var from = buildGEP(bodyBuilder, value, "", constant(0), i);
+                        var to = buildGEP(bodyBuilder, result, "", constant(0), i);
+                        LLVMBuildStore(bodyBuilder, from, to);
+                        return null;
+                    });
+            return result;
+        } else {
+            return value;
+        }
     }
 
     public static void log(LLVMValueRef value) {

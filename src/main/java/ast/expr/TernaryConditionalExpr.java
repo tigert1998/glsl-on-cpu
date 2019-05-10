@@ -1,9 +1,14 @@
 package ast.expr;
 
+import ast.Scope;
 import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
+import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
+
+import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
 
 public class TernaryConditionalExpr extends Expr {
     private Expr judgement;
@@ -26,6 +31,34 @@ public class TernaryConditionalExpr extends Expr {
             return ((BoolValue) ((ConstExpr) judgement).getValue()).value ? x : y;
         }
         return new TernaryConditionalExpr(judgement, x, y);
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
+        var xptr = x.evaluate(function, scope);
+        var yptr = y.evaluate(function, scope);
+
+        var result = buildAllocaInFirstBlock(function, this.type.withInnerPtrInLLVM(), "");
+
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+        var judge = LLVMBuildLoad(builder, judgement.evaluate(function, scope), "");
+        judge = LLVMBuildIntCast2(builder, judge, LLVMInt1Type(), 0, "");
+
+        var blockX = LLVMAppendBasicBlock(function, "ternary_cond_x");
+        var blockY = LLVMAppendBasicBlock(function, "ternary_cond_y");
+        var end = LLVMAppendBasicBlock(function, "ternary_cond_end");
+
+        LLVMBuildCondBr(builder, judge, blockX, blockY);
+
+        LLVMPositionBuilderAtEnd(builder, blockX);
+        LLVMBuildStore(builder, LLVMBuildLoad(builder, xptr, ""), result);
+        LLVMBuildBr(builder, end);
+
+        LLVMPositionBuilderAtEnd(builder, blockY);
+        LLVMBuildStore(builder, LLVMBuildLoad(builder, yptr, ""), result);
+        LLVMBuildBr(builder, end);
+        return result;
     }
 
     @Override

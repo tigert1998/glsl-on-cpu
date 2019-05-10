@@ -83,7 +83,7 @@ public class Main {
             System.out.println(exception.getMessage());
         }
 
-        var generator = new CodeGenerator("fuck", programListener.getScope());
+        var generator = new CodeGenerator("fuck", programListener.getScope(), programListener.getProgramAST());
         generator.dump("/Users/tigertang/CodeSandBox/fuck.bc");
     }
 }

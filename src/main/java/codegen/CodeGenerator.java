@@ -1,6 +1,6 @@
 package codegen;
 
-import ast.Scope;
+import ast.*;
 
 import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
@@ -10,11 +10,13 @@ import static codegen.LLVMUtility.*;
 
 public class CodeGenerator {
     private Scope scope;
+    private ProgramAST program;
 
     private LLVMModuleRef module;
 
-    public CodeGenerator(String name, Scope scope) {
+    public CodeGenerator(String name, Scope scope, ProgramAST program) {
         this.scope = scope;
+        this.program = program;
 
         module = LLVMModuleCreateWithName(name);
         for (var kv : scope.innerScopes.peek().variables.entrySet()) {
@@ -39,9 +41,9 @@ public class CodeGenerator {
         var init = LLVMAppendBasicBlock(func, "init");
         var entry = LLVMAppendBasicBlock(func, "entry");
 
-        for (var kv : scope.innerScopes.peek().variables.entrySet()) {
-            var llvmValue = kv.getValue().expr.evaluate(func, scope);
-            kv.getValue().storeLLVMValue(func, llvmValue);
+        for (var decl : program.getDeclarationStmts()) {
+            var llvmValue = decl.expr.evaluate(func, scope);
+            decl.storeLLVMValue(func, llvmValue);
         }
 
         var builder = LLVMCreateBuilder();

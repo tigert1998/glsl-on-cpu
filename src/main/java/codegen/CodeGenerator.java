@@ -6,6 +6,7 @@ import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
 
 import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
 
 public class CodeGenerator {
     private Scope scope;

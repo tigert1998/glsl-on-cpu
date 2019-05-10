@@ -87,4 +87,12 @@ public class LLVMUtility {
     public static void log(LLVMValueRef value) {
         System.out.println(LLVMPrintValueToString(value).getString());
     }
+
+    public static void log(String tag, LLVMValueRef value) {
+        System.out.println("[" + tag + "] " + LLVMPrintValueToString(value).getString());
+    }
+
+    public static void log(LLVMModuleRef module) {
+        System.out.println(LLVMPrintModuleToString(module).getString());
+    }
 }

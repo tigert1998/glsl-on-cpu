@@ -1,9 +1,14 @@
 package ast.expr;
 
+import ast.Scope;
 import ast.exceptions.*;
 import ast.types.*;
 import ast.values.*;
+import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
+
+import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
 
 public class SelectionExpr extends Expr {
     public Expr expr;
@@ -27,6 +32,17 @@ public class SelectionExpr extends Expr {
         } else {
             return new SelectionExpr(expr, selection);
         }
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
+        var value = expr.evaluate(function, scope);
+        int idx = ((StructType) expr.getType()).getFieldInfoIndex(selection);
+
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+        var result = buildGEP(builder, value, "", 0, idx);
+        return preloadPtrValue(this.type, function, result);
     }
 
     @Override

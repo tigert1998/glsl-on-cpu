@@ -14,6 +14,10 @@ public class LLVMUtility {
         return LLVMConstInt(LLVMInt32Type(), x, 1);
     }
 
+    public static LLVMValueRef constant(float x) {
+        return LLVMConstReal(LLVMFloatType(), x);
+    }
+
     public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, LLVMValueRef l, LLVMValueRef r, String name,
                                                   BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
         // [l, r)
@@ -76,6 +80,10 @@ public class LLVMUtility {
         var newIndices = new LLVMValueRef[indices.length];
         for (int i = 0; i < indices.length; i++) newIndices[i] = constant(indices[i]);
         return buildGEP(builder, pointer, newIndices, name);
+    }
+
+    public static LLVMValueRef buildGEP(LLVMBuilderRef builder, LLVMValueRef pointer, String name, int... indices) {
+        return buildGEP(builder, pointer, indices, name);
     }
 
     public static LLVMValueRef buildAllocaInFirstBlock(LLVMValueRef function, LLVMTypeRef type, String name) {

@@ -1,8 +1,10 @@
 package ast.expr;
 
+import ast.Scope;
 import ast.types.*;
 import ast.values.*;
 import ast.exceptions.*;
+import org.bytedeco.llvm.LLVM.LLVMValueRef;
 import org.json.*;
 
 public class ConstructionExpr extends Expr {
@@ -25,6 +27,11 @@ public class ConstructionExpr extends Expr {
             values[i] = ((ConstExpr) expr).getValue();
         }
         return new ConstExpr(type.construct(values));
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
+        return this.type.construct(exprs, function, scope);
     }
 
     @Override

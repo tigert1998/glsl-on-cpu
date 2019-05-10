@@ -1,8 +1,11 @@
 package ast.types;
 
+import ast.*;
 import ast.exceptions.*;
 import ast.values.*;
 import org.bytedeco.llvm.LLVM.*;
+
+import static codegen.LLVMUtility.*;
 import static org.bytedeco.llvm.global.LLVM.*;
 
 public class FloatType extends Type implements IncreasableType {
@@ -50,5 +53,30 @@ public class FloatType extends Type implements IncreasableType {
     @Override
     public LLVMTypeRef inLLVM() {
         return LLVMFloatType();
+    }
+
+    @Override
+    public LLVMValueRef construct(Type[] types, LLVMValueRef[] values, LLVMValueRef function, Scope scope) {
+        var type = types[0];
+        var valuePtr = values[0];
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+
+        if (type instanceof IntType) {
+            var from = LLVMBuildSIToFP(builder, LLVMBuildLoad(builder, valuePtr, ""), LLVMFloatType(), "");
+            var to = buildAllocaInFirstBlock(function, LLVMFloatType(), "");
+            LLVMBuildStore(builder, from, to);
+            return to;
+        } else if (type instanceof UintType || type instanceof BoolType) {
+            var from = LLVMBuildUIToFP(builder, LLVMBuildLoad(builder, valuePtr, ""), LLVMFloatType(), "");
+            var to = buildAllocaInFirstBlock(function, LLVMFloatType(), "");
+            LLVMBuildStore(builder, from, to);
+            return to;
+        } else if (type instanceof FloatType) {
+            return valuePtr;
+        } else {
+            var from = LLVMBuildLoad(builder, buildGEP(builder, valuePtr, "", 0, 0), "");
+            return construct(((VectorizedType) type).primitiveType(), from, function, scope);
+        }
     }
 }

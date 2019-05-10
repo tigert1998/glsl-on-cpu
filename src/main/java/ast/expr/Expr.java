@@ -19,6 +19,7 @@ public abstract class Expr extends AST {
         return isLValue;
     }
 
+    // FIXME: should be abstract
     public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
         return null;
     }

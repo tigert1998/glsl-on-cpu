@@ -1,8 +1,11 @@
 package ast.types;
 
+import ast.*;
 import ast.exceptions.*;
 import ast.values.*;
 import org.bytedeco.llvm.LLVM.*;
+
+import static codegen.LLVMUtility.*;
 import static org.bytedeco.llvm.global.LLVM.*;
 
 public class UintType extends Type implements IncreasableType {
@@ -39,7 +42,7 @@ public class UintType extends Type implements IncreasableType {
         } else if (value instanceof BoolValue) {
             return new UintValue(((BoolValue) value).value ? 1 : 0);
         } else if (value instanceof FloatValue) {
-            return new UintValue(dropFractionPart(((FloatValue) value).value));
+            return new UintValue((int) (((FloatValue) value).value));
         } else if (value instanceof IntValue) {
             return new UintValue(((IntValue) value).value);
         } else if (value instanceof Vectorized) {
@@ -50,5 +53,31 @@ public class UintType extends Type implements IncreasableType {
     @Override
     public LLVMTypeRef inLLVM() {
         return LLVMInt32Type();
+    }
+
+    @Override
+    public LLVMValueRef construct(Type[] types, LLVMValueRef[] values, LLVMValueRef function, Scope scope) {
+        var type = types[0];
+        var valuePtr = values[0];
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+
+        if (type instanceof IntType || type instanceof UintType) {
+            return valuePtr;
+        } else if (type instanceof BoolType) {
+            var from = LLVMBuildIntCast2(builder,
+                    LLVMBuildLoad(builder, valuePtr, ""), LLVMInt32Type(), 0, "");
+            var to = buildAllocaInFirstBlock(function, LLVMInt32Type(), "");
+            LLVMBuildStore(builder, from, to);
+            return to;
+        } else if (type instanceof FloatType) {
+            var from = LLVMBuildFPToUI(builder, LLVMBuildLoad(builder, valuePtr, ""), LLVMInt32Type(), "");
+            var to = buildAllocaInFirstBlock(function, LLVMInt32Type(), "");
+            LLVMBuildStore(builder, from, to);
+            return to;
+        } else {
+            var from = LLVMBuildLoad(builder, buildGEP(builder, valuePtr, "", 0, 0), "");
+            return construct(((VectorizedType) type).primitiveType(), from, function, scope);
+        }
     }
 }

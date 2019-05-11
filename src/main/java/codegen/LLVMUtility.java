@@ -18,11 +18,9 @@ public class LLVMUtility {
         return LLVMConstReal(LLVMFloatType(), x);
     }
 
-    public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, LLVMValueRef l, LLVMValueRef r, String name,
+    public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, LLVMValueRef l, LLVMValueRef r,
+                                                  LLVMValueRef ip, String name,
                                                   BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
-        // [l, r)
-        var ip = buildAllocaInFirstBlock(fn, LLVMInt32Type(), name + ".for.ip");
-
         // last block
         var builder = LLVMCreateBuilder();
         var lastBlock = LLVMGetLastBasicBlock(fn);
@@ -58,6 +56,13 @@ public class LLVMUtility {
         return forEnd;
     }
 
+    public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, LLVMValueRef l, LLVMValueRef r, String name,
+                                                  BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
+        // [l, r)
+        var ip = buildAllocaInFirstBlock(fn, LLVMInt32Type(), name + ".for.ip");
+        return appendForLoop(fn, l, r, ip, name, bodyAppender);
+    }
+
     public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, int[] indices,
                                                   TriFunction<LLVMBuilderRef, Integer, LLVMValueRef, Void> bodyAppender) {
         var builder = LLVMCreateBuilder();
@@ -71,6 +76,11 @@ public class LLVMUtility {
     public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, int l, int r, String name,
                                                   BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
         return appendForLoop(fn, constant(l), constant(r), name, bodyAppender);
+    }
+
+    public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, int l, int r, LLVMValueRef ip, String name,
+                                                  BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
+        return appendForLoop(fn, constant(l), constant(r), ip, name, bodyAppender);
     }
 
     public static LLVMValueRef buildGEP(LLVMBuilderRef builder, LLVMValueRef pointer, LLVMValueRef[] indices, String name) {
@@ -104,7 +114,7 @@ public class LLVMUtility {
 
     // load e* from e*, type: e
     // load [n x e*]* from [n x e]*, type: Vectorized
-    public static LLVMValueRef preloadPtrValue(Type type, LLVMValueRef function, LLVMValueRef value) {
+    public static LLVMValueRef loadPtr(Type type, LLVMValueRef function, LLVMValueRef value) {
         if (type instanceof VectorizedType) {
             var result = buildAllocaInFirstBlock(function, type.withInnerPtrInLLVM(), "");
             appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "decl_load",
@@ -117,6 +127,24 @@ public class LLVMUtility {
             return result;
         } else {
             return value;
+        }
+    }
+
+    // store e* to e*
+    // store [n x e*]* to [n x e]*, type: Vectorized
+    public static void storePtr(Type type, LLVMValueRef function, LLVMValueRef from, LLVMValueRef to) {
+        if (type instanceof VectorizedType) {
+            appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "", (builder, i) -> {
+                var realFrom = buildLoad(builder, buildLoad(builder,
+                        buildGEP(builder, from, "", constant(0), i)));
+                var realTo = buildGEP(builder, to, "", constant(0), i);
+                LLVMBuildStore(builder, realFrom, realTo);
+                return null;
+            });
+        } else {
+            var builder = LLVMCreateBuilder();
+            LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+            LLVMBuildStore(builder, buildLoad(builder, from), to);
         }
     }
 

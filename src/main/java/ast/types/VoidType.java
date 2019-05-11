@@ -1,5 +1,6 @@
 package ast.types;
 
+import ast.Scope;
 import ast.values.Value;
 import org.bytedeco.llvm.LLVM.*;
 import static org.bytedeco.llvm.global.LLVM.*;
@@ -30,5 +31,10 @@ public class VoidType extends Type {
     @Override
     public LLVMTypeRef inLLVM() {
         return LLVMVoidType();
+    }
+
+    @Override
+    public LLVMValueRef construct(Type[] types, LLVMValueRef[] values, LLVMValueRef function, Scope scope) {
+        return null;
     }
 }

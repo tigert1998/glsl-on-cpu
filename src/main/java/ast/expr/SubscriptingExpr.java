@@ -63,7 +63,7 @@ public class SubscriptingExpr extends Expr {
             return result;
         } else {
             var result = buildGEP(builder, xptr, "", constant(0), indexValue);
-            return preloadPtrValue(this.type, function, result);
+            return loadPtr(this.type, function, result);
         }
     }
 

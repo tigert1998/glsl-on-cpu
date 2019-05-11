@@ -143,7 +143,7 @@ public class MatnxmType extends Type implements IndexedType, IncreasableType, Ve
                     LLVMBuildStore(bodyBuilder, from, to);
                     return null;
                 });
-                return preloadPtrValue(this, function, result);
+                return loadPtr(this, function, result);
             } else {
                 var indices = new int[Math.min(getN(), getM())];
 
@@ -158,7 +158,7 @@ public class MatnxmType extends Type implements IndexedType, IncreasableType, Ve
                     return null;
                 });
 
-                return preloadPtrValue(this, function, result);
+                return loadPtr(this, function, result);
             }
         }
 

@@ -89,30 +89,10 @@ public class ArrayType extends Type implements IndexedType {
     @Override
     public LLVMValueRef construct(Type[] types, LLVMValueRef[] values, LLVMValueRef function, Scope scope) {
         var result = buildAllocaInFirstBlock(function, this.inLLVM(), "");
-        if (type instanceof VectorizedType) {
-            var builder = LLVMCreateBuilder();
-            LLVMValueRef tmp = buildAllocaInFirstBlock(function, type.inLLVM(), "");
-            for (int i = 0; i < values.length; i++) {
-                var value = values[i];
-                appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "",
-                        (bodyBuilder, index) -> {
-                            var to = buildGEP(bodyBuilder, tmp, "", constant(0), index);
-                            var from = buildLoad(bodyBuilder, buildLoad(bodyBuilder,
-                                    buildGEP(bodyBuilder, value, "", constant(0), index)));
-                            LLVMBuildStore(bodyBuilder, from, to);
-                            return null;
-                        });
-                LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
-                LLVMBuildStore(builder, buildLoad(builder, tmp), buildGEP(builder, result, "", 0, i));
-            }
-        } else {
-            var builder = LLVMCreateBuilder();
+        var builder = LLVMCreateBuilder();
+        for (int i = 0; i < values.length; i++) {
             LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
-            for (int i = 0; i < values.length; i++) {
-                var to = buildGEP(builder, result, "", 0, i);
-                var from = buildLoad(builder, values[i]);
-                LLVMBuildStore(builder, from, to);
-            }
+            storePtr(getType(), function, values[i], buildGEP(builder, result, "", 0, i));
         }
         return result;
     }

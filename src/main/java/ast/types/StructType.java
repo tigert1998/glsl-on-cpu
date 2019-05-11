@@ -1,11 +1,15 @@
 package ast.types;
 
-import ast.exceptions.ConstructionFailedException;
+import ast.*;
+import ast.exceptions.*;
 import ast.values.*;
-import org.bytedeco.javacpp.PointerPointer;
+import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
-import static org.bytedeco.llvm.global.LLVM.*;
+
 import java.util.*;
+
+import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
 
 public class StructType extends Type {
     static public class FieldInfo {
@@ -92,6 +96,17 @@ public class StructType extends Type {
                 throw ConstructionFailedException.fieldTypeNotMatch();
         }
         return new StructValue(this, values);
+    }
+
+    @Override
+    public LLVMValueRef construct(Type[] types, LLVMValueRef[] values, LLVMValueRef function, Scope scope) {
+        var builder = LLVMCreateBuilder();
+        var result = buildAllocaInFirstBlock(function, this.inLLVM(), "");
+        for (int i = 0; i < values.length; i++) {
+            LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+            storePtr(types[i], function, values[i], buildGEP(builder, result, "", 0, i));
+        }
+        return result;
     }
 
     @Override

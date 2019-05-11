@@ -42,7 +42,7 @@ public class SelectionExpr extends Expr {
         var builder = LLVMCreateBuilder();
         LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
         var result = buildGEP(builder, value, "", 0, idx);
-        return preloadPtrValue(this.type, function, result);
+        return loadPtr(this.type, function, result);
     }
 
     @Override

@@ -56,7 +56,7 @@ public class DeclarationStmt extends Stmt {
     // load e* from e*
     // load [n x e*]* from [n x e]*
     public LLVMValueRef loadLLVMValue(LLVMValueRef function) {
-        return LLVMUtility.preloadPtrValue(this.type, function, this.llvmValue);
+        return LLVMUtility.loadPtr(this.type, function, this.llvmValue);
     }
 
     @Override

@@ -27,10 +27,7 @@ public abstract class Type {
         return construct(new Type[]{type}, new LLVMValueRef[]{value}, function, scope);
     }
 
-    // FIXME: should be abstract
-    public LLVMValueRef construct(Type[] types, LLVMValueRef[] values, LLVMValueRef function, Scope scope) {
-        return null;
-    }
+    abstract public LLVMValueRef construct(Type[] types, LLVMValueRef[] values, LLVMValueRef function, Scope scope);
 
     // for syntax checking
     public void construct(Expr[] exprs) throws ConstructionFailedException {

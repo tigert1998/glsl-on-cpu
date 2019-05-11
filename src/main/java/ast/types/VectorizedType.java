@@ -31,7 +31,7 @@ public interface VectorizedType {
                 return null;
             });
 
-            return preloadPtrValue((Type) targetType, function, result);
+            return loadPtr((Type) targetType, function, result);
         }
 
         int current = 0, total = targetType.vectorizedLength();
@@ -60,7 +60,7 @@ public interface VectorizedType {
                 current += 1;
             }
             if (current >= total)
-                return preloadPtrValue((Type) targetType, function, result);
+                return loadPtr((Type) targetType, function, result);
         }
         return null;
     }

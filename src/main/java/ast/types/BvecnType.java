@@ -1,11 +1,13 @@
 package ast.types;
 
+import ast.*;
 import ast.exceptions.*;
 import ast.values.*;
 import org.bytedeco.llvm.LLVM.*;
-import static org.bytedeco.llvm.global.LLVM.*;
 
 import java.util.*;
+
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class BvecnType extends Type implements SwizzledType {
     private int n;
@@ -104,5 +106,10 @@ public class BvecnType extends Type implements SwizzledType {
     @Override
     public LLVMTypeRef withInnerPtrInLLVM() {
         return VectorizedType.withInnerPtrInLLVM(this);
+    }
+
+    @Override
+    public LLVMValueRef construct(Type[] types, LLVMValueRef[] values, LLVMValueRef function, Scope scope) {
+        return VectorizedType.construct(this, types, values, function, scope);
     }
 }

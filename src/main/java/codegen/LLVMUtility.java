@@ -21,29 +21,34 @@ public class LLVMUtility {
     public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, LLVMValueRef l, LLVMValueRef r, String name,
                                                   BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
         // [l, r)
-        var builder = LLVMCreateBuilder();
-        var lastBlock = LLVMGetLastBasicBlock(fn);
-
-        var forCond = LLVMAppendBasicBlock(fn, name + ".for.cond");
-        var forBody = LLVMAppendBasicBlock(fn, name + ".for.body");
-        var forStep = LLVMAppendBasicBlock(fn, name + ".for.step");
-        var forEnd = LLVMAppendBasicBlock(fn, name + ".for.end");
-
         var ip = buildAllocaInFirstBlock(fn, LLVMInt32Type(), name + ".for.ip");
 
+        // last block
+        var builder = LLVMCreateBuilder();
+        var lastBlock = LLVMGetLastBasicBlock(fn);
+        var forCond = LLVMAppendBasicBlock(fn, name + ".for.cond");
         LLVMPositionBuilderAtEnd(builder, lastBlock);
         LLVMBuildStore(builder, l, ip);
         LLVMBuildBr(builder, forCond);
 
+        // forCond
         LLVMPositionBuilderAtEnd(builder, forCond);
         var i = LLVMBuildLoad(builder, ip, name + ".for.i");
         var cmp = LLVMBuildICmp(builder, LLVMIntSGE, i, r, name + ".for.cmp");
-        LLVMBuildCondBr(builder, cmp, forEnd, forBody);
 
+        // forBody
+        var forBody = LLVMAppendBasicBlock(fn, name + ".for.body");
         LLVMPositionBuilderAtEnd(builder, forBody);
         bodyAppender.apply(builder, i);
+        var forStep = LLVMAppendBasicBlock(fn, name + ".for.step");
+        var forEnd = LLVMAppendBasicBlock(fn, name + ".for.end");
         LLVMBuildBr(builder, forStep);
 
+        // forCond
+        LLVMPositionBuilderAtEnd(builder, forCond);
+        LLVMBuildCondBr(builder, cmp, forEnd, forBody);
+
+        // forStep
         LLVMPositionBuilderAtEnd(builder, forStep);
         var lastI = LLVMBuildLoad(builder, ip, name + ".for.last.i");
         var nextI = LLVMBuildAdd(builder, lastI, constant(1), name + ".for.next.i");
@@ -80,6 +85,10 @@ public class LLVMUtility {
         var newIndices = new LLVMValueRef[indices.length];
         for (int i = 0; i < indices.length; i++) newIndices[i] = constant(indices[i]);
         return buildGEP(builder, pointer, newIndices, name);
+    }
+
+    public static LLVMValueRef buildLoad(LLVMBuilderRef builder, LLVMValueRef pointer) {
+        return LLVMBuildLoad(builder, pointer, "");
     }
 
     public static LLVMValueRef buildGEP(LLVMBuilderRef builder, LLVMValueRef pointer, String name, int... indices) {

@@ -1,10 +1,14 @@
 package ast.types;
 
-import ast.exceptions.ConstructionFailedException;
+import ast.*;
+import ast.exceptions.*;
 import ast.values.*;
 import org.bytedeco.llvm.LLVM.*;
-import static org.bytedeco.llvm.global.LLVM.*;
+
 import java.util.*;
+
+import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
 
 public class MatnxmType extends Type implements IndexedType, IncreasableType, VectorizedType {
     private int n, m;
@@ -107,6 +111,58 @@ public class MatnxmType extends Type implements IndexedType, IncreasableType, Ve
         if (valueList.size() < this.getN() * this.getM())
             throw ConstructionFailedException.notEnoughData();
         return new MatnxmValue(this, valueList);
+    }
+
+    @Override
+    public LLVMValueRef construct(Type[] types, LLVMValueRef[] values, LLVMValueRef function, Scope scope) {
+        if (types.length == 1 && (types[0] instanceof MatnxmType || !(types[0] instanceof VectorizedType))) {
+            var result = buildAllocaInFirstBlock(function, inLLVM(), "");
+            appendForLoop(function, 0, getN() * getM(), "", (bodyBuilder, i) -> {
+                var to = buildGEP(bodyBuilder, result, "", constant(0), i);
+                LLVMBuildStore(bodyBuilder, constant(0.f), to);
+                return null;
+            });
+
+            if (types[0] instanceof MatnxmType) {
+                var type = (MatnxmType) types[0];
+                int total = Math.min(type.getN(), this.getN()) * Math.min(type.getM(), this.getM());
+                var resultIndices = new int[total];
+                var valueIndices = new int[total];
+                int current = 0;
+                for (int i = 0; i < Math.min(type.getN(), this.getN()); i++)
+                    for (int j = 0; j < Math.min(type.getM(), this.getM()); j++) {
+                        resultIndices[current] = i * this.getM() + j;
+                        valueIndices[current] = i * type.getM() + j;
+                        current += 1;
+                    }
+                appendForLoop(function, resultIndices, (bodyBuilder, i, resultIndex) -> {
+                    var valueIndex = resultIndices[i];
+                    var from = buildLoad(bodyBuilder, buildLoad(bodyBuilder,
+                            buildGEP(bodyBuilder, values[0], "", 0, valueIndex)));
+                    var to = buildGEP(bodyBuilder, result, "", constant(0), resultIndex);
+                    LLVMBuildStore(bodyBuilder, from, to);
+                    return null;
+                });
+                return preloadPtrValue(this, function, result);
+            } else {
+                var indices = new int[Math.min(getN(), getM())];
+
+                var builder = LLVMCreateBuilder();
+                LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+                var from = buildLoad(builder, FloatType.TYPE.construct(types[0], values[0], function, scope));
+
+                for (int i = 0; i < indices.length; i++) indices[i] = i * getM() + i;
+                appendForLoop(function, indices, (bodyBuilder, i, index) -> {
+                    var to = buildGEP(bodyBuilder, result, "", constant(0), index);
+                    LLVMBuildStore(bodyBuilder, from, to);
+                    return null;
+                });
+
+                return preloadPtrValue(this, function, result);
+            }
+        }
+
+        return VectorizedType.construct(this, types, values, function, scope);
     }
 
     @Override

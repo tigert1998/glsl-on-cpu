@@ -181,7 +181,11 @@ public class LLVMUtility {
     public static LLVMTypeRef builtInFuncType(Type returnType, Type[] parameterTypes) {
         var list = new ArrayList<LLVMTypeRef>();
         for (var parameterType : parameterTypes) {
-            if (parameterType instanceof VectorizedType) {
+            if (parameterType instanceof MatnxmType) {
+                list.add(LLVMPointerType(((VectorizedType) parameterType).primitiveType().inLLVM(), 0));
+                list.add(LLVMInt32Type());
+                list.add(LLVMInt32Type());
+            } else if (parameterType instanceof VectorizedType) {
                 list.add(LLVMPointerType(((VectorizedType) parameterType).primitiveType().inLLVM(), 0));
                 list.add(LLVMInt32Type());
             } else {
@@ -205,7 +209,11 @@ public class LLVMUtility {
         for (int i = 0; i < types.length; i++) {
             var type = types[i];
             var value = builtInFuncPrequel(type, function, values[i]);
-            if (type instanceof VectorizedType) {
+            if (type instanceof MatnxmType) {
+                list.add(value);
+                list.add(constant(((MatnxmType) type).getN()));
+                list.add(constant(((MatnxmType) type).getM()));
+            } else if (type instanceof VectorizedType) {
                 list.add(value);
                 list.add(constant(((VectorizedType) type).vectorizedLength()));
             } else {

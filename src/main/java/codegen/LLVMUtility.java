@@ -6,7 +6,6 @@ import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.llvm.LLVM.*;
 import util.*;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.*;
 
@@ -56,6 +55,7 @@ public class LLVMUtility {
         LLVMBuildStore(builder, nextI, ip);
         LLVMBuildBr(builder, forCond);
 
+        LLVMDisposeBuilder(builder);
         return forEnd;
     }
 
@@ -73,17 +73,13 @@ public class LLVMUtility {
         for (int i = 0; i < indices.length; i++) {
             bodyAppender.apply(builder, i, constant(indices[i]));
         }
+        LLVMDisposeBuilder(builder);
         return LLVMGetLastBasicBlock(fn);
     }
 
     public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, int l, int r, String name,
                                                   BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
         return appendForLoop(fn, constant(l), constant(r), name, bodyAppender);
-    }
-
-    public static LLVMBasicBlockRef appendForLoop(LLVMValueRef fn, int l, int r, LLVMValueRef ip, String name,
-                                                  BiFunction<LLVMBuilderRef, LLVMValueRef, Void> bodyAppender) {
-        return appendForLoop(fn, constant(l), constant(r), ip, name, bodyAppender);
     }
 
     public static LLVMValueRef buildGEP(LLVMBuilderRef builder, LLVMValueRef pointer, LLVMValueRef[] indices, String name) {
@@ -108,18 +104,13 @@ public class LLVMUtility {
         return buildGEP(builder, pointer, indices, name);
     }
 
-    public static LLVMValueRef buildArrayAllocaInFirstBlock(LLVMValueRef function, LLVMTypeRef type, int len, String name) {
-        var block = LLVMGetFirstBasicBlock(function);
-        var builder = LLVMCreateBuilder();
-        LLVMPositionBuilderAtEnd(builder, block);
-        return LLVMBuildArrayAlloca(builder, type, constant(len), name);
-    }
-
     public static LLVMValueRef buildAllocaInFirstBlock(LLVMValueRef function, LLVMTypeRef type, String name) {
         var block = LLVMGetFirstBasicBlock(function);
         var builder = LLVMCreateBuilder();
         LLVMPositionBuilderAtEnd(builder, block);
-        return LLVMBuildAlloca(builder, type, name);
+        var result = LLVMBuildAlloca(builder, type, name);
+        LLVMDisposeBuilder(builder);
+        return result;
     }
 
     // load e* from e*, type: e
@@ -155,6 +146,7 @@ public class LLVMUtility {
             var builder = LLVMCreateBuilder();
             LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
             LLVMBuildStore(builder, buildLoad(builder, from), to);
+            LLVMDisposeBuilder(builder);
         }
     }
 
@@ -170,9 +162,12 @@ public class LLVMUtility {
                 var from = buildLoad(builder, buildLoad(builder, buildGEP(builder, ptr, "", 0, i)));
                 LLVMBuildStore(builder, from, to);
             }
-            return buildGEP(builder, result, "", 0, 0);
+            var ans = buildGEP(builder, result, "", 0, 0);
+            LLVMDisposeBuilder(builder);
+            return ans;
         } else {
             LLVMBuildStore(builder, buildLoad(builder, ptr), result);
+            LLVMDisposeBuilder(builder);
             return result;
         }
     }
@@ -228,6 +223,7 @@ public class LLVMUtility {
         }
         var arr = new LLVMValueRef[list.size()];
         list.toArray(arr);
+        LLVMDisposeBuilder(builder);
         return arr;
     }
 

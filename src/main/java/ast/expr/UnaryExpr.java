@@ -1,7 +1,9 @@
 package ast.expr;
 
+import ast.Scope;
 import ast.exceptions.*;
-import ast.operators.UnaryOperator;
+import ast.operators.*;
+import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
 
 public class UnaryExpr extends Expr {
@@ -22,6 +24,13 @@ public class UnaryExpr extends Expr {
         } else {
             return new UnaryExpr(op, expr);
         }
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        return op.apply(
+                expr.getType(),
+                expr.evaluate(module, function, scope), module, function, scope);
     }
 
     @Override

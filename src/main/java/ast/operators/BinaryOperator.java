@@ -4,12 +4,10 @@ import ast.*;
 import ast.exceptions.*;
 import ast.values.*;
 import ast.types.*;
-import org.bytedeco.javacpp.PointerPointer;
+import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static codegen.LLVMUtility.*;
 import static org.bytedeco.llvm.global.LLVM.*;

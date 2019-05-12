@@ -13,7 +13,7 @@ public class Equal extends Operator implements BinaryOperator {
     }
 
     public BoolType apply(Type x, Type y) throws OperatorCannotBeAppliedException {
-        if (!x.equals(y))
+        if (!x.equals(y) || x instanceof ArrayType || x instanceof StructType)
             throw new OperatorCannotBeAppliedException(this, x, y);
         return BoolType.TYPE;
     }

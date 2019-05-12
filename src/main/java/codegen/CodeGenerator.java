@@ -6,7 +6,6 @@ import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
 
 import static org.bytedeco.llvm.global.LLVM.*;
-import static codegen.LLVMUtility.*;
 
 public class CodeGenerator {
     private Scope scope;
@@ -42,7 +41,7 @@ public class CodeGenerator {
         var entry = LLVMAppendBasicBlock(func, "entry");
 
         for (var decl : program.getDeclarationStmts()) {
-            var llvmValue = decl.expr.evaluate(func, scope);
+            var llvmValue = decl.expr.evaluate(module, func, scope);
             decl.storeLLVMValue(func, llvmValue);
         }
 

@@ -1,10 +1,13 @@
 package codegen;
 
 import ast.types.*;
+import ast.values.*;
 import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.llvm.LLVM.*;
 import util.*;
 
+import java.lang.reflect.Array;
+import java.util.*;
 import java.util.function.*;
 
 import static org.bytedeco.llvm.global.LLVM.*;
@@ -105,6 +108,13 @@ public class LLVMUtility {
         return buildGEP(builder, pointer, indices, name);
     }
 
+    public static LLVMValueRef buildArrayAllocaInFirstBlock(LLVMValueRef function, LLVMTypeRef type, int len, String name) {
+        var block = LLVMGetFirstBasicBlock(function);
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, block);
+        return LLVMBuildArrayAlloca(builder, type, constant(len), name);
+    }
+
     public static LLVMValueRef buildAllocaInFirstBlock(LLVMValueRef function, LLVMTypeRef type, String name) {
         var block = LLVMGetFirstBasicBlock(function);
         var builder = LLVMCreateBuilder();
@@ -146,6 +156,79 @@ public class LLVMUtility {
             LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
             LLVMBuildStore(builder, buildLoad(builder, from), to);
         }
+    }
+
+    // e* to e*
+    // [n x e*]* to e*
+    public static LLVMValueRef builtInFuncPrequel(Type type, LLVMValueRef function, LLVMValueRef ptr) {
+        var result = buildAllocaInFirstBlock(function, type.inLLVM(), "");
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+        if (type instanceof VectorizedType) {
+            for (int i = 0; i < ((VectorizedType) type).vectorizedLength(); i++) {
+                var to = buildGEP(builder, result, "", 0, i);
+                var from = buildLoad(builder, buildLoad(builder, buildGEP(builder, ptr, "", 0, i)));
+                LLVMBuildStore(builder, from, to);
+            }
+            return buildGEP(builder, result, "", 0, 0);
+        } else {
+            LLVMBuildStore(builder, buildLoad(builder, ptr), result);
+            return result;
+        }
+    }
+
+//    // e* back to e*
+//    // e* back to [n x e*]*
+//    public static void builtInFuncSequel(Type type, LLVMValueRef function, LLVMValueRef from, LLVMValueRef to) {
+//
+//    }
+
+    public static LLVMTypeRef builtInFuncType(Type returnType, Type[] parameterTypes) {
+        var list = new ArrayList<LLVMTypeRef>();
+        for (var parameterType : parameterTypes) {
+            if (parameterType instanceof VectorizedType) {
+                list.add(LLVMPointerType(((VectorizedType) parameterType).primitiveType().inLLVM(), 0));
+                list.add(LLVMInt32Type());
+            } else {
+                list.add(LLVMPointerType(parameterType.inLLVM(), 0));
+            }
+        }
+        if (returnType instanceof VectorizedType) {
+            list.add(LLVMPointerType(((VectorizedType) returnType).primitiveType().inLLVM(), 0));
+        } else {
+            list.add(LLVMPointerType(returnType.inLLVM(), 0));
+        }
+        var arr = new LLVMTypeRef[list.size()];
+        list.toArray(arr);
+        return LLVMFunctionType(LLVMVoidType(), new PointerPointer<>(arr), list.size(), 0);
+    }
+
+    public static LLVMValueRef[] constructBuiltInFuncParameters(Type[] types, LLVMValueRef[] values,
+                                                                Type returnType, LLVMValueRef returnValue,
+                                                                LLVMValueRef function) {
+        var list = new ArrayList<LLVMValueRef>();
+        for (int i = 0; i < types.length; i++) {
+            var type = types[i];
+            var value = builtInFuncPrequel(type, function, values[i]);
+            if (type instanceof VectorizedType) {
+                list.add(value);
+                list.add(constant(((VectorizedType) type).vectorizedLength()));
+            } else {
+                list.add(value);
+            }
+        }
+
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+
+        if (returnType instanceof VectorizedType) {
+            list.add(buildGEP(builder, returnValue, "", 0, 0));
+        } else {
+            list.add(returnValue);
+        }
+        var arr = new LLVMValueRef[list.size()];
+        list.toArray(arr);
+        return arr;
     }
 
     public static void log(LLVMValueRef value) {

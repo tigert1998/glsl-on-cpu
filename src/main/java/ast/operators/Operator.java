@@ -14,4 +14,8 @@ public abstract class Operator {
         }
         return null;
     }
+
+    public String getLLVMID() {
+        return getClass().getSimpleName().toLowerCase();
+    }
 }

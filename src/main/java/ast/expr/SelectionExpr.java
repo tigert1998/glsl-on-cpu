@@ -35,8 +35,8 @@ public class SelectionExpr extends Expr {
     }
 
     @Override
-    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
-        var value = expr.evaluate(function, scope);
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        var value = expr.evaluate(module, function, scope);
         int idx = ((StructType) expr.getType()).getFieldInfoIndex(selection);
 
         var builder = LLVMCreateBuilder();

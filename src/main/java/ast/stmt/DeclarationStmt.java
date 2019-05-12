@@ -5,12 +5,7 @@ import ast.expr.*;
 import ast.types.*;
 import codegen.LLVMUtility;
 import org.bytedeco.llvm.LLVM.*;
-
-import static org.bytedeco.llvm.global.LLVM.*;
-
 import org.json.JSONObject;
-
-import static codegen.LLVMUtility.*;
 
 public class DeclarationStmt extends Stmt {
     public Type type;
@@ -33,24 +28,7 @@ public class DeclarationStmt extends Stmt {
     // store e* to e*
     // store [n x e*]* to [n x e]*
     public void storeLLVMValue(LLVMValueRef function, LLVMValueRef llvmValue) {
-        if (type instanceof VectorizedType) {
-            appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "decl_store",
-                    (bodyBuilder, i) -> {
-                        var from = LLVMBuildLoad(bodyBuilder,
-                                LLVMBuildLoad(bodyBuilder,
-                                        buildGEP(bodyBuilder, llvmValue, "", constant(0), i),
-                                        ""),
-                                "");
-                        var to = buildGEP(bodyBuilder, this.llvmValue, "",
-                                constant(0), i);
-                        LLVMBuildStore(bodyBuilder, from, to);
-                        return null;
-                    });
-        } else {
-            var builder = LLVMCreateBuilder();
-            LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
-            LLVMBuildStore(builder, LLVMBuildLoad(builder, llvmValue, ""), this.llvmValue);
-        }
+        LLVMUtility.storePtr(this.type, function, llvmValue, this.llvmValue);
     }
 
     // load e* from e*

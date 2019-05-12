@@ -2,6 +2,7 @@ package ast.expr;
 
 import ast.Scope;
 import ast.stmt.DeclarationStmt;
+import org.bytedeco.llvm.LLVM.LLVMModuleRef;
 import org.bytedeco.llvm.LLVM.LLVMValueRef;
 import org.json.JSONObject;
 
@@ -22,7 +23,7 @@ public class ReferenceExpr extends Expr {
     }
 
     @Override
-    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
         return declarationStmt.loadLLVMValue(function);
     }
 }

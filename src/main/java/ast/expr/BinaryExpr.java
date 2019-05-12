@@ -1,8 +1,9 @@
 package ast.expr;
 
+import ast.*;
 import ast.exceptions.*;
 import ast.operators.*;
-
+import org.bytedeco.llvm.LLVM.*;
 import org.json.*;
 
 public class BinaryExpr extends Expr {
@@ -26,6 +27,15 @@ public class BinaryExpr extends Expr {
         } else {
             return new BinaryExpr(op, exprs);
         }
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        return op.apply(
+                exprs[0].getType(),
+                exprs[1].getType(),
+                exprs[0].evaluate(module, function, scope),
+                exprs[1].evaluate(module, function, scope), module, function, scope);
     }
 
     @Override

@@ -13,11 +13,11 @@ public abstract class Type {
 
     abstract public Value construct(Value[] values) throws ConstructionFailedException;
 
-    public LLVMValueRef construct(Expr[] exprs, LLVMValueRef function, Scope scope) {
+    public LLVMValueRef construct(Expr[] exprs, LLVMModuleRef module, LLVMValueRef function, Scope scope) {
         var values = new LLVMValueRef[exprs.length];
         var types = new Type[exprs.length];
         for (int i = 0; i < exprs.length; i++) {
-            values[i] = exprs[i].evaluate(function, scope);
+            values[i] = exprs[i].evaluate(module, function, scope);
             types[i] = exprs[i].getType();
         }
         return construct(types, values, function, scope);
@@ -57,6 +57,11 @@ public abstract class Type {
             }
         }
         return valueList;
+    }
+
+    public String getLLVMID() {
+        var id = getClass().getSimpleName().toLowerCase();
+        return id.substring(0, id.length() - 4);
     }
 
     // i32, float, i8

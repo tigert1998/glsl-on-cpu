@@ -4,6 +4,8 @@ import ast.exceptions.ScopeException;
 import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
+import org.bytedeco.llvm.LLVM.LLVMValueRef;
+
 import java.util.*;
 import static org.bytedeco.llvm.global.LLVM.*;
 
@@ -32,6 +34,8 @@ public class Scope {
     }
 
     public Map<String, List<FunctionInfo>> functions = new TreeMap<>();
+
+    public Map<String, LLVMValueRef> builtInFunctions = new TreeMap<>();
 
     public Stack<InnerScope> innerScopes;
 

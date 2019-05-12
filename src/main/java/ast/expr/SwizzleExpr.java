@@ -52,8 +52,8 @@ public class SwizzleExpr extends Expr {
     }
 
     @Override
-    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
-        var value = expr.evaluate(function, scope);
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        var value = expr.evaluate(module, function, scope);
         if (indices.length == 1) {
             var builder = LLVMCreateBuilder();
             LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));

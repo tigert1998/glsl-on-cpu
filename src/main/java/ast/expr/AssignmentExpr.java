@@ -27,9 +27,9 @@ public class AssignmentExpr extends Expr {
     // e* = e*
     // [n x e*]* = [n x e*]*
     @Override
-    public LLVMValueRef evaluate(LLVMValueRef function, Scope scope) {
-        var yptr = y.evaluate(function, scope);
-        var xptr = x.evaluate(function, scope);
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        var yptr = y.evaluate(module, function, scope);
+        var xptr = x.evaluate(module, function, scope);
 
         if (type instanceof VectorizedType) {
             appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "assign",

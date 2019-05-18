@@ -70,11 +70,13 @@ public class ProgramListener extends LangBaseListener {
         try {
             var signature = Utility.functionSignatureFromCtx(ctx.functionSignature(), scope);
             var visitor = new ASTVisitor(scope);
+            scope.declareFunction(signature);
             scope.screwIn();
             scope.innerScopes.peek().functionSignature = signature;
             var result = (StmtsWrapper) ctx.compoundStmt().accept(visitor);
             scope.screwOut();
             if (result == null) {
+                scope.removeFunction(signature);
                 this.exceptionList.addAll(visitor.exceptionList);
                 return;
             }

@@ -131,6 +131,16 @@ public class Scope {
         list.add(new FunctionInfo(sig, false));
     }
 
+    public void removeFunction(FunctionSignature sig) {
+        var list = functions.computeIfAbsent(sig.id, k -> new ArrayList<>());
+        for (var info : list) {
+            if (info.functionSignature.match(sig)) {
+                list.remove(info);
+                return;
+            }
+        }
+    }
+
     public void defineFunction(FunctionSignature sig) throws ScopeException {
         checkDefineFunction(sig);
         var list = functions.computeIfAbsent(sig.id, k -> new ArrayList<>());

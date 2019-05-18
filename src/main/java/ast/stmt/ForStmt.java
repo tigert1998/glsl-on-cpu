@@ -1,7 +1,11 @@
 package ast.stmt;
 
+import ast.Scope;
 import ast.expr.Expr;
+import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
+
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class ForStmt extends Stmt {
     public CompoundStmt initialization;
@@ -14,6 +18,11 @@ public class ForStmt extends Stmt {
         this.condition = condition;
         this.step = step;
         this.body = body;
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        return null;
     }
 
     @Override

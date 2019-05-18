@@ -22,6 +22,45 @@ public class ForStmt extends Stmt {
 
     @Override
     public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        var lastBlock = LLVMGetLastBasicBlock(function);
+
+        var initBlock = LLVMAppendBasicBlock(function, "for.init");
+        initialization.evaluate(module, function, scope);
+
+        var condBlock = LLVMAppendBasicBlock(function, "for.cond");
+        var value = condition.evaluate(module, function, scope);
+
+        var stepBlock = LLVMAppendBasicBlock(function, "for.step");
+        step.evaluate(module, function, scope);
+
+        var bodyBlock = LLVMAppendBasicBlock(function, "for.body");
+        body.evaluate(module, function, scope);
+
+        var endBlock = LLVMAppendBasicBlock(function, "for.end");
+
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, lastBlock);
+        LLVMBuildBr(builder, initBlock);
+
+        // init
+        LLVMPositionBuilderAtEnd(builder, LLVMGetPreviousBasicBlock(condBlock));
+        LLVMBuildBr(builder, condBlock);
+
+        // cond
+        LLVMPositionBuilderAtEnd(builder, LLVMGetPreviousBasicBlock(stepBlock));
+        value = LLVMBuildLoad(builder, value, "");
+        value = LLVMBuildIntCast2(builder, value, LLVMInt1Type(), 0, "");
+        LLVMBuildCondBr(builder, value, bodyBlock, endBlock);
+
+        // step
+        LLVMPositionBuilderAtEnd(builder, LLVMGetPreviousBasicBlock(bodyBlock));
+        LLVMBuildBr(builder, condBlock);
+
+        // body
+        LLVMPositionBuilderAtEnd(builder, LLVMGetPreviousBasicBlock(endBlock));
+        LLVMBuildBr(builder, stepBlock);
+
+        LLVMDisposeBuilder(builder);
         return null;
     }
 

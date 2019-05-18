@@ -7,6 +7,9 @@ import codegen.LLVMUtility;
 import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
 
+import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
+
 public class DeclarationStmt extends Stmt {
     public Type type;
     public String id;
@@ -35,6 +38,30 @@ public class DeclarationStmt extends Stmt {
     // load [n x e*]* from [n x e]*
     public LLVMValueRef loadLLVMValue(LLVMValueRef function) {
         return LLVMUtility.loadPtr(this.type, function, this.llvmValue);
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        llvmValue = buildAllocaInFirstBlock(function, type.inLLVM(), id);
+        var y = expr.evaluate(module, function, scope);
+        if (type instanceof VectorizedType) {
+            appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "",
+                    (bodyBuilder, i) -> {
+                        var from = LLVMBuildLoad(bodyBuilder,
+                                LLVMBuildLoad(bodyBuilder,
+                                        buildGEP(bodyBuilder, y, "", constant(0), i),
+                                        ""),
+                                "");
+                        var to = buildGEP(bodyBuilder, llvmValue, "", constant(0), i);
+                        LLVMBuildStore(bodyBuilder, from, to);
+                        return null;
+                    });
+        } else {
+            var builder = LLVMCreateBuilder();
+            LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+            LLVMBuildStore(builder, LLVMBuildLoad(builder, y, ""), llvmValue);
+        }
+        return null;
     }
 
     @Override

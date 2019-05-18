@@ -131,6 +131,10 @@ public class LLVMUtility {
         }
     }
 
+    public static boolean isTerminal(LLVMValueRef instr) {
+        return LLVMIsATerminatorInst(instr) != null;
+    }
+
     // store e* to e*
     // store [n x e*]* to [n x e]*, type: Vectorized
     public static void storePtr(Type type, LLVMValueRef function, LLVMValueRef from, LLVMValueRef to) {
@@ -150,33 +154,54 @@ public class LLVMUtility {
         }
     }
 
+    // assign from e* to e*
+    // assign from [n x e*]* to [n x e*]*
+    public static void assign(Type type, LLVMValueRef function, LLVMValueRef xptr, LLVMValueRef yptr) {
+        if (type instanceof VectorizedType) {
+            appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "assign",
+                    (bodyBuilder, i) -> {
+                        var from = LLVMBuildLoad(bodyBuilder,
+                                LLVMBuildLoad(bodyBuilder,
+                                        buildGEP(bodyBuilder, yptr, "", constant(0), i),
+                                        ""),
+                                "");
+                        var to = LLVMBuildLoad(bodyBuilder,
+                                buildGEP(bodyBuilder, xptr, "", constant(0), i), "");
+                        LLVMBuildStore(bodyBuilder, from, to);
+                        return null;
+                    });
+        } else {
+            var builder = LLVMCreateBuilder();
+            LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+            LLVMBuildStore(builder, LLVMBuildLoad(builder, yptr, ""), xptr);
+            LLVMDisposeBuilder(builder);
+        }
+    }
+
+    // copy a new object on stack
+    // copy from e* to e*
+    // copy from [n x e*]* to [n x e*]*
+    public static LLVMValueRef deepCopy(Type type, LLVMValueRef function, LLVMValueRef ptr) {
+        var result = buildAllocaInFirstBlock(function, type.inLLVM(), "");
+        storePtr(type, function, ptr, result);
+        return loadPtr(type, function, result);
+    }
+
     // e* to e*
     // [n x e*]* to e*
     public static LLVMValueRef builtInFuncPrequel(Type type, LLVMValueRef function, LLVMValueRef ptr) {
         var result = buildAllocaInFirstBlock(function, type.inLLVM(), "");
-        var builder = LLVMCreateBuilder();
-        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+        storePtr(type, function, ptr, result);
         if (type instanceof VectorizedType) {
-            for (int i = 0; i < ((VectorizedType) type).vectorizedLength(); i++) {
-                var to = buildGEP(builder, result, "", 0, i);
-                var from = buildLoad(builder, buildLoad(builder, buildGEP(builder, ptr, "", 0, i)));
-                LLVMBuildStore(builder, from, to);
-            }
+            var builder = LLVMCreateBuilder();
+            LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
             var ans = buildGEP(builder, result, "", 0, 0);
             LLVMDisposeBuilder(builder);
             return ans;
         } else {
-            LLVMBuildStore(builder, buildLoad(builder, ptr), result);
-            LLVMDisposeBuilder(builder);
             return result;
         }
     }
-
-//    // e* back to e*
-//    // e* back to [n x e*]*
-//    public static void builtInFuncSequel(Type type, LLVMValueRef function, LLVMValueRef from, LLVMValueRef to) {
-//
-//    }
 
     public static LLVMTypeRef builtInFuncType(Type returnType, Type[] parameterTypes) {
         var list = new ArrayList<LLVMTypeRef>();

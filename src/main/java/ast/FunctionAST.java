@@ -1,7 +1,11 @@
 package ast;
 
 import ast.stmt.*;
+import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
+
+import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
 
 public class FunctionAST extends AST {
     private FunctionSignature functionSignature;
@@ -10,6 +14,23 @@ public class FunctionAST extends AST {
     public FunctionAST(FunctionSignature functionSignature, CompoundStmt stmt) {
         this.functionSignature = functionSignature;
         this.stmt = stmt;
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        var func = scope.lookupLLVMFunction(functionSignature, module);
+        var init = LLVMAppendBasicBlock(func, "init");
+        var entry = LLVMAppendBasicBlock(func, "entry");
+        stmt.evaluate(module, func, scope);
+
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, init);
+        LLVMBuildBr(builder, entry);
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(func));
+        LLVMBuildRetVoid(builder);
+
+        LLVMDisposeBuilder(builder);
+        return func;
     }
 
     @Override

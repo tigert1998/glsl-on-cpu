@@ -1,5 +1,7 @@
 package ast.stmt;
 
+import ast.Scope;
+import org.bytedeco.llvm.LLVM.*;
 import org.json.*;
 
 import java.util.*;
@@ -21,6 +23,12 @@ public class CompoundStmt extends Stmt {
         var compoundStmt = new CompoundStmt();
         compoundStmt.stmts.add(stmt);
         return compoundStmt;
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        stmts.forEach(stmt -> stmt.evaluate(module, function, scope));
+        return null;
     }
 
     @Override

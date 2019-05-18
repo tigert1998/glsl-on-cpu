@@ -50,15 +50,17 @@ public interface BinaryOperator {
             LLVMSetLinkage(func, LLVMExternalLinkage);
             return func;
         });
-        var builder = LLVMCreateBuilder();
-        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
         var result = buildAllocaInFirstBlock(function, returnType.inLLVM(), "");
         var parameterArr = constructBuiltInFuncParameters(
                 new Type[]{xtype, ytype}, new LLVMValueRef[]{xvalue, yvalue},
                 returnType, result, function);
 
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
         LLVMBuildCall(builder, toBeCalled,
                 new PointerPointer<>(parameterArr), parameterArr.length, "");
+        LLVMDisposeBuilder(builder);
+
         return loadPtr(returnType, function, result);
     }
 }

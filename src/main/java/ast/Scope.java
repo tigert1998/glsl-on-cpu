@@ -4,7 +4,7 @@ import ast.exceptions.ScopeException;
 import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
-import org.bytedeco.llvm.LLVM.LLVMValueRef;
+import org.bytedeco.llvm.LLVM.*;
 
 import java.util.*;
 import static org.bytedeco.llvm.global.LLVM.*;
@@ -26,10 +26,19 @@ public class Scope {
     static public class FunctionInfo {
         private FunctionSignature functionSignature;
         private boolean defined;
+        private LLVMValueRef value = null;
 
         public FunctionInfo(FunctionSignature functionSignature, boolean defined) {
             this.functionSignature = functionSignature;
             this.defined = defined;
+        }
+
+        public LLVMValueRef getValue(LLVMModuleRef module) {
+            if (value == null) {
+                value = LLVMAddFunction(module, functionSignature.getLLVMID(), functionSignature.inLLVM());
+                if (!defined) LLVMSetLinkage(value, LLVMExternalLinkage);
+            }
+            return value;
         }
     }
 
@@ -50,6 +59,14 @@ public class Scope {
 
     public void screwOut() {
         innerScopes.pop();
+    }
+
+    public LLVMValueRef lookupLLVMFunction(FunctionSignature sig, LLVMModuleRef module) {
+        for (var info : functions.get(sig.id)) {
+            if (info.functionSignature.match(sig))
+                return info.getValue(module);
+        }
+        return null;
     }
 
     public FunctionSignature lookupFunction(String id, Type[] types) {

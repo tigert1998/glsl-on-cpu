@@ -30,25 +30,7 @@ public class AssignmentExpr extends Expr {
     public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
         var yptr = y.evaluate(module, function, scope);
         var xptr = x.evaluate(module, function, scope);
-
-        if (type instanceof VectorizedType) {
-            appendForLoop(function, 0, ((VectorizedType) type).vectorizedLength(), "assign",
-                    (bodyBuilder, i) -> {
-                        var from = LLVMBuildLoad(bodyBuilder,
-                                LLVMBuildLoad(bodyBuilder,
-                                        buildGEP(bodyBuilder, yptr, "", constant(0), i),
-                                        ""),
-                                "");
-                        var to = LLVMBuildLoad(bodyBuilder,
-                                buildGEP(bodyBuilder, xptr, "", constant(0), i), "");
-                        LLVMBuildStore(bodyBuilder, from, to);
-                        return null;
-                    });
-        } else {
-            var builder = LLVMCreateBuilder();
-            LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
-            LLVMBuildStore(builder, LLVMBuildLoad(builder, yptr, ""), xptr);
-        }
+        assign(x.getType(), function, xptr, yptr);
         return xptr;
     }
 

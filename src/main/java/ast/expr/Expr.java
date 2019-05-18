@@ -1,11 +1,8 @@
 package ast.expr;
 
 import ast.AST;
-import ast.Scope;
 import ast.types.Type;
 
-import org.bytedeco.llvm.LLVM.LLVMModuleRef;
-import org.bytedeco.llvm.LLVM.LLVMValueRef;
 import org.json.*;
 
 public abstract class Expr extends AST {
@@ -18,11 +15,6 @@ public abstract class Expr extends AST {
 
     public boolean isLValue() {
         return isLValue;
-    }
-
-    // FIXME: should be abstract
-    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
-        return null;
     }
 
     public JSONObject toJSON() {

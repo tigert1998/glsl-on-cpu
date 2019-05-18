@@ -4,52 +4,45 @@ import ast.*;
 
 import org.bytedeco.javacpp.*;
 import org.bytedeco.llvm.LLVM.*;
+import org.bytedeco.llvm.global.LLVM;
+
+import java.util.*;
 
 import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
 
 public class CodeGenerator {
-    private Scope scope;
-    private ProgramAST program;
-
     private LLVMModuleRef module;
 
-    public CodeGenerator(String name, Scope scope, ProgramAST program) {
-        this.scope = scope;
-        this.program = program;
-
-        module = LLVMModuleCreateWithName(name);
-        for (var kv : scope.innerScopes.peek().variables.entrySet()) {
-            var stmt = kv.getValue();
-            var value = LLVMAddGlobal(module, stmt.type.inLLVM(), kv.getKey());
-            LLVMSetInitializer(value, stmt.type.zero().inLLVM());
-            stmt.setLLVMValue(value);
+    private void deadCodeElimination(LLVMModuleRef module) {
+        for (var function = LLVMGetFirstFunction(module); function != null; function = LLVMGetNextFunction(function)) {
+            if (LLVMIsDeclaration(function) != 0) continue;
+            for (var block = LLVMGetFirstBasicBlock(function); block != null; block = LLVMGetNextBasicBlock(block)) {
+                boolean terminated = false;
+                var toBeDeleted = new ArrayList<LLVMValueRef>();
+                for (var instr = LLVMGetFirstInstruction(block); instr != null; instr = LLVMGetNextInstruction(instr)) {
+                    if (terminated) {
+                        toBeDeleted.add(instr);
+                    } else {
+                        terminated = isTerminal(instr);
+                    }
+                }
+                toBeDeleted.forEach(LLVM::LLVMInstructionRemoveFromParent);
+            }
         }
-        buildGlobalVarInit();
+    }
+
+    public CodeGenerator(String name, Scope scope, ProgramAST program) {
+        module = LLVMModuleCreateWithName(name);
+        program.evaluate(module, null, scope);
+        deadCodeElimination(module);
     }
 
     public void dump(String path) {
-        var outMessage = new BytePointer((Pointer) null);
-        LLVMVerifyModule(module, LLVMAbortProcessAction, outMessage);
-        System.err.println(outMessage.getString());
+        BytePointer msg = new BytePointer((Pointer) null);
+        LLVMVerifyModule(module, LLVMAbortProcessAction, msg);
+        System.out.println(msg.getString());
+        LLVMDisposeMessage(msg);
         LLVMWriteBitcodeToFile(module, path);
-    }
-
-    private void buildGlobalVarInit() {
-        var func = LLVMAddFunction(module, ".global_var_init",
-                LLVMFunctionType(LLVMVoidType(), LLVMVoidType(), 0, 0));
-        var init = LLVMAppendBasicBlock(func, "init");
-        var entry = LLVMAppendBasicBlock(func, "entry");
-
-        for (var decl : program.getDeclarationStmts()) {
-            var llvmValue = decl.expr.evaluate(module, func, scope);
-            decl.storeLLVMValue(func, llvmValue);
-        }
-
-        var builder = LLVMCreateBuilder();
-        LLVMPositionBuilderAtEnd(builder, init);
-        LLVMBuildBr(builder, entry);
-
-        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(func));
-        LLVMBuildRetVoid(builder);
     }
 }

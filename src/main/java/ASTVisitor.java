@@ -459,6 +459,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         Expr condition;
         CompoundStmt step = null, body = null;
         scope.screwIn();
+        scope.controlFlowManagers.add(new ControlFlowManager());
         {
             var forLoopInitialization = ctx.forLoopInitialization();
             try {
@@ -500,11 +501,13 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 if (wrapper != null) body = new CompoundStmt(wrapper);
             }
         }
+        var manager = scope.controlFlowManagers.peek();
+        scope.controlFlowManagers.pop();
         scope.screwOut();
         if (!(condition.getType() instanceof BoolType))
             this.exceptionList.add(SyntaxErrorException.notBooleanExpression(ctx.forLoopCondition().start));
         if (this.exceptionList.isEmpty()) {
-            return StmtsWrapper.singleton(new ForStmt(initialization, condition, step, body));
+            return StmtsWrapper.singleton(new ForStmt(initialization, condition, step, body, manager));
         } else {
             return null;
         }
@@ -532,5 +535,23 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             }
             return StmtsWrapper.singleton(new ReturnStmt(expr));
         }
+    }
+
+    @Override
+    public StmtsWrapper visitBreakStmt(LangParser.BreakStmtContext ctx) {
+        if (scope.controlFlowManagers.empty()) {
+            this.exceptionList.add(SyntaxErrorException.invalidBreak(ctx.start));
+            return null;
+        }
+        return StmtsWrapper.singleton(new BreakStmt(scope.controlFlowManagers.peek()));
+    }
+
+    @Override
+    public StmtsWrapper visitContinueStmt(LangParser.ContinueStmtContext ctx) {
+        if (scope.controlFlowManagers.empty()) {
+            this.exceptionList.add(SyntaxErrorException.invalidContinue(ctx.start));
+            return null;
+        }
+        return StmtsWrapper.singleton(new ContinueStmt(scope.controlFlowManagers.peek()));
     }
 }

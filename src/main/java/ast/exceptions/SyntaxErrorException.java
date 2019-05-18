@@ -102,4 +102,12 @@ public class SyntaxErrorException extends Exception {
     public static SyntaxErrorException notMatchFunction(Token token, String id) {
         return new SyntaxErrorException(token, "'" + id + "': no matching overloaded function found");
     }
+
+    public static SyntaxErrorException invalidBreak(Token token) {
+        return new SyntaxErrorException(token, "break statement only allowed in loops and switch statements");
+    }
+
+    public static SyntaxErrorException invalidContinue(Token token) {
+        return new SyntaxErrorException(token, "continue statement only allowed in loops");
+    }
 }

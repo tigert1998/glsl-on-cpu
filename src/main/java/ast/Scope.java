@@ -1,6 +1,6 @@
 package ast;
 
-import ast.exceptions.ScopeException;
+import ast.exceptions.*;
 import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
@@ -47,6 +47,8 @@ public class Scope {
     public Map<String, LLVMValueRef> builtInFunctions = new TreeMap<>();
 
     public Stack<InnerScope> innerScopes;
+
+    public Stack<ControlFlowManager> controlFlowManagers = new Stack<>();
 
     public Scope() {
         innerScopes = new Stack<>();

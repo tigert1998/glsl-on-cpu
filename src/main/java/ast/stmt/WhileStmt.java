@@ -6,10 +6,12 @@ import org.json.JSONObject;
 public class WhileStmt extends Stmt {
     public Expr condition;
     public CompoundStmt body;
+    private ControlFlowManager controlFlowManager;
 
-    public WhileStmt(Expr condition, CompoundStmt body) {
+    public WhileStmt(Expr condition, CompoundStmt body, ControlFlowManager controlFlowManager) {
         this.condition = condition;
         this.body = body;
+        this.controlFlowManager = controlFlowManager;
     }
 
     @Override

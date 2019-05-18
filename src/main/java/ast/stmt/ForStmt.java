@@ -7,17 +7,20 @@ import org.json.JSONObject;
 
 import static org.bytedeco.llvm.global.LLVM.*;
 
-public class ForStmt extends Stmt {
+public class ForStmt extends Stmt implements LoopStmt {
     public CompoundStmt initialization;
     public Expr condition;
     public CompoundStmt step;
     public CompoundStmt body;
+    private ControlFlowManager controlFlowManager;
 
-    public ForStmt(CompoundStmt initialization, Expr condition, CompoundStmt step, CompoundStmt body) {
+    public ForStmt(CompoundStmt initialization, Expr condition, CompoundStmt step, CompoundStmt body,
+                   ControlFlowManager controlFlowManager) {
         this.initialization = initialization;
         this.condition = condition;
         this.step = step;
         this.body = body;
+        this.controlFlowManager = controlFlowManager;
     }
 
     @Override
@@ -61,6 +64,8 @@ public class ForStmt extends Stmt {
         LLVMBuildBr(builder, stepBlock);
 
         LLVMDisposeBuilder(builder);
+
+        LoopStmt.super.addContinueBreaks(this.controlFlowManager, stepBlock, endBlock);
         return null;
     }
 

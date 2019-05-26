@@ -16,7 +16,7 @@ public class Main {
         programListener.getScope().logStructs();
         programListener.getScope().logFunctions();
 
-        var writer = new FileWriter("/Users/tigertang/CodeSandBox/ast.json");
+        var writer = new FileWriter("/home/tigertang/CodeSandBox/ast.json");
         programListener.getProgramAST().toJSON().write(writer, 2, 0);
         writer.close();
 
@@ -28,6 +28,6 @@ public class Main {
         }
 
         var generator = new CodeGenerator("fuck", programListener.getScope(), programListener.getProgramAST());
-        generator.dump("/Users/tigertang/CodeSandBox/fuck.bc");
+        generator.dump("/home/tigertang/CodeSandBox/fuck.bc");
     }
 }

@@ -7,6 +7,7 @@ import ast.values.*;
 import org.bytedeco.llvm.LLVM.*;
 
 import java.util.*;
+
 import static org.bytedeco.llvm.global.LLVM.*;
 
 public class Scope {
@@ -45,6 +46,8 @@ public class Scope {
     public Map<String, List<FunctionInfo>> functions = new TreeMap<>();
 
     public Map<String, LLVMValueRef> builtInFunctions = new TreeMap<>();
+
+    public Set<String> cLinkageFunctionIDs = new TreeSet<>();
 
     public Stack<InnerScope> innerScopes;
 
@@ -155,6 +158,13 @@ public class Scope {
         list.add(new FunctionInfo(sig, true));
     }
 
+    public void declareCLinkageFunction(FunctionSignature sig) throws ScopeException {
+        checkDeclareCLinkageFunctions(sig);
+        sig.setCLinkage();
+        declareFunction(sig);
+        cLinkageFunctionIDs.add(sig.id);
+    }
+
     public boolean canDefineID(String id) {
         var scope = innerScopes.peek();
         boolean redefinition = scope.constants.containsKey(id) ||
@@ -201,10 +211,21 @@ public class Scope {
         }
     }
 
+    private void checkDeclareCLinkageFunctions(FunctionSignature sig) throws ScopeException {
+        if (cLinkageFunctionIDs.contains(sig.id))
+            throw ScopeException.declarationCLinkage(sig);
+        if (!functions.containsKey(sig.id)) return;
+        for (var info : functions.get(sig.id)) {
+            if (info.functionSignature.match(sig))
+                throw ScopeException.declarationCLinkage(sig);
+        }
+    }
+
     public void logFunctions() {
         for (var kv : functions.entrySet()) {
             var list = kv.getValue();
             for (var info : list) {
+                if (info.functionSignature.cLinkage) System.out.print("(C) ");
                 System.out.println(info.functionSignature + ";");
             }
         }

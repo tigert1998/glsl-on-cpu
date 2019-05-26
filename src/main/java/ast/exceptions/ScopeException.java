@@ -1,5 +1,7 @@
 package ast.exceptions;
 
+import ast.FunctionSignature;
+
 public class ScopeException extends UnlocatedSyntaxErrorException {
     private ScopeException(String message) {
         super(message);
@@ -16,5 +18,10 @@ public class ScopeException extends UnlocatedSyntaxErrorException {
 
     public static ScopeException functionRedefinition(String id) {
         return new ScopeException("'" + id + "': redefinition of a function");
+    }
+
+    public static ScopeException declarationCLinkage(FunctionSignature sig) {
+        return new ScopeException("conflicting declaration of '" + sig.toString()
+                + "' with 'C' linkage");
     }
 }

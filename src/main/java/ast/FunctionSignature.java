@@ -58,6 +58,7 @@ public class FunctionSignature {
     public List<ParameterInfo> parameters = new ArrayList<>();
     public Map<String, ParameterInfo> parametersMap = new TreeMap<>();
     public String id;
+    public boolean cLinkage = false;
 
     public void addParameter(ParameterQualifier qualifier, Type type, String id) {
         var info = new ParameterInfo(qualifier, type, id, parameters.size());
@@ -68,6 +69,10 @@ public class FunctionSignature {
     public FunctionSignature(Type returnType, String id) {
         this.returnType = returnType;
         this.id = id;
+    }
+
+    public void setCLinkage() {
+        cLinkage = true;
     }
 
     public boolean match(FunctionSignature sig) {
@@ -115,10 +120,14 @@ public class FunctionSignature {
     }
 
     public String getLLVMID() {
-        StringBuilder sb = new StringBuilder(id);
-        parameters.forEach(parameter -> {
-            sb.append('.').append(parameter.type.toString());
-        });
-        return new String(sb);
+        if (cLinkage) {
+            return id;
+        } else {
+            StringBuilder sb = new StringBuilder("$" + id);
+            parameters.forEach(parameter ->
+                    sb.append('.').append(parameter.type.toString())
+            );
+            return new String(sb);
+        }
     }
 }

@@ -9,6 +9,7 @@ public class ProgramListener extends LangBaseListener {
     private List<SyntaxErrorException> exceptionList = new ArrayList<>();
     private ProgramAST programAST = new ProgramAST();
     private int depth = 0;
+    private boolean inExtern = false;
 
     public Scope getScope() {
         return scope;
@@ -49,7 +50,11 @@ public class ProgramListener extends LangBaseListener {
 
         try {
             var sig = Utility.functionSignatureFromCtx(ctx.functionSignature(), scope);
-            scope.declareFunction(sig);
+            if (inExtern) {
+                scope.declareCLinkageFunction(sig);
+            } else {
+                scope.declareFunction(sig);
+            }
         } catch (SyntaxErrorException exception) {
             this.exceptionList.add(exception);
         } catch (ScopeException exception) {
@@ -94,5 +99,15 @@ public class ProgramListener extends LangBaseListener {
     @Override
     public void exitFunctionDefinition(LangParser.FunctionDefinitionContext ctx) {
         depth--;
+    }
+
+    @Override
+    public void enterExternStmt(LangParser.ExternStmtContext ctx) {
+        inExtern = true;
+    }
+
+    @Override
+    public void exitExternStmt(LangParser.ExternStmtContext ctx) {
+        inExtern = false;
     }
 }

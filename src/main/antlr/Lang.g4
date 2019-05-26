@@ -1,6 +1,11 @@
 grammar Lang;
 
-program: (declarationStmt | functionDefinition | functionForwardDeclarationStmt)+;
+program: (
+    declarationStmt
+    | functionDefinition
+    | functionForwardDeclarationStmt
+    | emptyStmt
+    | externStmt )*;
 
 functionDefinition: functionSignature compoundStmt;
 
@@ -12,7 +17,11 @@ functionParameter: (CONST? IN? | OUT | INOUT) type variableMaybeArray;
 
 // statements
 
-functionForwardDeclarationStmt: functionSignature ';'; // forward function declaration doesn't belong to normal stmt
+functionForwardDeclarationStmt: functionSignature ';';
+
+externStmt: EXTERN '"C"' '{' (functionForwardDeclarationStmt | emptyStmt)* '}';
+
+// forward function declaration and extern stmt doesn't belong to normal stmt
 
 stmt:
     declarationStmt
@@ -153,6 +162,9 @@ functionInvocation:
     | IDENTIFIER '(' expr (',' expr)* ')';
 
 // keywords
+// compiler-support for extern "C" {}
+EXTERN: 'extern';
+
 IN: 'in';
 OUT: 'out';
 INOUT: 'inout';

@@ -26,10 +26,6 @@ public class SyntaxErrorException extends Exception {
                 "'" + id + "': redefinition");
     }
 
-    public static SyntaxErrorException notIntegerExpression(Token token) {
-        return new SyntaxErrorException(token, Messages.notIntegerExpression);
-    }
-
     public static SyntaxErrorException notBooleanExpression(Token token) {
         return new SyntaxErrorException(token, Messages.notBooleanExpression);
     }

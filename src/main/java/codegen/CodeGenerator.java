@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.jar.JarFile;
 
 import static org.bytedeco.llvm.global.LLVM.*;
 import static codegen.LLVMUtility.*;
@@ -22,21 +23,41 @@ public class CodeGenerator {
     {
         LLVMInitializeNativeTarget();
         libModule = LLVMModuleCreateWithName("lib");
+        final String folder = "glsl-on-cpu-llvm-lib";
+        final File jarFile = new File(
+                getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+
         try {
-            var uri = getClass().getClassLoader().getResource("glsl-on-cpu-llvm-lib").toURI();
-            var dir = new File(uri);
-            var pathStream = Files.walk(dir.toPath());
-            var matcher = FileSystems.getDefault().getPathMatcher("glob:*.ll");
-            pathStream.filter(path ->
-                    matcher.matches(path.getFileName())).forEach(path -> {
-                try {
-                    byte[] content = Files.readAllBytes(path);
-                    var module = compileIR(path.getFileName().toString(), content);
-                    LLVMLinkModules2(libModule, module);
-                } catch (IOException ignore) {
+            String[] arr;
+            if (jarFile.isFile()) {
+                var jar = new JarFile(jarFile);
+                var entries = jar.entries();
+                var list = new ArrayList<String>();
+                while (entries.hasMoreElements()) {
+                    var name = entries.nextElement().getName();
+                    if (name.startsWith(folder + "/")) {
+                        list.add(name.substring(name.lastIndexOf('/') + 1));
+                    }
                 }
-            });
-        } catch (URISyntaxException | IOException ignore) {
+                jar.close();
+                arr = new String[list.size()];
+                list.toArray(arr);
+            } else {
+                var stream = getClass().getClassLoader().getResourceAsStream(folder);
+                arr = new String(stream.readAllBytes()).split("\n");
+            }
+
+            var matcher = FileSystems.getDefault().getPathMatcher("glob:*.ll");
+
+            for (var fileName : arr) {
+                if (!matcher.matches(Paths.get(fileName))) continue;
+                var path = folder + "/" + fileName;
+                var fileStream = getClass().getClassLoader().getResourceAsStream(path);
+                byte[] content = fileStream.readAllBytes();
+                var module = compileIR(fileName, content);
+                LLVMLinkModules2(libModule, module);
+            }
+        } catch (IOException ignore) {
         }
     }
 

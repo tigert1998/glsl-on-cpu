@@ -24,3 +24,20 @@ dependencies {
 generateGrammarSource {
     arguments += ["-visitor"]
 }
+
+configurations {
+    extraLib.extendsFrom antlr, implementation
+}
+
+jar {
+    from {
+        configurations.extraLib.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    manifest {
+        attributes(
+                'Main-Class': 'Main'
+        )
+    }
+}

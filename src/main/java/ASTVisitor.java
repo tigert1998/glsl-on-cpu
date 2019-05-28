@@ -51,7 +51,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         } catch (ArithmeticException exception) {
             this.exceptionList.add(new SyntaxErrorException(opToken, exception.getMessage()));
             return null;
-        } catch (OperatorCannotBeAppliedException exception) {
+        } catch (UnlocatedSyntaxErrorException exception) {
             this.exceptionList.add(new SyntaxErrorException(opToken, exception));
             return null;
         }

@@ -3,6 +3,7 @@ package ast.expr;
 import ast.*;
 import ast.exceptions.*;
 import ast.operators.*;
+import ast.values.BoolValue;
 import org.bytedeco.llvm.LLVM.*;
 import org.json.*;
 
@@ -18,15 +19,22 @@ public class BinaryExpr extends Expr {
     }
 
     public static Expr factory(BinaryOperator op, Expr[] exprs)
-            throws ArithmeticException, OperatorCannotBeAppliedException {
+            throws ArithmeticException, UnlocatedSyntaxErrorException {
+        if (exprs[0] instanceof ConstExpr && exprs[1] instanceof ConstExpr) {
+            return new ConstExpr(op.apply(
+                    ((ConstExpr) exprs[0]).getValue(),
+                    ((ConstExpr) exprs[1]).getValue()));
+        }
+
         if (op instanceof NotEqual) {
             return UnaryExpr.factory(LogicalNot.OP, factory(Equal.OP, exprs));
+        } else if (op instanceof LogicalAnd) {
+            return TernaryConditionalExpr.factory(exprs[0], exprs[1], new ConstExpr(new BoolValue(false)));
+        } else if (op instanceof LogicalOr) {
+            return TernaryConditionalExpr.factory(exprs[0], new ConstExpr(new BoolValue(true)), exprs[1]);
         }
-        if (exprs[0] instanceof ConstExpr && exprs[1] instanceof ConstExpr) {
-            return new ConstExpr(op.apply(((ConstExpr) exprs[0]).getValue(), ((ConstExpr) exprs[1]).getValue()));
-        } else {
-            return new BinaryExpr(op, exprs);
-        }
+
+        return new BinaryExpr(op, exprs);
     }
 
     @Override

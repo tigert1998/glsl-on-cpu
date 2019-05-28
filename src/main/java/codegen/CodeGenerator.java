@@ -7,7 +7,6 @@ import org.bytedeco.llvm.LLVM.*;
 import org.bytedeco.llvm.global.*;
 
 import java.io.*;
-import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.jar.JarFile;

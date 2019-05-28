@@ -5,7 +5,6 @@ import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
 
 import static org.bytedeco.llvm.global.LLVM.*;
-import static codegen.LLVMUtility.*;
 
 public class FunctionAST extends AST {
     private FunctionSignature functionSignature;

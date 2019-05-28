@@ -40,6 +40,7 @@ public class SubscriptingExpr extends Expr {
     @Override
     public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
         var xptr = x.evaluate(module, function, scope);
+        log(xptr);
 
         var originalType = x.getType();
         var builder = LLVMCreateBuilder();

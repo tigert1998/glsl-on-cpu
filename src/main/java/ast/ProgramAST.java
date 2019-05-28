@@ -1,6 +1,8 @@
 package ast;
 
+import ast.expr.ConstExpr;
 import ast.stmt.*;
+import codegen.LLVMUtility;
 import org.bytedeco.llvm.LLVM.*;
 import org.json.*;
 
@@ -25,33 +27,13 @@ public class ProgramAST extends AST {
         for (var kv : scope.innerScopes.peek().variables.entrySet()) {
             var stmt = kv.getValue();
             var value = LLVMAddGlobal(module, stmt.type.inLLVM(), kv.getKey());
-            LLVMSetInitializer(value, stmt.type.zero().inLLVM());
+            LLVMSetInitializer(value, ((ConstExpr) stmt.expr).getValue().inLLVM());
             stmt.setLLVMValue(value);
         }
-        buildGlobalVarInit(module, scope);
         for (var func : functions) {
             func.evaluate(module, null, scope);
         }
         return null;
-    }
-
-    private void buildGlobalVarInit(LLVMModuleRef module, Scope scope) {
-        var func = LLVMAddFunction(module, ".global_var_init",
-                LLVMFunctionType(LLVMVoidType(), LLVMVoidType(), 0, 0));
-        var init = LLVMAppendBasicBlock(func, "init");
-        var entry = LLVMAppendBasicBlock(func, "entry");
-
-        for (var decl : declarationStmts) {
-            var llvmValue = decl.expr.evaluate(module, func, scope);
-            decl.storeLLVMValue(func, llvmValue);
-        }
-
-        var builder = LLVMCreateBuilder();
-        LLVMPositionBuilderAtEnd(builder, init);
-        LLVMBuildBr(builder, entry);
-
-        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(func));
-        LLVMBuildRetVoid(builder);
     }
 
     @Override

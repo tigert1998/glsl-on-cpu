@@ -218,16 +218,17 @@ public class Utility {
                     throw SyntaxErrorException.implicitSizedArray(variableMaybeArray.start);
                 }
                 declarationStmt = new DeclarationStmt(actualType, id, new ConstExpr(actualType.zero()));
+                declarationStmt.setLLVMValue(actualType.zero().inLLVM());
             } else {
-                var visitor = new ASTVisitor(scope);
-                var expr = (Expr) item.expr().accept(visitor);
-                if (expr == null)
-                    throw visitor.exceptionList.get(0);
-                if (!expr.getType().equals(actualType)) {
-                    throw SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType);
+                var visitor = new ConstantVisitor(scope);
+                var value = (Value) item.expr().accept(visitor);
+                if (value == null)
+                    throw visitor.exception;
+                if (!value.getType().equals(actualType)) {
+                    throw SyntaxErrorException.cannotConvert(item.expr().start, value.getType(), actualType);
                 }
-                actualType = expr.getType();
-                declarationStmt = new DeclarationStmt(actualType, id, expr);
+                actualType = value.getType();
+                declarationStmt = new DeclarationStmt(actualType, id, new ConstExpr(value));
             }
             scope.defineVariable(declarationStmt);
             result.stmts.add(declarationStmt);

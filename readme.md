@@ -5,3 +5,5 @@
 - comma expression
 - macro
 - postfix increment/decrement
+- switch
+- uniform, texture, etc (rendering pipeline related)

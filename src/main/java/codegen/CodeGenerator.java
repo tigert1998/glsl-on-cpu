@@ -88,7 +88,7 @@ public class CodeGenerator {
         LLVMLinkModules2(module, libModule);
         BytePointer msg = new BytePointer((Pointer) null);
         LLVMVerifyModule(module, LLVMAbortProcessAction, msg);
-        System.out.println(msg.getString());
+        System.err.print(msg.getString());
         LLVMDisposeMessage(msg);
         LLVMWriteBitcodeToFile(module, path);
     }

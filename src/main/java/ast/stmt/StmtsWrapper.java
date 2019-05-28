@@ -1,6 +1,8 @@
 package ast.stmt;
 
 import ast.AST;
+import ast.Scope;
+import org.bytedeco.llvm.LLVM.*;
 
 import java.util.*;
 
@@ -11,5 +13,10 @@ public class StmtsWrapper extends AST {
         var result = new StmtsWrapper();
         result.stmts.add(stmt);
         return result;
+    }
+
+    @Override
+    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
+        return null;
     }
 }

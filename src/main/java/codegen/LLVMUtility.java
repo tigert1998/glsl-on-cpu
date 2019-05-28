@@ -260,6 +260,11 @@ public class LLVMUtility {
         return arr;
     }
 
+    public static LLVMValueRef buildCastBoolToInt1(LLVMBuilderRef builder, LLVMValueRef value) {
+        return LLVMBuildIntCast2(builder,
+                LLVMBuildLoad(builder, value, ""), LLVMInt1Type(), 0, "");
+    }
+
     public static void log(LLVMValueRef value) {
         System.out.println(LLVMPrintValueToString(value).getString());
     }

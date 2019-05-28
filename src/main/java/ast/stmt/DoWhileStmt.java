@@ -5,6 +5,7 @@ import ast.expr.Expr;
 import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
 
+import static codegen.LLVMUtility.*;
 import static org.bytedeco.llvm.global.LLVM.*;
 
 public class DoWhileStmt extends Stmt implements LoopStmt {
@@ -40,8 +41,7 @@ public class DoWhileStmt extends Stmt implements LoopStmt {
 
         // cond
         LLVMPositionBuilderAtEnd(builder, LLVMGetPreviousBasicBlock(endBlock));
-        value = LLVMBuildLoad(builder, value, "");
-        value = LLVMBuildIntCast2(builder, value, LLVMInt1Type(), 0, "");
+        value = buildCastBoolToInt1(builder, value);
         LLVMBuildCondBr(builder, value, bodyBlock, endBlock);
 
         LLVMDisposeBuilder(builder);

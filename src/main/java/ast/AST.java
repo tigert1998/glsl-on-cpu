@@ -10,10 +10,8 @@ public abstract class AST {
         return json;
     }
 
-    // FIXME: should be abstract
-    public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
-        return null;
-    }
+    abstract public LLVMValueRef evaluate(
+            LLVMModuleRef module, LLVMValueRef function, Scope scope);
 
     @Override
     public String toString() {

@@ -6,6 +6,7 @@ import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
 
 import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
 
 public class IfStmt extends Stmt {
     public Expr condition;
@@ -38,7 +39,7 @@ public class IfStmt extends Stmt {
         LLVMBuildBr(builder, conditionBlock);
 
         LLVMPositionBuilderAtEnd(builder, LLVMGetPreviousBasicBlock(thenBlock));
-        value = LLVMBuildIntCast2(builder, LLVMBuildLoad(builder, value, ""), LLVMInt1Type(), 0, "");
+        value = buildCastBoolToInt1(builder, value);
         LLVMBuildCondBr(builder, value, thenBlock, elseBlock);
 
         LLVMPositionBuilderAtEnd(builder, LLVMGetPreviousBasicBlock(elseBlock));

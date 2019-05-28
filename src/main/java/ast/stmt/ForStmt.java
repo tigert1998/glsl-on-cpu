@@ -6,6 +6,7 @@ import org.bytedeco.llvm.LLVM.*;
 import org.json.JSONObject;
 
 import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
 
 public class ForStmt extends Stmt implements LoopStmt {
     public CompoundStmt initialization;
@@ -51,8 +52,7 @@ public class ForStmt extends Stmt implements LoopStmt {
 
         // cond
         LLVMPositionBuilderAtEnd(builder, LLVMGetPreviousBasicBlock(stepBlock));
-        value = LLVMBuildLoad(builder, value, "");
-        value = LLVMBuildIntCast2(builder, value, LLVMInt1Type(), 0, "");
+        value = buildCastBoolToInt1(builder, value);
         LLVMBuildCondBr(builder, value, bodyBlock, endBlock);
 
         // step

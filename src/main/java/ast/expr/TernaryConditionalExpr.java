@@ -42,8 +42,7 @@ public class TernaryConditionalExpr extends Expr {
 
         var builder = LLVMCreateBuilder();
         LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
-        var judge = LLVMBuildLoad(builder, judgement.evaluate(module, function, scope), "");
-        judge = LLVMBuildIntCast2(builder, judge, LLVMInt1Type(), 0, "");
+        var judge = buildCastBoolToInt1(builder, judgement.evaluate(module, function, scope));
 
         var blockX = LLVMAppendBasicBlock(function, "ternary_cond_x");
         var blockY = LLVMAppendBasicBlock(function, "ternary_cond_y");

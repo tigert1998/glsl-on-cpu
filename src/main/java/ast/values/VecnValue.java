@@ -83,9 +83,17 @@ public class VecnValue extends Value implements Vectorized, Indexed, Selected {
     @Override
     public Value select(String name) throws InvalidSelectionException {
         int[] indices = SwizzleUtility.swizzle(values.length, name);
-        var res = new VecnValue(indices.length);
-        for (int i = 0; i < indices.length; i++) res.values[i] = this.values[indices[i]];
-        return res;
+        if (indices.length == 1) {
+            try {
+                return valueAt(indices[0]);
+            } catch (InvalidIndexException ignore) {
+                return null;
+            }
+        } else {
+            var res = new VecnValue(indices.length);
+            for (int i = 0; i < indices.length; i++) res.values[i] = this.values[indices[i]];
+            return res;
+        }
     }
 
     @Override

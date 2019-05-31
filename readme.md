@@ -1,9 +1,16 @@
 # OpenGL Shader on CPU
 
-## todo
+## to-do
 
-- comma expression
-- macro
-- postfix increment/decrement
-- switch
-- uniform, texture, etc (rendering pipeline related)
+- [ ] comma expression
+- [ ] macro
+- [ ] postfix increment/decrement
+- [ ] switch
+- [ ] uniform, texture, etc (rendering pipeline related)
+- [ ] built-in functions (`mix`, `fract`, etc)
+
+## additional feature
+
+- in-line structure definition
+- extern "C" and demangling
+

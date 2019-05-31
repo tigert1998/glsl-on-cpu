@@ -62,7 +62,7 @@ public class ConstantVisitor extends LangBaseVisitor<Value> {
     @Override
     public Value visitReferenceExpr(LangParser.ReferenceExprContext ctx) {
         var result = scope.lookupValue(ctx.IDENTIFIER().getText());
-        if (result.value == null) {
+        if (result == null || result.value == null) {
             this.exception = SyntaxErrorException.undeclaredID(ctx.start, ctx.IDENTIFIER().getText());
             return null;
         }

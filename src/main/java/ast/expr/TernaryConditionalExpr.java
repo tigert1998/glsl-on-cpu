@@ -37,9 +37,10 @@ public class TernaryConditionalExpr extends Expr {
     public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
         var result = buildAllocaInFirstBlock(function, this.type.withInnerPtrInLLVM(), "");
 
+        var judgementEvaluated = judgement.evaluate(module, function, scope);
         var builder = LLVMCreateBuilder();
         LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
-        var judge = buildCastBoolToInt1(builder, judgement.evaluate(module, function, scope));
+        var judge = buildCastBoolToInt1(builder, judgementEvaluated);
 
         var blockX = LLVMAppendBasicBlock(function, "ternary_cond_x");
         LLVMPositionBuilderAtEnd(builder, blockX);
@@ -47,7 +48,7 @@ public class TernaryConditionalExpr extends Expr {
         LLVMBuildStore(builder, LLVMBuildLoad(builder, xptr, ""), result);
 
         var blockY = LLVMAppendBasicBlock(function, "ternary_cond_y");
-        LLVMPositionBuilderAtEnd(builder, blockX);
+        LLVMPositionBuilderAtEnd(builder, blockY);
         var yptr = y.evaluate(module, function, scope);
         LLVMBuildStore(builder, LLVMBuildLoad(builder, yptr, ""), result);
 

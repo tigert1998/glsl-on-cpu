@@ -220,15 +220,23 @@ public class Utility {
                 declarationStmt = new DeclarationStmt(actualType, id, new ConstExpr(actualType.zero()));
                 declarationStmt.setLLVMValue(actualType.zero().inLLVM());
             } else {
-                var visitor = new ConstantVisitor(scope);
-                var value = (Value) item.expr().accept(visitor);
-                if (value == null)
-                    throw visitor.exception;
-                if (!value.getType().equals(actualType)) {
-                    throw SyntaxErrorException.cannotConvert(item.expr().start, value.getType(), actualType);
+                Expr expr;
+                if (scope.innerScopes.size() == 1) {
+                    var visitor = new ConstantVisitor(scope);
+                    var value = (Value) item.expr().accept(visitor);
+                    if (value == null)
+                        throw visitor.exception;
+                    expr = new ConstExpr(value);
+                } else {
+                    var visitor = new ASTVisitor(scope);
+                    expr = (Expr) item.expr().accept(visitor);
+                    if (expr == null) throw visitor.exceptionList.get(0);
                 }
-                actualType = value.getType();
-                declarationStmt = new DeclarationStmt(actualType, id, new ConstExpr(value));
+                if (!expr.getType().equals(actualType)) {
+                    throw SyntaxErrorException.cannotConvert(item.expr().start, expr.getType(), actualType);
+                }
+                actualType = expr.getType();
+                declarationStmt = new DeclarationStmt(actualType, id, expr);
             }
             scope.defineVariable(declarationStmt);
             result.stmts.add(declarationStmt);

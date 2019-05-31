@@ -85,7 +85,6 @@ public class CodeGenerator {
     }
 
     public void dump(String path) {
-        log(module);
         LLVMLinkModules2(module, libModule);
         BytePointer msg = new BytePointer((Pointer) null);
         LLVMVerifyModule(module, LLVMAbortProcessAction, msg);

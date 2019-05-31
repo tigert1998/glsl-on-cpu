@@ -40,11 +40,12 @@ public class SubscriptingExpr extends Expr {
     @Override
     public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
         var xptr = x.evaluate(module, function, scope);
+        var indexEvaluated = index.evaluate(module, function, scope);
 
         var originalType = x.getType();
         var builder = LLVMCreateBuilder();
         LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
-        var indexValue = LLVMBuildLoad(builder, index.evaluate(module, function, scope), ""); // i32
+        var indexValue = LLVMBuildLoad(builder, indexEvaluated, ""); // i32
 
         if (originalType instanceof SwizzledType) {
             return LLVMBuildLoad(builder, buildGEP(builder, xptr, "", constant(0), indexValue), "");

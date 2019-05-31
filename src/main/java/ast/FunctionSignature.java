@@ -121,7 +121,7 @@ public class FunctionSignature {
 
     public String getLLVMID() {
         if (cLinkage) {
-            return id;
+            return "GLSL_" + id;
         } else {
             StringBuilder sb = new StringBuilder("$" + id);
             parameters.forEach(parameter ->

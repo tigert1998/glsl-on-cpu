@@ -22,14 +22,15 @@ public interface VectorizedType {
         var result = buildAllocaInFirstBlock(function, ((Type) targetType).inLLVM(), "");
 
         if (types.length == 1 && !(types[0] instanceof VectorizedType)) {
+            var constructed = targetType.primitiveType().construct(types, values, function, scope);
             LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
-
-            var from = LLVMBuildLoad(builder, targetType.primitiveType().construct(types, values, function, scope), "");
-            appendForLoop(function, 0, targetType.vectorizedLength(), "construct_vectorized", (bodyBuilder, i) -> {
-                var to = buildGEP(bodyBuilder, result, "", constant(0), i);
-                LLVMBuildStore(bodyBuilder, from, to);
-                return null;
-            });
+            var from = LLVMBuildLoad(builder, constructed, "");
+            appendForLoop(function, 0, targetType.vectorizedLength(), "construct_vectorized",
+                    (bodyBuilder, i) -> {
+                        var to = buildGEP(bodyBuilder, result, "", constant(0), i);
+                        LLVMBuildStore(bodyBuilder, from, to);
+                        return null;
+                    });
 
             return loadPtr((Type) targetType, function, result);
         }
@@ -44,8 +45,9 @@ public interface VectorizedType {
 
                 appendForLoop(function, 0, delta, targetType + "_from_" + type, (bodyBuilder, index) -> {
                     var tmp = buildLoad(bodyBuilder, buildGEP(bodyBuilder, value, "", constant(0), index));
-                    var from = buildLoad(bodyBuilder,
-                            targetType.primitiveType().construct(type.primitiveType(), tmp, function, scope));
+                    var constructed = targetType.primitiveType().construct(type.primitiveType(), tmp, function, scope);
+                    LLVMPositionBuilderAtEnd(bodyBuilder, LLVMGetLastBasicBlock(function));
+                    var from = buildLoad(bodyBuilder, constructed);
                     var to = buildGEP(bodyBuilder, result, "", constant(0),
                             LLVMBuildAdd(bodyBuilder, index, currentLLVMValue, ""));
                     LLVMBuildStore(bodyBuilder, from, to);
@@ -53,8 +55,9 @@ public interface VectorizedType {
                 });
                 current += delta;
             } else {
+                var constructed = targetType.primitiveType().construct(types[i], values[i], function, scope);
                 LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
-                var from = buildLoad(builder, targetType.primitiveType().construct(types[i], values[i], function, scope));
+                var from = buildLoad(builder, constructed);
                 var to = buildGEP(builder, result, "", 0, current);
                 LLVMBuildStore(builder, from, to);
                 current += 1;

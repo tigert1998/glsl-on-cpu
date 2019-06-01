@@ -119,4 +119,8 @@ public class SyntaxErrorException extends Exception {
     public static SyntaxErrorException constantExpressionRequired(Token token) {
         return new SyntaxErrorException(token, "constant expression required");
     }
+
+    public static SyntaxErrorException duplicateCase(Token token) {
+        return new SyntaxErrorException(token, "'" + token.getText() + "': duplicate case label");
+    }
 }

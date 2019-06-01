@@ -403,12 +403,13 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 var value = (Value) itemCtx.expr().accept(visitor);
                 if (value == null) {
                     this.exceptionList.add(visitor.exception);
-                    return null;
+                    switchStmt = null;
+                    break;
                 }
                 if (!value.getType().equals(switchedType)) {
                     this.exceptionList.add(SyntaxErrorException.caseLabelTypeMismatch(itemCtx.start));
-                    return null;
-
+                    switchStmt = null;
+                    break;
                 }
                 try {
                     expr = (long) Utility.evalValueAsIntegral(value, itemCtx.expr().start);
@@ -419,12 +420,20 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 expr = null;
             }
             var wrappers = extractStmtsWrappersWithoutScopes(itemCtx.stmt());
-            if (wrappers == null) return null;
+            if (wrappers == null) {
+                switchStmt = null;
+                break;
+            }
             var wrapper = new StmtsWrapper(wrappers);
             var compoundStmt = new CompoundStmt(wrapper);
-            switchStmt.caseItems.add(new SwitchStmt.CaseItem(expr, compoundStmt));
+            if (!switchStmt.addCaseItem(expr, compoundStmt)) {
+                this.exceptionList.add(SyntaxErrorException.duplicateCase(itemCtx.start));
+                switchStmt = null;
+                break;
+            }
         }
         scope.popControlFlowManager();
+        if (switchStmt == null) return null;
         return StmtsWrapper.singleton(switchStmt);
     }
 

@@ -12,6 +12,10 @@ import java.util.function.*;
 import static org.bytedeco.llvm.global.LLVM.*;
 
 public class LLVMUtility {
+    public static LLVMValueRef constant(long x) {
+        return LLVMConstInt(LLVMInt32Type(), x, 0);
+    }
+
     public static LLVMValueRef constant(int x) {
         return LLVMConstInt(LLVMInt32Type(), x, 1);
     }

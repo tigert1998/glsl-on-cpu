@@ -25,6 +25,7 @@ externStmt: EXTERN '"C"' '{' (functionForwardDeclarationStmt | emptyStmt)* '}';
 
 stmt:
     declarationStmt
+    | switchStmt
     | selectionStmt
     | compoundStmt
     | loopStmt
@@ -42,6 +43,12 @@ breakStmt: BREAK ';';
 continueStmt: CONTINUE ';';
 
 emptyStmt: ';';
+
+switchStmt: SWITCH '(' expr ')' '{'
+    caseItem*
+'}';
+
+caseItem: (CASE expr | DEFAULT) ':' stmt*;
 
 compoundStmt: '{' stmt* '}';
 
@@ -180,6 +187,9 @@ DO: 'do';
 FOR: 'for';
 TRUE: 'true';
 FALSE: 'false';
+SWITCH: 'switch';
+CASE: 'case';
+DEFAULT: 'default';
 
 // basic types, also keywords
 VOID: 'void';

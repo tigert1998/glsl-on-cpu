@@ -51,7 +51,29 @@ public class Scope {
 
     public Stack<InnerScope> innerScopes;
 
-    public Stack<ControlFlowManager> controlFlowManagers = new Stack<>();
+    private Stack<ControlFlowManager> controlFlowManagers = new Stack<>();
+
+    public void pushControlFlowManager(ControlFlowManager manager) {
+        controlFlowManagers.push(manager);
+    }
+
+    public void popControlFlowManager() {
+        controlFlowManagers.pop();
+    }
+
+    public ControlFlowManager loopupBreak() {
+        for (int i = controlFlowManagers.size() - 1; i >= 0; i--) {
+            if (controlFlowManagers.get(i).allowBreak) return controlFlowManagers.get(i);
+        }
+        return null;
+    }
+
+    public ControlFlowManager loopupContinue() {
+        for (int i = controlFlowManagers.size() - 1; i >= 0; i--) {
+            if (controlFlowManagers.get(i).allowContinue) return controlFlowManagers.get(i);
+        }
+        return null;
+    }
 
     public Scope() {
         innerScopes = new Stack<>();

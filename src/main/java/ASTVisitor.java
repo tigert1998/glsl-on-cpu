@@ -8,6 +8,7 @@ import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;
+import org.bytedeco.javacpp.annotation.Const;
 
 import java.util.*;
 
@@ -340,25 +341,16 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     public StmtsWrapper extractStmtsWrapper(LangParser.StmtContext stmtCtx) {
-        var visitor = new ASTVisitor(scope);
         if (stmtCtx.compoundStmt() != null) scope.screwIn();
-        var wrapper = (StmtsWrapper) stmtCtx.accept(visitor);
+        var wrapper = (StmtsWrapper) stmtCtx.accept(this);
         if (stmtCtx.compoundStmt() != null) scope.screwOut();
-        if (wrapper == null) this.exceptionList.addAll(visitor.exceptionList);
         return wrapper;
     }
 
     public StmtsWrapper extractStmtsWrapperWithScope(LangParser.StmtContext stmtCtx) {
-        var visitor = new ASTVisitor(scope);
-
         scope.screwIn();
-        StmtsWrapper wrapper = (StmtsWrapper) stmtCtx.accept(visitor);
+        StmtsWrapper wrapper = (StmtsWrapper) stmtCtx.accept(this);
         scope.screwOut();
-
-        if (wrapper == null) {
-            this.exceptionList.addAll(visitor.exceptionList);
-            return null;
-        }
         return wrapper;
     }
 
@@ -366,6 +358,16 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         var list = new ArrayList<StmtsWrapper>();
         for (var stmtContext : stmtCtxList) {
             var wrapper = extractStmtsWrapperWithScope(stmtContext);
+            if (wrapper == null) return null;
+            list.add(wrapper);
+        }
+        return list;
+    }
+
+    public List<StmtsWrapper> extractStmtsWrappersWithoutScopes(List<LangParser.StmtContext> stmtCtxList) {
+        var list = new ArrayList<StmtsWrapper>();
+        for (var stmtContext : stmtCtxList) {
+            var wrapper = extractStmtsWrapper(stmtContext);
             if (wrapper == null) return null;
             list.add(wrapper);
         }
@@ -380,6 +382,59 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             this.exceptionList.add(exception);
             return null;
         }
+    }
+
+    @Override
+    public StmtsWrapper visitSwitchStmt(LangParser.SwitchStmtContext ctx) {
+        var switchExpr = (Expr) ctx.expr().accept(this);
+        if (switchExpr == null) return null;
+        var switchedType = switchExpr.getType();
+        if (!(switchedType instanceof IntType) && !(switchedType instanceof UintType)) {
+            this.exceptionList.add(SyntaxErrorException.switchInteger(ctx.start));
+            return null;
+        }
+        var controlFlowManager = new ControlFlowManager(false, true);
+        var switchStmt = new SwitchStmt(switchExpr, controlFlowManager);
+        scope.pushControlFlowManager(controlFlowManager);
+        for (var itemCtx : ctx.caseItem()) {
+            Long expr;
+            if (itemCtx.DEFAULT() == null) {
+                var visitor = new ConstantVisitor(scope);
+                var value = (Value) itemCtx.expr().accept(visitor);
+                if (value == null) {
+                    this.exceptionList.add(visitor.exception);
+                    switchStmt = null;
+                    break;
+                }
+                if (!value.getType().equals(switchedType)) {
+                    this.exceptionList.add(SyntaxErrorException.caseLabelTypeMismatch(itemCtx.start));
+                    switchStmt = null;
+                    break;
+                }
+                try {
+                    expr = (long) Utility.evalValueAsIntegral(value, itemCtx.expr().start);
+                } catch (SyntaxErrorException ignore) {
+                    expr = null;
+                }
+            } else {
+                expr = null;
+            }
+            var wrappers = extractStmtsWrappersWithoutScopes(itemCtx.stmt());
+            if (wrappers == null) {
+                switchStmt = null;
+                break;
+            }
+            var wrapper = new StmtsWrapper(wrappers);
+            var compoundStmt = new CompoundStmt(wrapper);
+            if (!switchStmt.addCaseItem(expr, compoundStmt)) {
+                this.exceptionList.add(SyntaxErrorException.duplicateCase(itemCtx.start));
+                switchStmt = null;
+                break;
+            }
+        }
+        scope.popControlFlowManager();
+        if (switchStmt == null) return null;
+        return StmtsWrapper.singleton(switchStmt);
     }
 
     @Override
@@ -459,7 +514,8 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         Expr condition;
         CompoundStmt step = null, body = null;
         scope.screwIn();
-        scope.controlFlowManagers.add(new ControlFlowManager());
+        var manager = new ControlFlowManager();
+        scope.pushControlFlowManager(manager);
         {
             var forLoopInitialization = ctx.forLoopInitialization();
             try {
@@ -501,8 +557,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 if (wrapper != null) body = new CompoundStmt(wrapper);
             }
         }
-        var manager = scope.controlFlowManagers.peek();
-        scope.controlFlowManagers.pop();
+        scope.popControlFlowManager();
         scope.screwOut();
         if (!(condition.getType() instanceof BoolType))
             this.exceptionList.add(SyntaxErrorException.notBooleanExpression(ctx.forLoopCondition().start));
@@ -539,19 +594,21 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
 
     @Override
     public StmtsWrapper visitBreakStmt(LangParser.BreakStmtContext ctx) {
-        if (scope.controlFlowManagers.empty()) {
+        var manager = scope.loopupBreak();
+        if (manager == null) {
             this.exceptionList.add(SyntaxErrorException.invalidBreak(ctx.start));
             return null;
         }
-        return StmtsWrapper.singleton(new BreakStmt(scope.controlFlowManagers.peek()));
+        return StmtsWrapper.singleton(new BreakStmt(manager));
     }
 
     @Override
     public StmtsWrapper visitContinueStmt(LangParser.ContinueStmtContext ctx) {
-        if (scope.controlFlowManagers.empty()) {
+        var manager = scope.loopupContinue();
+        if (manager == null) {
             this.exceptionList.add(SyntaxErrorException.invalidContinue(ctx.start));
             return null;
         }
-        return StmtsWrapper.singleton(new ContinueStmt(scope.controlFlowManagers.peek()));
+        return StmtsWrapper.singleton(new ContinueStmt(manager));
     }
 }

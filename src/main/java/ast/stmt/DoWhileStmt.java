@@ -8,7 +8,7 @@ import org.json.JSONObject;
 import static codegen.LLVMUtility.*;
 import static org.bytedeco.llvm.global.LLVM.*;
 
-public class DoWhileStmt extends Stmt implements LoopStmt {
+public class DoWhileStmt extends Stmt {
     public CompoundStmt body;
     public Expr condition;
     private ControlFlowManager controlFlowManager;
@@ -46,7 +46,7 @@ public class DoWhileStmt extends Stmt implements LoopStmt {
 
         LLVMDisposeBuilder(builder);
 
-        LoopStmt.super.addContinueBreaks(controlFlowManager, condBlock, endBlock);
+        controlFlowManager.evaluate(condBlock, endBlock);
         return null;
     }
 

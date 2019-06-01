@@ -7,10 +7,14 @@ import org.json.*;
 
 import java.util.*;
 
+import static org.bytedeco.llvm.global.LLVM.*;
+import static codegen.LLVMUtility.*;
+
 public class SwitchStmt extends Stmt {
     static public class CaseItem {
         public Long key;
         public CompoundStmt stmt;
+        LLVMBasicBlockRef block = null;
 
         public CaseItem(Long key, CompoundStmt stmt) {
             this.key = key;
@@ -18,22 +22,25 @@ public class SwitchStmt extends Stmt {
         }
     }
 
-    private boolean containsDefault = false;
-    private Set<Long> keys = new TreeSet<>();
-
     public Expr expr;
+
+    private Set<Long> keys = new TreeSet<>();
     private List<CaseItem> caseItems = new ArrayList<>();
+    private CaseItem defaultItem = null;
+
     private ControlFlowManager controlFlowManager;
 
     public boolean addCaseItem(Long key, CompoundStmt compoundStmt) {
         if (key == null) {
-            if (containsDefault) return false;
-            containsDefault = true;
+            // default item will appear in both `caseItems` and `defaultItem`
+            if (defaultItem != null) return false;
+            defaultItem = new CaseItem(null, compoundStmt);
+            caseItems.add(defaultItem);
         } else {
             if (keys.contains(key)) return false;
             keys.add(key);
+            caseItems.add(new CaseItem(key, compoundStmt));
         }
-        caseItems.add(new CaseItem(key, compoundStmt));
         return true;
     }
 
@@ -44,20 +51,54 @@ public class SwitchStmt extends Stmt {
 
     @Override
     public LLVMValueRef evaluate(LLVMModuleRef module, LLVMValueRef function, Scope scope) {
-        // todo
-        var sortedCaseItems = caseItems;
-        sortedCaseItems.sort((x, y) -> {
-            if (x.key == null) return 1;
-            if (y.key == null) return -1;
-            return (int) Math.signum(x.key - y.key);
-        });
+        var value = expr.evaluate(module, function, scope);
+
+        var builder = LLVMCreateBuilder();
+        LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(function));
+        value = LLVMBuildLoad(builder, value, "");
+
+        var caseBBMap = new TreeMap<Long, LLVMBasicBlockRef>();
+        LLVMBasicBlockRef defaultBB = null;
+
+        for (var caseItem : caseItems) {
+            if (caseItem.key == null) {
+                defaultBB = caseItem.block = LLVMAppendBasicBlock(function, "default");
+            } else {
+                caseItem.block = LLVMAppendBasicBlock(function, "case_" + caseItem.key);
+                caseBBMap.put(caseItem.key, caseItem.block);
+            }
+            caseItem.stmt.evaluate(module, function, scope);
+        }
+        var end = LLVMAppendBasicBlock(function, "switch_end");
+
+        LLVMValueRef switchHandle;
+        if (defaultBB == null) {
+            switchHandle = LLVMBuildSwitch(builder, value, end, caseBBMap.size());
+        } else {
+            switchHandle = LLVMBuildSwitch(builder, value, defaultBB, caseBBMap.size());
+        }
+        for (var kv : caseBBMap.entrySet()) {
+            LLVMAddCase(switchHandle, constant(kv.getKey()), kv.getValue());
+        }
+
+        for (int i = 0; i < caseItems.size(); i++) {
+            var caseItem = caseItems.get(i);
+            LLVMPositionBuilderAtEnd(builder, caseItem.block);
+            if (i == caseItems.size() - 1) {
+                LLVMBuildBr(builder, end);
+            } else {
+                LLVMBuildBr(builder, caseItems.get(i + 1).block);
+            }
+        }
+
+        controlFlowManager.evaluate(null, end);
         return null;
     }
 
     @Override
     public JSONObject toJSON() {
         var json = super.toJSON();
-        json.put("key", expr.toJSON());
+        json.put("expr", expr.toJSON());
         var array = new JSONArray();
         for (var item : caseItems) {
             var obj = new JSONObject();

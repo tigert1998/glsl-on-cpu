@@ -9,10 +9,10 @@ import java.util.*;
 
 public class SwitchStmt extends Stmt {
     static public class CaseItem {
-        public Expr expr;
+        public Long expr;
         public CompoundStmt stmt;
 
-        public CaseItem(Expr expr, CompoundStmt stmt) {
+        public CaseItem(Long expr, CompoundStmt stmt) {
             this.expr = expr;
             this.stmt = stmt;
         }
@@ -40,7 +40,7 @@ public class SwitchStmt extends Stmt {
         var array = new JSONArray();
         for (var item : caseItems) {
             var obj = new JSONObject();
-            obj.put("expr", item.expr == null ? "default" : item.expr.toJSON());
+            obj.put("expr", item.expr == null ? "default" : item.expr);
             obj.put("stmt", item.stmt.toJSON());
             array.put(obj);
         }

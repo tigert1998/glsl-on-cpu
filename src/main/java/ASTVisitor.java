@@ -397,7 +397,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         var switchStmt = new SwitchStmt(switchExpr, controlFlowManager);
         scope.pushControlFlowManager(controlFlowManager);
         for (var itemCtx : ctx.caseItem()) {
-            ConstExpr expr;
+            Long expr;
             if (itemCtx.DEFAULT() == null) {
                 var visitor = new ConstantVisitor(scope);
                 var value = (Value) itemCtx.expr().accept(visitor);
@@ -410,7 +410,11 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                     return null;
 
                 }
-                expr = new ConstExpr(value);
+                try {
+                    expr = (long) Utility.evalValueAsIntegral(value, itemCtx.expr().start);
+                } catch (SyntaxErrorException ignore) {
+                    expr = null;
+                }
             } else {
                 expr = null;
             }

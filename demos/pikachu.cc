@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cstdio>
+#include <algorithm>
 
 extern "C"
 {
@@ -59,7 +60,7 @@ int main()
             GLSL_mainImage(&fragColor, &fragCoord);
             for (int k = 0; k < 3; k++)
             {
-                printf("%d ", int(*fragColor[k] * *fragColor[3] * 255));
+                printf("%d ", std::min(255, int(*fragColor[k] * *fragColor[3] * 255)));
             }
         }
     }

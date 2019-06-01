@@ -106,4 +106,17 @@ public class SyntaxErrorException extends Exception {
     public static SyntaxErrorException invalidContinue(Token token) {
         return new SyntaxErrorException(token, "continue statement only allowed in loops");
     }
+
+    public static SyntaxErrorException switchInteger(Token token) {
+        return new SyntaxErrorException(token, "'switch': init-expression" +
+                " in a switch statement must be a scalar integer");
+    }
+
+    public static SyntaxErrorException caseLabelTypeMismatch(Token token) {
+        return new SyntaxErrorException(token, "'case': case label type does not match switch init-expression type");
+    }
+
+    public static SyntaxErrorException constantExpressionRequired(Token token) {
+        return new SyntaxErrorException(token, "constant expression required");
+    }
 }

@@ -8,6 +8,7 @@ import ast.stmt.*;
 import ast.types.*;
 import ast.values.*;
 import org.antlr.v4.runtime.Token;
+import org.bytedeco.javacpp.annotation.Const;
 
 import java.util.*;
 
@@ -340,25 +341,16 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
     }
 
     public StmtsWrapper extractStmtsWrapper(LangParser.StmtContext stmtCtx) {
-        var visitor = new ASTVisitor(scope);
         if (stmtCtx.compoundStmt() != null) scope.screwIn();
-        var wrapper = (StmtsWrapper) stmtCtx.accept(visitor);
+        var wrapper = (StmtsWrapper) stmtCtx.accept(this);
         if (stmtCtx.compoundStmt() != null) scope.screwOut();
-        if (wrapper == null) this.exceptionList.addAll(visitor.exceptionList);
         return wrapper;
     }
 
     public StmtsWrapper extractStmtsWrapperWithScope(LangParser.StmtContext stmtCtx) {
-        var visitor = new ASTVisitor(scope);
-
         scope.screwIn();
-        StmtsWrapper wrapper = (StmtsWrapper) stmtCtx.accept(visitor);
+        StmtsWrapper wrapper = (StmtsWrapper) stmtCtx.accept(this);
         scope.screwOut();
-
-        if (wrapper == null) {
-            this.exceptionList.addAll(visitor.exceptionList);
-            return null;
-        }
         return wrapper;
     }
 
@@ -366,6 +358,16 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         var list = new ArrayList<StmtsWrapper>();
         for (var stmtContext : stmtCtxList) {
             var wrapper = extractStmtsWrapperWithScope(stmtContext);
+            if (wrapper == null) return null;
+            list.add(wrapper);
+        }
+        return list;
+    }
+
+    public List<StmtsWrapper> extractStmtsWrappersWithoutScopes(List<LangParser.StmtContext> stmtCtxList) {
+        var list = new ArrayList<StmtsWrapper>();
+        for (var stmtContext : stmtCtxList) {
+            var wrapper = extractStmtsWrapper(stmtContext);
             if (wrapper == null) return null;
             list.add(wrapper);
         }
@@ -380,6 +382,43 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             this.exceptionList.add(exception);
             return null;
         }
+    }
+
+    @Override
+    public StmtsWrapper visitSwitchStmt(LangParser.SwitchStmtContext ctx) {
+        var switchExpr = (Expr) ctx.expr().accept(this);
+        if (switchExpr == null) return null;
+        var switchedType = switchExpr.getType();
+        if (!(switchedType instanceof IntType) && !(switchedType instanceof UintType)) {
+            this.exceptionList.add(SyntaxErrorException.switchInteger(ctx.start));
+            return null;
+        }
+        var switchStmt = new SwitchStmt(switchExpr);
+        for (var itemCtx : ctx.caseItem()) {
+            ConstExpr expr;
+            if (itemCtx.DEFAULT() == null) {
+                var visitor = new ConstantVisitor(scope);
+                var value = (Value) itemCtx.expr().accept(visitor);
+                if (value == null) {
+                    this.exceptionList.add(visitor.exception);
+                    return null;
+                }
+                if (!value.getType().equals(switchedType)) {
+                    this.exceptionList.add(SyntaxErrorException.caseLabelTypeMismatch(itemCtx.start));
+                    return null;
+
+                }
+                expr = new ConstExpr(value);
+            } else {
+                expr = null;
+            }
+            var wrappers = extractStmtsWrappersWithoutScopes(itemCtx.stmt());
+            if (wrappers == null) return null;
+            var wrapper = new StmtsWrapper(wrappers);
+            var compoundStmt = new CompoundStmt(wrapper);
+            switchStmt.caseItems.add(new SwitchStmt.CaseItem(expr, compoundStmt));
+        }
+        return StmtsWrapper.singleton(switchStmt);
     }
 
     @Override

@@ -294,24 +294,24 @@ public class Utility {
     public static StmtsWrapper whileStmtFromCtx(LangParser.WhileLoopStmtContext ctx, Scope scope)
             throws SyntaxErrorException {
         var manager = new ControlFlowManager();
-        scope.controlFlowManagers.push(manager);
+        scope.pushControlFlowManager(manager);
         var expr = extractExprAsBoolType(ctx.expr(), scope);
         var visitor = new ASTVisitor(scope);
         var wrapper = visitor.extractStmtsWrapperWithScope(ctx.stmt());
         if (wrapper == null) throw visitor.exceptionList.get(0);
-        scope.controlFlowManagers.pop();
+        scope.popControlFlowManager();
         return StmtsWrapper.singleton(new WhileStmt(expr, new CompoundStmt(wrapper), manager));
     }
 
     public static StmtsWrapper doWhileStmtFromCtx(LangParser.DoWhileLoopStmtContext ctx, Scope scope)
             throws SyntaxErrorException {
         var manager = new ControlFlowManager();
-        scope.controlFlowManagers.push(manager);
+        scope.pushControlFlowManager(manager);
         var expr = extractExprAsBoolType(ctx.expr(), scope);
         var visitor = new ASTVisitor(scope);
         var wrapper = visitor.extractStmtsWrapperWithScope(ctx.stmt());
         if (wrapper == null) throw visitor.exceptionList.get(0);
-        scope.controlFlowManagers.pop();
+        scope.popControlFlowManager();
         return StmtsWrapper.singleton(new DoWhileStmt(new CompoundStmt(wrapper), expr, manager));
     }
 }

@@ -393,7 +393,9 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             this.exceptionList.add(SyntaxErrorException.switchInteger(ctx.start));
             return null;
         }
-        var switchStmt = new SwitchStmt(switchExpr);
+        var controlFlowManager = new ControlFlowManager(false, true);
+        var switchStmt = new SwitchStmt(switchExpr, controlFlowManager);
+        scope.pushControlFlowManager(controlFlowManager);
         for (var itemCtx : ctx.caseItem()) {
             ConstExpr expr;
             if (itemCtx.DEFAULT() == null) {
@@ -418,6 +420,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
             var compoundStmt = new CompoundStmt(wrapper);
             switchStmt.caseItems.add(new SwitchStmt.CaseItem(expr, compoundStmt));
         }
+        scope.popControlFlowManager();
         return StmtsWrapper.singleton(switchStmt);
     }
 
@@ -498,7 +501,8 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
         Expr condition;
         CompoundStmt step = null, body = null;
         scope.screwIn();
-        scope.controlFlowManagers.add(new ControlFlowManager());
+        var manager = new ControlFlowManager();
+        scope.pushControlFlowManager(manager);
         {
             var forLoopInitialization = ctx.forLoopInitialization();
             try {
@@ -540,8 +544,7 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
                 if (wrapper != null) body = new CompoundStmt(wrapper);
             }
         }
-        var manager = scope.controlFlowManagers.peek();
-        scope.controlFlowManagers.pop();
+        scope.popControlFlowManager();
         scope.screwOut();
         if (!(condition.getType() instanceof BoolType))
             this.exceptionList.add(SyntaxErrorException.notBooleanExpression(ctx.forLoopCondition().start));
@@ -578,19 +581,21 @@ public class ASTVisitor extends LangBaseVisitor<AST> {
 
     @Override
     public StmtsWrapper visitBreakStmt(LangParser.BreakStmtContext ctx) {
-        if (scope.controlFlowManagers.empty()) {
+        var manager = scope.loopupBreak();
+        if (manager == null) {
             this.exceptionList.add(SyntaxErrorException.invalidBreak(ctx.start));
             return null;
         }
-        return StmtsWrapper.singleton(new BreakStmt(scope.controlFlowManagers.peek()));
+        return StmtsWrapper.singleton(new BreakStmt(manager));
     }
 
     @Override
     public StmtsWrapper visitContinueStmt(LangParser.ContinueStmtContext ctx) {
-        if (scope.controlFlowManagers.empty()) {
+        var manager = scope.loopupContinue();
+        if (manager == null) {
             this.exceptionList.add(SyntaxErrorException.invalidContinue(ctx.start));
             return null;
         }
-        return StmtsWrapper.singleton(new ContinueStmt(scope.controlFlowManagers.peek()));
+        return StmtsWrapper.singleton(new ContinueStmt(manager));
     }
 }

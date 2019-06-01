@@ -20,9 +20,11 @@ public class SwitchStmt extends Stmt {
 
     public Expr expr;
     public List<CaseItem> caseItems = new ArrayList<>();
+    private ControlFlowManager controlFlowManager;
 
-    public SwitchStmt(Expr expr) {
+    public SwitchStmt(Expr expr, ControlFlowManager controlFlowManager) {
         this.expr = expr;
+        this.controlFlowManager = controlFlowManager;
     }
 
     @Override

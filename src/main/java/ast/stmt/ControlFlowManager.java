@@ -25,6 +25,16 @@ public class ControlFlowManager {
 
     public List<InstructionLocation> controls = new ArrayList<>();
 
+    public boolean allowContinue = true, allowBreak = true;
+
+    public ControlFlowManager() {
+    }
+
+    public ControlFlowManager(boolean allowContinue, boolean allowBreak) {
+        this.allowContinue = allowContinue;
+        this.allowBreak = allowBreak;
+    }
+
     public void addContinue(LLVMBasicBlockRef block) {
         controls.add(new InstructionLocation(InstructionLocation.ControlType.CONTINUE,
                 LLVMGetLastInstruction(block), block));

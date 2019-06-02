@@ -20,7 +20,7 @@ public class Main {
 
         Option input = new Option("i", "input", true,
                 "Input file path");
-        input.setRequired(true);
+        input.setRequired(false);
         options.addOption(input);
 
         Option dumpAST = new Option("a", "dump-ast", false,
@@ -53,6 +53,11 @@ public class Main {
         if (cmd.hasOption(help.getLongOpt())) {
             formatter.printHelp("glsl-on-cpu", options);
             System.exit(0);
+        }
+
+        if (!cmd.hasOption(input.getLongOpt())) {
+            System.err.println("Missing required option: i");
+            System.exit(1);
         }
 
         filePath = Paths.get(cmd.getOptionValue(input.getLongOpt()));

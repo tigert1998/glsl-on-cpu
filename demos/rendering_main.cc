@@ -1,3 +1,5 @@
+// Usage: ./a.out > image.ppm
+
 #include <cmath>
 #include <cstdio>
 #include <algorithm>

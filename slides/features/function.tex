@@ -1,0 +1,17 @@
+\subsection{Function}
+
+\begin{frame}[fragile]{Function}
+    Rule:
+    \begin{lstlisting}
+function: type ID '(' parameters ')' '{' statements* '}';
+parameters =
+    | (parameter ',')* parameter;
+parameter: 'const'? ('in' | 'out' | 'inout')? type ID;
+    \end{lstlisting}
+    Sample:
+    \begin{lstlisting}
+void foo(const in vec3 input, out vec3 output) {
+    // etc
+}
+    \end{lstlisting}
+\end{frame}

@@ -57,3 +57,22 @@
     \end{block}
 
 \end{frame}
+
+\begin{frame}[fragile]{Sample Code}
+   \begin{lstlisting}
+#version 400
+layout (location = 0) in vec3 inPos;
+layout (location = 1) in vec3 inCol;
+out vec3 vertCol;
+uniform mat4 u_projectionMat44;
+uniform mat4 u_viewMat44;
+uniform mat4 u_modelMat44;
+void main()
+{
+    vertCol       = inCol;
+    vec4 modelPos = u_modelMat44 * vec4( inPos, 1.0 );
+    vec4 viewPos  = u_viewMat44 * modelPos;
+    gl_Position   = u_projectionMat44 * viewPos;
+}
+   \end{lstlisting}
+\end{frame}

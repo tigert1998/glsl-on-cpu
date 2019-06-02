@@ -12,10 +12,28 @@
   \usefonttheme{default}  % or try serif, structurebold, ...
   \setbeamertemplate{navigation symbols}{}
   \setbeamertemplate{caption}[numbered]
-} 
+}
 
+\usepackage{listings}
+\usepackage{textcomp}
+\usepackage{color}
 \usepackage[english]{babel}
 \usepackage[utf8x]{inputenc}
+
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  upquote=true
+}
 
 \title[]{GLSL on CPU}
 \author{Tang Xiaohu, Tian ye, Zhang qian}
@@ -33,7 +51,7 @@
 
 \input{introduction.tex}
 
-% \input{algorithm.tex}
+\input{features/main.tex}
 
 % \input{test.tex}
 

@@ -6,4 +6,5 @@ out
 *.iml
 
 slides/*
-!slides/*.tex
+!slides/*/
+!slides/**.tex

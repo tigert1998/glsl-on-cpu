@@ -1,0 +1,35 @@
+\subsection{extern "C"}
+
+\begin{frame}[fragile]{extern "C"}
+    How to fuse C++ (name mangling) and C 
+    (does not support function overloading) together?
+
+    \begin{lstlisting}
+// C++ 
+A<Type> a;
+extern "C" int export_to_c() { return a.foo().bar(); }
+int others() { return a.bar().foo(); }
+
+/*
+> nm ${OBJ_FILE}
+export_to_c
+some_mangled_name
+*/
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{extern "C"}
+    We bring extern "C" to our compiler as well. With this method,
+    we could easily borrow functionality from C/C++.
+    \begin{lstlisting}
+// glsl 
+extern "C" {
+    int import_from_c();
+}
+void foo() { import_from_c(); }
+
+// C
+int GLSL_import_from_c() {}
+// function name differs in C (additional prefix "GLSL_")
+    \end{lstlisting}
+\end{frame}

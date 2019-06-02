@@ -3,7 +3,7 @@ const float PI=3.14159265;
 float iTime=1.7360450000269338;
 vec3 iResolution=vec3(512,288,1);
 
-extern"C"{
+extern "C" {
     float cos(float x);
     float sin(float x);
     float floor(float x);

@@ -166,7 +166,7 @@ public class Mult extends Operator implements BinaryOperator {
     }
 
     protected VecnType apply(VecnType x, MatnxmType y) throws OperatorCannotBeAppliedException {
-        if (x.getN() == y.getM()) throw new OperatorCannotBeAppliedException(this, x, y);
+        if (x.getN() != y.getM()) throw new OperatorCannotBeAppliedException(this, x, y);
         return VecnType.fromN(y.getN());
     }
 

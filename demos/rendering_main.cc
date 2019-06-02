@@ -9,18 +9,9 @@ extern "C"
     void GLSL_floor(float *x, float *ret);
     void GLSL_pow(float *x, float *y, float *ret);
     void GLSL_mainImage(float *(*fragColor)[4], float *(*fragCoord)[2]);
-    void GLSL_print(float *(*x)[4]);
 }
 
 extern float iResolution[3];
-
-void GLSL_print(float *(*x)[4])
-{
-    printf("(");
-    for (int i = 0; i < 4; i++)
-        printf("%.3f, ", *((*x)[i]));
-    printf(")\n");
-}
 
 void GLSL_cos(float *x, float *ret)
 {
@@ -60,7 +51,7 @@ int main()
             GLSL_mainImage(&fragColor, &fragCoord);
             for (int k = 0; k < 3; k++)
             {
-                printf("%d ", std::min(255, int(*fragColor[k] * *fragColor[3] * 255)));
+                printf("%d ", std::max(std::min(255, int(*fragColor[k] * *fragColor[3] * 255)), 0));
             }
         }
     }

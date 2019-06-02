@@ -15,3 +15,47 @@ void foo(const in vec3 input, out vec3 output) {
 }
     \end{lstlisting}
 \end{frame}
+
+\begin{frame}[fragile]{Function Parameter Qualifier}
+    \begin{itemize}
+        \item `const in': immutable parameter. Any mutation would break the rule
+        \item `in': pass by value
+        \item `out' and `inout': both means pass by reference
+        \begin{itemize}
+            \item `out': semantically means inner subroutine does not need original value
+            \item `inout': means pass by reference
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Shadowing}
+    \begin{lstlisting}
+int x;
+{
+    // Yes
+    int x;
+}
+// No
+// for (int x = 0; x < 10; ++x)
+for (int i = 0; i < 10; ++i) {
+    // Yes
+    int x;
+}
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Function Overloading}
+    The same function name can be defined multiple times 
+    with different parameter lists.
+
+    Use name mangling to avoid id conflicts in obj-level.
+    \begin{lstlisting}
+int foo(int x) { }
+float foo(float x) {  }
+/*
+> nm ${OBJ_FILE}
+$foo.int
+$foo.float
+*/
+    \end{lstlisting}
+\end{frame}

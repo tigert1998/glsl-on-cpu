@@ -65,7 +65,7 @@ store float %value, %vx
 \begin{frame}{Implementation for Swizzling: Reference Structure}
     Make modifications in the correct place. Take `.zyx' for an instance:
     \begin{figure}
-        \includegraphics[width=0.45\linewidth]{../resources/slides/swizzle.png}
+        \includegraphics[width=0.42\linewidth]{../resources/slides/swizzle.png}
     \end{figure}
 \end{frame}
 
@@ -79,5 +79,34 @@ vec2(vec3(1.0, 2.0, 3.0));
 // error. Too many components.
 mat3 diagMatrix = mat3(5.0);
 // Diagonal matrix with 5.0 on the diagonal.
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Struct}
+    Structs are constructed by filling in their values 
+    in the order in which they are defined.
+    \begin{lstlisting}
+struct Data
+{
+  float first;
+  vec2 second;
+};
+
+Data dataValue = Data(1.4, vec2(16.0, 22.5));
+dataValue.second; // vec2    
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Array}
+    Array constructor and automatic array length deduction!
+    \begin{lstlisting}
+Data dataArray[] = Data[](
+    Data(1.0, vec2(-19.0, 4.5)),
+    Data(-3.0, vec2(2.718, 2.0)),
+    Data(29.5, vec2(3.142, 3.333)));
+Data[] dataArray = Data[](
+    Data(1.0, vec2(-19.0, 4.5)),
+    Data(-3.0, vec2(2.718, 2.0)),
+    Data(29.5, vec2(3.142, 3.333))); 
     \end{lstlisting}
 \end{frame}

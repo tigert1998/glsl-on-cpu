@@ -7,4 +7,4 @@ out
 
 slides/*
 !slides/*/
-!slides/**.tex
+!slides/*.tex

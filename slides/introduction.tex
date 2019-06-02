@@ -67,8 +67,7 @@ out vec3 vertCol;
 uniform mat4 u_projectionMat44;
 uniform mat4 u_viewMat44;
 uniform mat4 u_modelMat44;
-void main()
-{
+void main() {
     vertCol       = inCol;
     vec4 modelPos = u_modelMat44 * vec4( inPos, 1.0 );
     vec4 viewPos  = u_viewMat44 * modelPos;

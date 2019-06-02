@@ -4,3 +4,6 @@ build
 .idea
 out
 *.iml
+
+slides/*
+!slides/*.tex

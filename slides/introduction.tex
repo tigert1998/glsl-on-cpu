@@ -1,0 +1,59 @@
+\section{Introduction}
+
+\begin{frame}{OpenGL Shader}
+
+    What is shader?
+
+    \begin{figure}
+        \includegraphics[width=0.2\linewidth]{../resources/slides/opengl_logo.png}
+        \includegraphics[width=0.2\linewidth]{../resources/slides/webgl_logo.png}
+    \end{figure}
+
+    \begin{figure}
+        \includegraphics[width=0.15\linewidth]{../resources/slides/chrome_logo.png}
+    \end{figure}
+
+    \begin{figure}
+        \includegraphics[width=0.2\linewidth]{../resources/slides/nvidia_logo.png}
+        \includegraphics[width=0.2\linewidth]{../resources/slides/amd_logo.png}
+    \end{figure}
+
+\end{frame}
+
+\begin{frame}{OpenGL Shader}
+
+    What is the difference between GL shader and C?
+
+    \begin{itemize}
+        \item Language level support for vector and matrix operation
+              \begin{itemize}
+                  \item vec3(...) * mat3(...)
+                  \item vec3 v; v.zyx = vec3(1, 2, 3);
+              \end{itemize}
+        \item No pointer
+        \item No heap allocated memory (in the view of CPU memory structure)
+        \item GPU based language
+        \item Additional techniques for rendering pipeline (`in', `out', `texture', etc)
+    \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{What we did and Why?}
+    \begin{block}{What we did?}
+        Compile a GPU language to LLVM IR
+    \end{block}
+
+    \begin{block}{Why we did it?}
+        \begin{itemize}
+            \item a toy language just for fun
+            \item it may provide better debugging experience for GLSL
+            \item Stack Overflow: \href{https://stackoverflow.com/questions/2508818/how-to-debug-a-glsl-shader}{How to debug a GLSL shader}.
+            \begin{itemize}
+                \item ``Using glslDevil or other tools is your best bet''
+                \item ``Output something visually distinctive to the screen''    
+            \end{itemize}
+        \end{itemize}
+    \end{block}
+
+\end{frame}

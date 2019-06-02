@@ -1,3 +1,9 @@
 resources/ filter=lfs diff=lfs merge=lfs -text
 resources/drive.png filter=lfs diff=lfs merge=lfs -text
 resources/pikachu.png filter=lfs diff=lfs merge=lfs -text
+resources/slides filter=lfs diff=lfs merge=lfs -text
+resources/slides/webgl_logo.png filter=lfs diff=lfs merge=lfs -text
+resources/slides/amd_logo.png filter=lfs diff=lfs merge=lfs -text
+resources/slides/chrome_logo.png filter=lfs diff=lfs merge=lfs -text
+resources/slides/nvidia_logo.png filter=lfs diff=lfs merge=lfs -text
+resources/slides/opengl_logo.png filter=lfs diff=lfs merge=lfs -text

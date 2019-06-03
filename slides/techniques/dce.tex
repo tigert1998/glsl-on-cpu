@@ -1,0 +1,13 @@
+\subsection{Dead Code Elimination}
+
+\begin{frame}[fragile]{Dead Code Elimination}
+    IR level dead code elimination:
+    \begin{lstlisting}
+some_label:
+    store ...
+    %a = load ...
+    br label %another_label
+    %b = icmp ...           ; reduced
+    br label %whatever      ; reduced
+    \end{lstlisting}
+\end{frame}

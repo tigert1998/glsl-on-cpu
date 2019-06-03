@@ -1,0 +1,31 @@
+\subsection{constexpr}
+
+\begin{frame}[fragile]{constexpr}
+    constexpr - specifies that the value of a variable 
+    or function can appear in constant expressions
+
+    \begin{lstlisting}
+const struct S { vec3 x; } a = S(vec3(3, 2, 1));
+const int b = int(a.x * 10086.);
+
+// constexpr
+int arr[b];
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{if constexpr}
+    In a constexpr if statement, the value of condition must be a contextually 
+    converted constant expression of type bool. If the value is true, 
+    then statement-false is discarded (if present), otherwise, statement-true is discarded.
+
+    \begin{lstlisting}
+const struct S { vec3 x; } a = S(vec3(3, 2, 1));
+const int b = int(a.x * 10086.);
+
+if (b == 3 * 10086) {
+    // kept
+} else {
+    // discarded anyway
+}
+    \end{lstlisting}
+\end{frame}
